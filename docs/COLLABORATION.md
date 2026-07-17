@@ -33,7 +33,7 @@ This ID is preserved for Build Week `/feedback` and development-session traceabi
 
 **Human feedback:** The mission felt compelling for a non-technical learner, but its ending needed to explain what happened, why the four lines worked, and what the player personally did.
 
-**Codex / GPT-5.6 contribution:** Turned the compact receipt into a readable field-note debrief without changing compiler or verifier authority. The new recap derives its claims from the PASS receipt, translates the phases into Look → Choose → Change → Check, credits the learner's evidence-driven repair, stays truthful for direct-success and repair paths, removes obscured controls from keyboard focus, and is covered at 1600×900 and 1280×720.
+**Codex / GPT-5.6 contribution:** Turned the compact receipt into a readable field-note debrief without changing compiler or verifier authority. The new recap derives its claims from the PASS receipt, translates the phases into Look → Choose → Change → Check, credits the learner's evidence-driven repair, stays truthful for direct-success and repair paths, removes obscured controls from keyboard focus, and is covered at 1600×900 and 1280×720. Commit `8d2f0b5` deployed in [Actions run 29618190795](https://github.com/b33fydan/agentville-build-week/actions/runs/29618190795), and the public mission passed 117/117 browser assertions.
 
 ## Clean-room declaration
 

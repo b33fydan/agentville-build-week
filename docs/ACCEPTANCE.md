@@ -16,7 +16,7 @@ A first-time player can open the game in a desktop browser and complete one dete
 
 | ID | Pass condition | Evidence target |
 | --- | --- | --- |
-| A1 | The production build opens in Chromium with no install, account, or API key. | **PASS** — `npm run test:public`, 92/92 assertions at the live Pages URL |
+| A1 | The production build opens in Chromium with no install, account, or API key. | **PASS** — `npm run test:public`, 117/117 assertions at the live Pages URL |
 | A2 | **Start mission** loads the same compact farm and blocked East Channel on every reset. | Mission-state unit test + browser state hook |
 | A3 | The Workbench accepts a player-authored four-line program containing `observe`, `decide`, `act`, and `verify` in order. | Compiler tests + browser smoke |
 | A4 | Invalid syntax cannot mutate the farm and reports the offending line with a concrete repair suggestion. | Compiler sandbox tests + UI smoke |
@@ -38,10 +38,10 @@ A first-time player can open the game in a desktop browser and complete one dete
 | ID | Pass condition | Evidence target | Status |
 | --- | --- | --- | --- |
 | M1 | At least two of three first-time testers reach the receipt within five minutes without verbal coaching. | Dated playtest records in `artifacts/evidence/` | Pending genuine sessions |
-| M2 | The public deployment completes the same full mission in the declared judging browser. | [Live Pages URL](https://b33fydan.github.io/agentville-build-week/) + `npm run test:public` | **PASS** — 92/92 browser assertions on 2026-07-17 |
+| M2 | The public deployment completes the same full mission in the declared judging browser. | [Live Pages URL](https://b33fydan.github.io/agentville-build-week/) + `npm run test:public` | **PASS** — 117/117 browser assertions on 2026-07-17 |
 | M3 | The demo video shows the authored draft, failure, repair, world change, receipt, and feedback session continuity. | Timestamped Devpost evidence index | Pending video |
 
-All automated criteria pass locally: 26/26 Node tests and 117/117 production-browser assertions. The deployed baseline remains 92/92 until the A16 debrief release is published and rehearsed. M2 is complete for the existing mission; M1 and M3 remain visibly incomplete until genuine human and video evidence exists.
+All automated criteria pass: 26/26 Node tests, 117/117 local production-browser assertions, and 117/117 public-browser assertions. M2 and the A16 debrief are complete; M1 and M3 remain visibly incomplete until genuine human and video evidence exists.
 
 ## Non-goals for this build
 

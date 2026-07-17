@@ -129,7 +129,7 @@ The app also exposes two deterministic automation seams:
 
 The browser smoke rejects console/page errors, external requests, state/DOM disagreement, missing session continuity, and a false PASS. Machine-readable results are written to `artifacts/evidence/latest-smoke.json` for local production and `artifacts/evidence/latest-public-smoke.json` for the deployed build.
 
-Current validation passes 26/26 Node tests and 117/117 browser assertions against local production `dist/`. The last public report remains at its previously deployed 92/92 baseline until this debrief release is published and rehearsed.
+Current validation passes 26/26 Node tests, 117/117 browser assertions against local production `dist/`, and 117/117 against the public Pages deployment.
 
 ## Production build and deployment
 
@@ -140,7 +140,7 @@ node scripts/serve.mjs --root=dist --port=4173
 
 `dist/` is a static site. The canonical deployment is [GitHub Pages](https://b33fydan.github.io/agentville-build-week/), published from `main` by `.github/workflows/pages.yml`. Each push installs Chromium, runs `npm run smoke`, uploads `dist/`, and deploys only after validation passes. The first successful deployment was [Actions run 29554682024](https://github.com/b33fydan/agentville-build-week/actions/runs/29554682024) at commit `cb57621` on 2026-07-17.
 
-The live root and `/feedback/` route returned HTTP 200, and `npm run test:public` completed the deployed mission with 92/92 browser assertions. `vercel.json` and `netlify.toml` remain valid alternate-host declarations. No deployment path requires a server function or application secret.
+The live root and `/feedback/` route return HTTP 200, and `npm run test:public` completes the deployed mission with 117/117 browser assertions. The learner-debrief release deployed successfully in [Actions run 29618190795](https://github.com/b33fydan/agentville-build-week/actions/runs/29618190795) at commit `8d2f0b5` on 2026-07-17. `vercel.json` and `netlify.toml` remain valid alternate-host declarations. No deployment path requires a server function or application secret.
 
 ## Submission evidence
 

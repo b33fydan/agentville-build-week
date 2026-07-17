@@ -48,4 +48,5 @@ Original prompt: Build a clean-room hackathon project called AgentVille: Build W
 - Made the debrief the active keyboard region while visible, set the dimmed page behind it inert, and restored editor focus on same-document replay.
 - Added three Node tests and 25 browser assertions for explanation semantics, focus, inert state, readable type, 1280×720 containment, action hit-testing, and reset cleanup.
 - `npm run smoke` passes locally with 26/26 Node tests and 117/117 production-browser assertions; canonical 1600×900 and 1280×720 debrief captures were visually inspected.
-- Next: deploy this release, rerun `npm run test:public`, and preserve the updated public proof.
+- Deployed commit `8d2f0b5` in GitHub Actions run `29618190795`; Pages reported the same SHA.
+- `npm run test:public` then passed 117/117 against the live URL with empty browser and network diagnostics, and the public evidence report was preserved.

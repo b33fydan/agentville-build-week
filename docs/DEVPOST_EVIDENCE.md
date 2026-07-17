@@ -25,7 +25,7 @@
 
 | Criterion | Artifact or command | Status |
 | --- | --- | --- |
-| A1 | `npm run test:public` against [GitHub Pages](https://b33fydan.github.io/agentville-build-week/) | PASS — 92/92 public browser assertions |
+| A1 | `npm run test:public` against [GitHub Pages](https://b33fydan.github.io/agentville-build-week/) | PASS — 117/117 public browser assertions |
 | A2–A16 | `npm run smoke` | PASS — 26/26 Node tests + 117/117 local browser assertions |
 | Hero frame | `artifacts/screenshots/agentville-build-week-hero.png` | Captured and inspected |
 | Compiler error | `artifacts/screenshots/agentville-build-week-compiler-error.png` | Captured and inspected |
@@ -34,10 +34,10 @@
 | Debrief at judging viewport | `artifacts/screenshots/agentville-build-week-debrief-1280.png` | Captured and inspected at 1280×720; no clipping or scroll |
 | Feedback continuity | `artifacts/screenshots/agentville-build-week-feedback.png` | Captured and inspected |
 | Local machine evidence | `artifacts/evidence/latest-smoke.json` | PASS against `dist/`; diagnostics empty |
-| Public mission smoke | `artifacts/evidence/latest-public-smoke.json` via `npm run test:public` | PASS — 92/92; console, page, request, response, and dialog diagnostics empty |
+| Public mission smoke | `artifacts/evidence/latest-public-smoke.json` via `npm run test:public` | PASS — 117/117; console, page, request, response, and dialog diagnostics empty |
 | Human evidence | `artifacts/evidence/playtest-YYYY-MM-DD-<tester>.json` | Pending genuine sessions |
 | Source evidence | [github.com/b33fydan/agentville-build-week](https://github.com/b33fydan/agentville-build-week) | PUBLIC repository; first deployed commit `cb57621` |
-| Deployment evidence | [b33fydan.github.io/agentville-build-week](https://b33fydan.github.io/agentville-build-week/) | PASS — HTTP 200; [Actions run 29554682024](https://github.com/b33fydan/agentville-build-week/actions/runs/29554682024) succeeded on 2026-07-17 |
+| Deployment evidence | [b33fydan.github.io/agentville-build-week](https://b33fydan.github.io/agentville-build-week/) | PASS — HTTP 200; debrief release [Actions run 29618190795](https://github.com/b33fydan/agentville-build-week/actions/runs/29618190795) succeeded on 2026-07-17 |
 
 ## Deployment snapshot
 
@@ -45,7 +45,8 @@
 - **Source:** [https://github.com/b33fydan/agentville-build-week](https://github.com/b33fydan/agentville-build-week)
 - **Playable build:** [https://b33fydan.github.io/agentville-build-week/](https://b33fydan.github.io/agentville-build-week/)
 - **First successful deployment:** Actions run `29554682024` at commit `cb57621`
-- **Public verification:** HTTP 200 plus `npm run test:public` with 92/92 browser assertions
+- **Learner-debrief deployment:** Actions run `29618190795` at commit `8d2f0b5`
+- **Public verification:** HTTP 200 plus `npm run test:public` with 117/117 browser assertions
 - **Still pending:** three genuine playtests, demo video URL, and any separate Build Week `/feedback` ID
 
 ## `/feedback` continuity contract
