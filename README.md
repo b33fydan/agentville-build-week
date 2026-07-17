@@ -4,6 +4,8 @@
 
 AgentVille: Build Week Edition is a clean-room browser game for OpenAI Build Week's Education track. A player writes a tiny, safe agent program; compiles it into a visible plan; watches one farm agent named Bert execute it; discovers that valid syntax can still produce the wrong result; repairs one line; and receives a verification receipt derived from the changed farm.
 
+**Play:** [b33fydan.github.io/agentville-build-week](https://b33fydan.github.io/agentville-build-week/) · **Source:** [github.com/b33fydan/agentville-build-week](https://github.com/b33fydan/agentville-build-week)
+
 ![AgentVille Build Week Edition showing the compact voxel farm and typed Agent Workbench](artifacts/screenshots/agentville-build-week-hero.png)
 
 The whole lesson is one causal chain:
@@ -112,6 +114,7 @@ src/mission.js  ── deterministic before/after evidence + receipt
 ```bash
 npm test              # compiler, sandbox, state transitions, receipts
 npm run test:browser  # full typed draft → FAIL → repair → PASS flow
+npm run test:public   # same 92-assertion flow against the live Pages URL
 npm run smoke         # unit tests + production build + browser flow
 npm run capture       # refresh the canonical submission screenshots
 ```
@@ -121,7 +124,9 @@ The app also exposes two deterministic automation seams:
 - `window.render_game_to_text()` returns the canonical visible/interactive mission state.
 - `window.advanceTime(ms)` advances the animation at fixed 60 Hz steps.
 
-The browser smoke rejects console/page errors, external requests, state/DOM disagreement, missing session continuity, and a false PASS. Machine-readable results are written to `artifacts/evidence/latest-smoke.json`.
+The browser smoke rejects console/page errors, external requests, state/DOM disagreement, missing session continuity, and a false PASS. Machine-readable results are written to `artifacts/evidence/latest-smoke.json` for local production and `artifacts/evidence/latest-public-smoke.json` for the deployed build.
+
+Current validation passes 23/23 Node tests, 92/92 browser assertions against local production `dist/`, and 92/92 browser assertions against the public Pages deployment.
 
 ## Production build and deployment
 
@@ -130,7 +135,9 @@ npm run build
 node scripts/serve.mjs --root=dist --port=4173
 ```
 
-`dist/` is a static site. `vercel.json` and `netlify.toml` declare the build command, output directory, and `/feedback` route for either host. Deploying the repository requires no server function and no application secret.
+`dist/` is a static site. The canonical deployment is [GitHub Pages](https://b33fydan.github.io/agentville-build-week/), published from `main` by `.github/workflows/pages.yml`. Each push installs Chromium, runs `npm run smoke`, uploads `dist/`, and deploys only after validation passes. The first successful deployment was [Actions run 29554682024](https://github.com/b33fydan/agentville-build-week/actions/runs/29554682024) at commit `cb57621` on 2026-07-17.
+
+The live root and `/feedback/` route returned HTTP 200, and `npm run test:public` completed the deployed mission with 92/92 browser assertions. `vercel.json` and `netlify.toml` remain valid alternate-host declarations. No deployment path requires a server function or application secret.
 
 ## Submission evidence
 
@@ -140,7 +147,7 @@ The successful receipt ID is carried unchanged to:
 /feedback/?session_id=<receipt-session-id>
 ```
 
-The feedback page displays that ID, matches it against the locally preserved receipt, and includes it unchanged in the downloadable JSON response. See [docs/DEVPOST_EVIDENCE.md](docs/DEVPOST_EVIDENCE.md) for the artifact ledger. Human playtest and public-URL gates are deliberately left incomplete until genuine evidence exists.
+The feedback page displays that ID, matches it against the locally preserved receipt, and includes it unchanged in the downloadable JSON response. See [docs/DEVPOST_EVIDENCE.md](docs/DEVPOST_EVIDENCE.md) for the artifact ledger. Public deployment is proven; human playtests, the demo video, and any separate event-issued `/feedback` ID remain incomplete until genuine evidence exists.
 
 ## Scope
 

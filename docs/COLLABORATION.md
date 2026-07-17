@@ -21,6 +21,14 @@ This ID is preserved for Build Week `/feedback` and development-session traceabi
 
 **Authority boundary:** Codex Coach prose can teach; only the deterministic compiler and mission simulator can change the world or issue a PASS receipt.
 
+## 2026-07-17 — Browser publication and public proof
+
+- Published the clean-room source at [github.com/b33fydan/agentville-build-week](https://github.com/b33fydan/agentville-build-week).
+- Deployed the static production build at [b33fydan.github.io/agentville-build-week](https://b33fydan.github.io/agentville-build-week/).
+- Preserved the first successful deployment as [Actions run 29554682024](https://github.com/b33fydan/agentville-build-week/actions/runs/29554682024) at commit `cb57621`.
+- Confirmed HTTP 200 at the live origin and reran the complete causal lesson with `npm run test:public`; current validation is 23/23 Node tests, 92/92 local browser assertions, and 92/92 public browser assertions.
+- Kept genuine human playtests, the demo video, and any separate event-issued `/feedback` ID explicitly pending rather than inferring evidence.
+
 ## Clean-room declaration
 
 The build did not copy or adapt implementation code, art, screenshots, or generated artifacts from `/Volumes/beefybackup/AgentVille`. Source and visuals were authored within `/Volumes/beefybackup/agentville-build-week`; game art is procedural Canvas 2D plus CSS.

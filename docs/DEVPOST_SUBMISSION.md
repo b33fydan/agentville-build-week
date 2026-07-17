@@ -6,6 +6,10 @@
 
 **Tagline:** A five-minute voxel lesson where a learner programs one farm agent, diagnoses one honest failure, repairs the cause, and proves the world changed.
 
+**Play:** [https://b33fydan.github.io/agentville-build-week/](https://b33fydan.github.io/agentville-build-week/)
+
+**Source:** [https://github.com/b33fydan/agentville-build-week](https://github.com/b33fydan/agentville-build-week)
+
 ## Inspiration
 
 Agent tutorials often explain planning in abstract boxes and arrows. Beginner coding lessons often stop when code runs. We wanted one small, tactile experience that teaches the missing idea between them: an agent's intention is not proof of a correct outcome.
@@ -26,7 +30,9 @@ The game is a static HTML, CSS, and JavaScript application. Canvas 2D draws the 
 
 The Workbench language is an explicit allowlist, not arbitrary scripting. The compiler creates an immutable four-step plan. A pure deterministic simulator owns the blocked channel, released water, and three tomato-bed states. The visual timeline consumes that evidence but cannot decide the verdict.
 
-Node's built-in test runner covers the parser, sandbox rejections, state transitions, receipt, reset, and determinism. A Playwright smoke types into the real editor and validates the complete production flow from invalid syntax through failure, repair, receipt, feedback continuity, reset, responsive layout, and same-origin-only networking.
+Node's built-in test runner covers the parser, sandbox rejections, state transitions, receipt, reset, determinism, and public-smoke arguments. The current suite passes 23/23. A Playwright smoke types into the real editor and validates the complete production flow from invalid syntax through failure, repair, receipt, feedback continuity, reset, responsive layout, and same-origin-only networking; both local production and public runs pass 92/92 assertions.
+
+GitHub Pages deploys the static `dist/` artifact only after that local production smoke passes. The first deployment succeeded in Actions run `29554682024` at commit `cb57621`; a second full rehearsal against the public URL passed 92/92 browser assertions.
 
 ## GPT-5.6 / Codex collaboration
 
@@ -51,7 +57,7 @@ The shipped Codex Coach is deterministic and locally authored from that collabor
 - A verification receipt generated from before/after world state
 - A feedback route that preserves the exact mission session ID
 - Automated unit and browser coverage plus submission-ready evidence frames
-- A static artifact that can deploy without a backend or secret
+- A static artifact deployed on GitHub Pages without a backend or secret
 
 ## What we learned
 
@@ -65,12 +71,10 @@ After three first-time learner sessions and the Build Week feedback review, the 
 
 ## Technologies
 
-JavaScript · HTML · CSS · Canvas 2D · Node.js test runner · Playwright · Codex / GPT-5.6 · Vercel/Netlify static hosting
+JavaScript · HTML · CSS · Canvas 2D · Node.js test runner · Playwright · Codex / GPT-5.6 · GitHub Actions · GitHub Pages
 
 ## Submission fields still requiring genuine external evidence
 
-- Public playable URL
-- Source repository URL
 - Demo video URL
 - Three recorded first-time playtest outcomes
 - `/feedback` Build Week session ID if the event tooling provides one

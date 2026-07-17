@@ -2,11 +2,11 @@
   "schema": "agentville.browser-smoke.v1",
   "status": "PASS",
   "invocation": "smoke",
-  "startedAt": "2026-07-17T04:29:35.111Z",
-  "finishedAt": "2026-07-17T04:29:43.562Z",
-  "durationMs": 8451,
-  "target": "dist",
-  "baseUrl": "http://127.0.0.1:53449",
+  "startedAt": "2026-07-17T04:29:18.843Z",
+  "finishedAt": "2026-07-17T04:29:27.965Z",
+  "durationMs": 9122,
+  "target": "public",
+  "baseUrl": "https://b33fydan.github.io/agentville-build-week/",
   "browser": {
     "engine": "chromium",
     "headless": true,
@@ -18,10 +18,11 @@
   },
   "assertions": [
     {
-      "name": "production build exists",
+      "name": "public target uses HTTPS",
       "passed": true,
       "details": {
-        "root": "/Volumes/beefybackup/agentville-build-week/dist"
+        "actual": "https:",
+        "expected": "https:"
       }
     },
     {
@@ -475,16 +476,16 @@
       "name": "feedback link stays on the game origin",
       "passed": true,
       "details": {
-        "actual": "http://127.0.0.1:53449",
-        "expected": "http://127.0.0.1:53449"
+        "actual": "https://b33fydan.github.io",
+        "expected": "https://b33fydan.github.io"
       }
     },
     {
       "name": "feedback link uses the feedback route",
       "passed": true,
       "details": {
-        "actual": "/feedback/",
-        "expected": "/feedback/"
+        "actual": "/agentville-build-week/feedback/",
+        "expected": "/agentville-build-week/feedback/"
       }
     },
     {
@@ -499,8 +500,8 @@
       "name": "visible Give feedback href matches state",
       "passed": true,
       "details": {
-        "actual": "http://127.0.0.1:53449/feedback/?session_id=AVBW-TEST-0001",
-        "expected": "http://127.0.0.1:53449/feedback/?session_id=AVBW-TEST-0001"
+        "actual": "https://b33fydan.github.io/agentville-build-week/feedback/?session_id=AVBW-TEST-0001",
+        "expected": "https://b33fydan.github.io/agentville-build-week/feedback/?session_id=AVBW-TEST-0001"
       }
     },
     {
@@ -585,7 +586,7 @@
       "name": "feedback export produces a local download",
       "passed": true,
       "details": {
-        "downloadedPath": "/var/folders/2x/zw6qlh_d6_x5r_p8cf1g3xww0000gn/T/playwright-artifacts-EUic65/fd568ef9-79c4-481d-8cae-d13f16897c9b"
+        "downloadedPath": "/var/folders/2x/zw6qlh_d6_x5r_p8cf1g3xww0000gn/T/playwright-artifacts-uXO8XZ/47d29b0e-6db9-4fc3-8947-591d9dd06249"
       }
     },
     {
@@ -838,7 +839,7 @@
     "receipt": "artifacts/screenshots/agentville-build-week-receipt.png",
     "feedback": "artifacts/screenshots/agentville-build-week-feedback.png",
     "debug": "artifacts/screenshots/agentville-build-week-smoke-error.png",
-    "report": "artifacts/evidence/latest-smoke.json"
+    "report": "artifacts/evidence/latest-public-smoke.json"
   },
   "diagnostics": {
     "consoleErrors": [],
@@ -848,10 +849,6 @@
     "responseErrors": [],
     "dialogs": [],
     "runnerError": null,
-    "server": {
-      "root": "/Volumes/beefybackup/agentville-build-week/dist",
-      "stderr": "",
-      "stdout": "AgentVille running at http://127.0.0.1:53449"
-    }
+    "server": null
   }
 }

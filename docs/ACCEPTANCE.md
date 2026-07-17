@@ -16,7 +16,7 @@ A first-time player can open the game in a desktop browser and complete one dete
 
 | ID | Pass condition | Evidence target |
 | --- | --- | --- |
-| A1 | The production build opens in Chromium with no install, account, or API key. | Browser smoke against `dist/` |
+| A1 | The production build opens in Chromium with no install, account, or API key. | **PASS** — `npm run test:public`, 92/92 assertions at the live Pages URL |
 | A2 | **Start mission** loads the same compact farm and blocked East Channel on every reset. | Mission-state unit test + browser state hook |
 | A3 | The Workbench accepts a player-authored four-line program containing `observe`, `decide`, `act`, and `verify` in order. | Compiler tests + browser smoke |
 | A4 | Invalid syntax cannot mutate the farm and reports the offending line with a concrete repair suggestion. | Compiler sandbox tests + UI smoke |
@@ -34,13 +34,13 @@ A first-time player can open the game in a desktop browser and complete one dete
 
 ## Manual acceptance before submission
 
-| ID | Pass condition | Evidence target |
-| --- | --- | --- |
-| M1 | At least two of three first-time testers reach the receipt within five minutes without verbal coaching. | Dated playtest records in `artifacts/evidence/` |
-| M2 | The public deployment completes the same full mission in the declared judging browser. | URL + clean-browser rehearsal |
-| M3 | The demo video shows the authored draft, failure, repair, world change, receipt, and feedback session continuity. | Timestamped Devpost evidence index |
+| ID | Pass condition | Evidence target | Status |
+| --- | --- | --- | --- |
+| M1 | At least two of three first-time testers reach the receipt within five minutes without verbal coaching. | Dated playtest records in `artifacts/evidence/` | Pending genuine sessions |
+| M2 | The public deployment completes the same full mission in the declared judging browser. | [Live Pages URL](https://b33fydan.github.io/agentville-build-week/) + `npm run test:public` | **PASS** — 92/92 browser assertions on 2026-07-17 |
+| M3 | The demo video shows the authored draft, failure, repair, world change, receipt, and feedback session continuity. | Timestamped Devpost evidence index | Pending video |
 
-Manual gates remain visibly incomplete until genuine human or deployed evidence exists.
+All automated criteria pass: 23/23 Node tests, 92/92 local production-browser assertions, and 92/92 public-browser assertions. M2 is complete; M1 and M3 remain visibly incomplete until genuine human and video evidence exists.
 
 ## Non-goals for this build
 

@@ -14,6 +14,7 @@ const SERVE_SCRIPT = resolve(ROOT, "scripts", "serve.mjs");
 const SCREENSHOT_DIR = resolve(ROOT, "artifacts", "screenshots");
 const EVIDENCE_DIR = resolve(ROOT, "artifacts", "evidence");
 const REPORT_PATH = resolve(EVIDENCE_DIR, "latest-smoke.json");
+const PUBLIC_REPORT_PATH = resolve(EVIDENCE_DIR, "latest-public-smoke.json");
 const PLAYWRIGHT_VERSION = createRequire(import.meta.url)("playwright/package.json").version;
 
 const DRAFT_PROGRAM = [
@@ -43,13 +44,16 @@ const ARTIFACTS = Object.freeze({
 });
 
 export function parseSmokeArgs(argv = process.argv.slice(2)) {
+  const urlFlag = argv.find((argument) => argument.startsWith("--url="));
+  const urlIndex = argv.indexOf("--url");
   return {
     dist: argv.includes("--dist"),
     headless: !argv.includes("--headed"),
+    url: urlFlag?.slice("--url=".length) || (urlIndex >= 0 ? argv[urlIndex + 1] : null) || null,
   };
 }
 
-export async function runBrowserSmoke({ dist = false, headless = true, invocation = "smoke" } = {}) {
+export async function runBrowserSmoke({ dist = false, headless = true, invocation = "smoke", url = null } = {}) {
   const startedAt = new Date();
   const assertions = [];
   const diagnostics = {
@@ -66,6 +70,7 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
       .filter(([name]) => name !== "report")
       .map(([name, relativePath]) => [name, resolve(ROOT, relativePath)]),
   );
+  const reportPath = url ? PUBLIC_REPORT_PATH : REPORT_PATH;
 
   let browser = null;
   let context = null;
@@ -94,15 +99,20 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
   };
 
   try {
-    const serveRoot = dist ? DIST : ROOT;
-    check(
-      dist ? "production build exists" : "source site exists",
-      existsSync(resolve(serveRoot, "index.html")),
-      { root: serveRoot },
-    );
+    if (url) {
+      baseUrl = normalizeBaseUrl(url);
+      equal("public target uses HTTPS", new URL(baseUrl).protocol, "https:");
+    } else {
+      const serveRoot = dist ? DIST : ROOT;
+      check(
+        dist ? "production build exists" : "source site exists",
+        existsSync(resolve(serveRoot, "index.html")),
+        { root: serveRoot },
+      );
 
-    server = await startStaticServer(serveRoot);
-    baseUrl = server.baseUrl;
+      server = await startStaticServer(serveRoot);
+      baseUrl = server.baseUrl;
+    }
     const allowedOrigin = new URL(baseUrl).origin;
 
     browser = await chromium.launch({
@@ -172,7 +182,7 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     page = await context.newPage();
     attachGuards(page, "mission");
 
-    const missionUrl = new URL("/?test=1&seed=east-channel-v1", baseUrl).href;
+    const missionUrl = new URL("./?test=1&seed=east-channel-v1", normalizeBaseUrl(baseUrl)).href;
     await page.goto(missionUrl, { waitUntil: "networkidle" });
     await page.waitForFunction(() => {
       const app = document.querySelector('[data-testid="app-ready"]');
@@ -301,7 +311,11 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
 
     const feedbackUrl = new URL(passed.feedbackHref);
     equal("feedback link stays on the game origin", feedbackUrl.origin, allowedOrigin);
-    equal("feedback link uses the feedback route", feedbackUrl.pathname, "/feedback/");
+    equal(
+      "feedback link uses the feedback route",
+      feedbackUrl.pathname,
+      new URL("./feedback/", normalizeBaseUrl(baseUrl)).pathname,
+    );
     equal("feedback link carries exact receipt ID", feedbackUrl.searchParams.get("session_id"), passed.receipt.sessionId);
     equal(
       "visible Give feedback href matches state",
@@ -443,7 +457,7 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
       startedAt: startedAt.toISOString(),
       finishedAt: finishedAt.toISOString(),
       durationMs: finishedAt.getTime() - startedAt.getTime(),
-      target: dist ? "dist" : "source",
+      target: url ? "public" : dist ? "dist" : "source",
       baseUrl,
       browser: {
         engine: "chromium",
@@ -453,7 +467,10 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
       },
       assertions,
       stateSummary,
-      artifacts: ARTIFACTS,
+      artifacts: {
+        ...ARTIFACTS,
+        report: url ? "artifacts/evidence/latest-public-smoke.json" : ARTIFACTS.report,
+      },
       diagnostics: {
         ...diagnostics,
         runnerError,
@@ -466,12 +483,12 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
           : null,
       },
     };
-    await writeFile(REPORT_PATH, `${JSON.stringify(report, null, 2)}\n`, "utf8");
+    await writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`, "utf8");
   }
 
   return {
     ok: status === "PASS",
-    reportPath: REPORT_PATH,
+    reportPath,
     runnerError,
     status,
   };
@@ -592,6 +609,14 @@ function isAllowedUrl(value, allowedOrigin) {
   } catch {
     return false;
   }
+}
+
+function normalizeBaseUrl(value) {
+  const url = new URL(value);
+  url.search = "";
+  url.hash = "";
+  if (!url.pathname.endsWith("/")) url.pathname += "/";
+  return url.href;
 }
 
 async function startStaticServer(root) {

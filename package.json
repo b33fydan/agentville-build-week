@@ -9,6 +9,7 @@
     "build": "node scripts/build.mjs",
     "test": "node --test tests/*.test.mjs",
     "test:browser": "node scripts/smoke-browser.mjs",
+    "test:public": "node scripts/smoke-browser.mjs --url=https://b33fydan.github.io/agentville-build-week/",
     "capture": "node scripts/capture-evidence.mjs",
     "smoke": "npm test && npm run build && node scripts/smoke-browser.mjs --dist"
   },
