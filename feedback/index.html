@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#17352c" />
+    <title>Mission Feedback · AgentVille</title>
+    <link rel="stylesheet" href="../src/styles.css" />
+  </head>
+  <body class="feedback-body">
+    <main class="feedback-page">
+      <a class="back-link" href="../">← Return to the farm</a>
+      <section class="feedback-card">
+        <header>
+          <p class="eyebrow">Build Week field notes</p>
+          <h1>How did Bert's lesson land?</h1>
+          <p>Your mission ID stays attached so this playtest can be matched to its verification receipt.</p>
+        </header>
+
+        <div class="feedback-session">
+          <span>Verified session</span>
+          <strong id="feedback-session-id" data-testid="feedback-session-id">Missing session ID</strong>
+          <small id="feedback-session-status">Open feedback from a completed receipt.</small>
+        </div>
+
+        <form id="feedback-form">
+          <fieldset>
+            <legend>I understood why the first plan failed.</legend>
+            <div class="rating-row">
+              <label><input type="radio" name="clarity" value="1" required /><span>1</span><small>Not yet</small></label>
+              <label><input type="radio" name="clarity" value="2" /><span>2</span><small>A little</small></label>
+              <label><input type="radio" name="clarity" value="3" /><span>3</span><small>Mostly</small></label>
+              <label><input type="radio" name="clarity" value="4" /><span>4</span><small>Clearly</small></label>
+              <label><input type="radio" name="clarity" value="5" /><span>5</span><small>Absolutely</small></label>
+            </div>
+          </fieldset>
+
+          <label class="field-label" for="learned">What did the mission teach you?</label>
+          <textarea id="learned" name="learned" rows="3" maxlength="500" required placeholder="I learned that verification checks the world, not the intention…"></textarea>
+
+          <label class="field-label" for="friction">Where did you hesitate?</label>
+          <textarea id="friction" name="friction" rows="3" maxlength="500" placeholder="The line I had to reread was…"></textarea>
+
+          <label class="consent-row">
+            <input id="evidence-consent" name="evidenceConsent" type="checkbox" />
+            <span>Include this anonymous response in Build Week evidence.</span>
+          </label>
+
+          <button id="submit-feedback" class="primary-button" type="submit">Save feedback evidence <i aria-hidden="true">→</i></button>
+        </form>
+
+        <div id="feedback-confirmation" class="feedback-confirmation" hidden>
+          <span aria-hidden="true">✓</span>
+          <div><strong>Feedback preserved locally.</strong><p>Download the JSON artifact for the Devpost evidence ledger.</p></div>
+          <button id="download-feedback" class="secondary-button" data-testid="feedback-export" type="button">Download JSON</button>
+        </div>
+      </section>
+      <p class="feedback-footer">Local-first by design · No response leaves this browser</p>
+    </main>
+    <script type="module" src="./feedback.js"></script>
+  </body>
+</html>

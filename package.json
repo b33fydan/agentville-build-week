@@ -1,0 +1,22 @@
+{
+  "name": "agentville-build-week",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A five-minute voxel mission for learning the observe-decide-act-verify agent loop.",
+  "scripts": {
+    "dev": "node scripts/serve.mjs",
+    "build": "node scripts/build.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "test:browser": "node scripts/smoke-browser.mjs",
+    "capture": "node scripts/capture-evidence.mjs",
+    "smoke": "npm test && npm run build && node scripts/smoke-browser.mjs --dist"
+  },
+  "devDependencies": {
+    "playwright": "1.61.1"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "MIT"
+}

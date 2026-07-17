@@ -5,8 +5,13 @@ node_modules/
 dist/
 playwright-report/
 test-results/
+artifacts/browser/
 artifacts/screenshots/*.png
-artifacts/evidence/*.json
+!artifacts/screenshots/agentville-build-week-hero.png
+!artifacts/screenshots/agentville-build-week-compiler-error.png
+!artifacts/screenshots/agentville-build-week-failure.png
+!artifacts/screenshots/agentville-build-week-receipt.png
+!artifacts/screenshots/agentville-build-week-feedback.png
 !.gitkeep
 .env
 .env.*

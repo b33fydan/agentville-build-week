@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Write a tiny safe agent program, help Bert repair a blocked irrigation channel, and prove the world changed."
+    />
+    <meta name="theme-color" content="#17352c" />
+    <title>AgentVille: Build Week Edition</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#program-editor">Skip to Agent Workbench</a>
+    <main id="app" class="app-shell" data-mode="welcome" data-testid="app-ready">
+      <header class="topbar">
+        <div class="brand-lockup" aria-label="AgentVille Build Week Edition">
+          <span class="brand-mark" aria-hidden="true">
+            <i></i><i></i><i></i>
+          </span>
+          <div>
+            <p class="eyebrow">OpenAI Build Week · Education</p>
+            <h1>AgentVille <span>Build Week Edition</span></h1>
+          </div>
+        </div>
+        <div class="mission-meta">
+          <span class="live-dot" aria-hidden="true"></span>
+          <span id="mission-clock">05:00 mission</span>
+          <span class="meta-divider" aria-hidden="true"></span>
+          <span id="session-label">Session not started</span>
+        </div>
+      </header>
+
+      <nav class="stage-rail" aria-label="Mission progress">
+        <ol>
+          <li data-stage="inspect"><span>1</span><b>Inspect</b><small>See the world</small></li>
+          <li data-stage="program"><span>2</span><b>Program</b><small>Write the loop</small></li>
+          <li data-stage="failure"><span>3</span><b>Diagnose</b><small>Read the failure</small></li>
+          <li data-stage="repair"><span>4</span><b>Repair</b><small>Change the action</small></li>
+          <li data-stage="proof"><span>5</span><b>Prove</b><small>Verify the farm</small></li>
+        </ol>
+      </nav>
+
+      <div class="workspace">
+        <section class="scene-card" aria-labelledby="world-title">
+          <canvas
+            id="farm-canvas"
+            data-testid="farm-canvas"
+            role="img"
+            aria-label="A compact isometric voxel farm. Water from the west reservoir stops at debris in the East Channel before reaching three dry tomato beds. Bert waits beside the channel."
+          ></canvas>
+          <div class="scene-grain" aria-hidden="true"></div>
+
+          <article class="mission-card">
+            <p class="card-kicker">Mission 01 · East Channel</p>
+            <h2 id="world-title">The tomatoes are thirsty.</h2>
+            <p id="world-objective">Inspect the channel, program Bert, and prove the water arrives.</p>
+            <div class="world-facts" aria-label="World status">
+              <span id="fact-blockage"><i class="fact-icon warning"></i>Channel blocked</span>
+              <span id="fact-crops"><i class="fact-icon dry"></i>0 / 3 watered</span>
+            </div>
+          </article>
+
+          <div class="world-callout blockage-callout" id="blockage-callout">
+            <span>!</span>
+            <div><b>Debris jam</b><small>Water stops here</small></div>
+          </div>
+
+          <div class="bert-tag" id="bert-tag"><span aria-hidden="true"></span><b>Bert</b><small>farm agent</small></div>
+
+          <div class="scene-caption">
+            <p><span id="caption-phase">WORLD STATE</span><b id="scene-caption">Blocked channel → dry tomatoes</b></p>
+            <button id="motion-toggle" class="icon-button" type="button" aria-pressed="false">Reduce motion</button>
+          </div>
+
+          <div class="start-layer" id="start-layer">
+            <div class="start-card">
+              <p class="start-number">01 <span>/ 01</span></p>
+              <p class="eyebrow">Five-minute field lesson</p>
+              <h2>Teach Bert to fix what he can see.</h2>
+              <p>
+                Write four safe instructions. Your first plan will fail honestly. Use the evidence, repair one line, and earn a world-state receipt.
+              </p>
+              <button id="start-button" class="primary-button start-button" data-testid="start-mission" type="button">
+                <span>Start mission</span><kbd>Enter</kbd>
+              </button>
+              <small>No account · No API key · Deterministic world</small>
+            </div>
+          </div>
+        </section>
+
+        <aside class="workbench" aria-labelledby="workbench-title">
+          <header class="workbench-header">
+            <div>
+              <p class="eyebrow terminal-eyebrow">Typed agent program</p>
+              <h2 id="workbench-title">Agent Workbench</h2>
+            </div>
+            <span id="compiler-badge" class="compiler-badge">Waiting</span>
+          </header>
+
+          <section class="lesson-prompt" aria-labelledby="prompt-title">
+            <div>
+              <span class="lesson-step" id="lesson-step">Step 1</span>
+              <h3 id="prompt-title">Inspect the farm first.</h3>
+            </div>
+            <p id="lesson-copy">Start the mission to open Bert's local workbench.</p>
+          </section>
+
+          <section class="language-card" aria-label="Safe language reference">
+            <div class="language-heading">
+              <span>FIELD LANGUAGE · 4 LINES</span>
+              <button id="hint-button" type="button" disabled>Show draft</button>
+            </div>
+            <ol id="language-reference">
+              <li><code>observe</code><span>read world state</span></li>
+              <li><code>decide</code><span>choose from evidence</span></li>
+              <li><code>act</code><span>change one thing</span></li>
+              <li><code>verify</code><span>prove the outcome</span></li>
+            </ol>
+          </section>
+
+          <section class="editor-shell" aria-label="Program editor">
+            <div class="editor-toolbar">
+              <span><i></i> repair_irrigation.agent</span>
+              <span id="editor-status">0 / 4 phases</span>
+            </div>
+            <div class="editor-area">
+              <div id="line-numbers" class="line-numbers" aria-hidden="true">1<br />2<br />3<br />4</div>
+              <textarea
+                id="program-editor"
+                data-testid="program-editor"
+                aria-label="Agent program"
+                aria-describedby="editor-help"
+                autocomplete="off"
+                autocapitalize="off"
+                spellcheck="false"
+                disabled
+                placeholder="Type your four-line agent program…"
+              ></textarea>
+            </div>
+            <p id="editor-help" class="editor-help">One allowlisted instruction per line. No loops, scripts, or network.</p>
+          </section>
+
+          <section class="trace-shell" aria-labelledby="trace-title">
+            <div class="trace-heading">
+              <h3 id="trace-title">Compiler + execution trace</h3>
+              <span id="trace-count">0 events</span>
+            </div>
+            <div id="trace-output" class="trace-output" data-testid="compiler-trace" role="log" aria-live="polite" aria-relevant="additions">
+              <div class="empty-trace"><span>›_</span><p>Your plan will become visible here.</p></div>
+            </div>
+          </section>
+
+          <div class="action-row">
+            <button id="compile-button" class="secondary-button" data-testid="compile-program" type="button" disabled>
+              <span>Compile plan</span><kbd>⌘ ↵</kbd>
+            </button>
+            <button id="run-button" class="primary-button" data-testid="run-program" type="button" disabled>
+              <span>Run with Bert</span><i aria-hidden="true">→</i>
+            </button>
+          </div>
+
+          <p class="safety-note"><span aria-hidden="true">◆</span> Local safe compiler · World state decides PASS</p>
+        </aside>
+      </div>
+
+      <section id="receipt-panel" class="receipt-panel" data-testid="receipt" aria-labelledby="receipt-title" hidden>
+        <div class="receipt-stamp" data-testid="verification-status"><span>✓</span>PASS</div>
+        <div class="receipt-heading">
+          <p class="eyebrow">Verification receipt</p>
+          <h2 id="receipt-title">Bert changed the world correctly.</h2>
+          <p id="receipt-summary">The channel is clear and all tomato beds are watered.</p>
+        </div>
+        <dl class="receipt-grid">
+          <div><dt>Session</dt><dd id="receipt-session" data-testid="receipt-session-id">—</dd></div>
+          <div><dt>Observed</dt><dd id="receipt-observed">—</dd></div>
+          <div><dt>Action</dt><dd id="receipt-action">—</dd></div>
+          <div><dt>Proof</dt><dd id="receipt-proof">—</dd></div>
+        </dl>
+        <div class="receipt-actions">
+          <button id="copy-receipt" class="secondary-button" type="button">Copy receipt</button>
+          <a id="feedback-link" class="primary-button" data-testid="give-feedback" href="./feedback/">Give feedback <i aria-hidden="true">→</i></a>
+          <button id="reset-button" class="text-button" data-testid="reset-mission" type="button">Replay mission</button>
+        </div>
+      </section>
+
+      <div id="announcer" class="sr-only" aria-live="polite"></div>
+      <span id="verification-status-text" class="sr-only">Not run</span>
+    </main>
+    <script type="module" src="./src/app.js"></script>
+  </body>
+</html>
