@@ -1,4 +1,5 @@
 import { PHASES, compileProgram } from "./compiler.js";
+import { createLearningRecap } from "./debrief.js";
 import {
   MISSION_NAME,
   createInitialMissionState,
@@ -24,6 +25,7 @@ const SEED = new URLSearchParams(window.location.search).get("seed") || "east-ch
 
 const elements = {
   app: query("#app"),
+  debriefBackgroundTargets: [query(".topbar"), query(".stage-rail"), query(".workspace")],
   canvas: query("#farm-canvas"),
   missionClock: query("#mission-clock"),
   sessionLabel: query("#session-label"),
@@ -52,10 +54,16 @@ const elements = {
   compileButton: query("#compile-button"),
   runButton: query("#run-button"),
   receiptPanel: query("#receipt-panel"),
+  receiptTitle: query("#receipt-title"),
+  receiptSummary: query("#receipt-summary"),
   receiptSession: query("#receipt-session"),
   receiptObserved: query("#receipt-observed"),
   receiptAction: query("#receipt-action"),
   receiptProof: query("#receipt-proof"),
+  recapIntro: query("#recap-intro"),
+  recapPhases: [...document.querySelectorAll("[data-recap-phase]")],
+  recapTakeawayTitle: query("#recap-takeaway-title"),
+  recapTakeawayCopy: query("#recap-takeaway-copy"),
   feedbackLink: query("#feedback-link"),
   copyReceipt: query("#copy-receipt"),
   resetButton: query("#reset-button"),
@@ -418,6 +426,7 @@ function finishExecution() {
 
   state.domDirty = true;
   render();
+  if (state.receipt) requestAnimationFrame(() => elements.receiptPanel.focus({ preventScroll: true }));
 }
 
 function render() {
@@ -657,8 +666,22 @@ function renderControls() {
 
 function renderReceipt() {
   if (!state.receipt) {
+    for (const target of elements.debriefBackgroundTargets) target.inert = false;
     elements.receiptPanel.hidden = true;
     return;
+  }
+
+  for (const target of elements.debriefBackgroundTargets) target.inert = true;
+  const recap = createLearningRecap(state.receipt, { failureSeen: state.failureSeen });
+  elements.receiptTitle.textContent = recap.title;
+  elements.receiptSummary.textContent = recap.summary;
+  elements.recapIntro.textContent = recap.intro;
+  elements.recapTakeawayTitle.textContent = recap.takeaway.title;
+  elements.recapTakeawayCopy.textContent = recap.takeaway.explanation;
+  for (const phase of recap.phases) {
+    const item = elements.recapPhases.find((candidate) => candidate.dataset.recapPhase === phase.phase);
+    item.querySelector("[data-recap-command]").textContent = phase.command;
+    item.querySelector("[data-recap-copy]").textContent = phase.explanation;
   }
 
   elements.receiptSession.textContent = state.receipt.sessionId;
@@ -772,6 +795,7 @@ function snapshotForAutomation() {
   const plan = state.compiledPlan?.steps.map(({ line, phase, command, label }) => ({ line, phase, command, label })) ?? [];
   const compileError = state.compileResult?.ok === false ? state.compileResult.errors[0] : null;
   const visibleWorld = visualWorldState();
+  const learningRecap = createLearningRecap(state.receipt, { failureSeen: state.failureSeen });
   return {
     schemaVersion: 1,
     ready: state.ready,
@@ -813,6 +837,7 @@ function snapshotForAutomation() {
     verification: { ...state.verification },
     coach: state.coach ? { ...state.coach } : null,
     receipt: state.receipt ? structuredClone(state.receipt) : null,
+    learningRecap: learningRecap ? structuredClone(learningRecap) : null,
     feedbackHref: state.receipt ? new URL(elements.feedbackLink.href, window.location.href).href : null,
   };
 }

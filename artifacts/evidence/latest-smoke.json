@@ -2,11 +2,11 @@
   "schema": "agentville.browser-smoke.v1",
   "status": "PASS",
   "invocation": "smoke",
-  "startedAt": "2026-07-17T04:29:35.111Z",
-  "finishedAt": "2026-07-17T04:29:43.562Z",
-  "durationMs": 8451,
+  "startedAt": "2026-07-17T22:28:48.080Z",
+  "finishedAt": "2026-07-17T22:28:58.936Z",
+  "durationMs": 10856,
   "target": "dist",
-  "baseUrl": "http://127.0.0.1:53449",
+  "baseUrl": "http://127.0.0.1:56448",
   "browser": {
     "engine": "chromium",
     "headless": true,
@@ -464,6 +464,119 @@
       "details": {}
     },
     {
+      "name": "learning recap is exposed in automation state",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "learning recap records the repair path",
+      "passed": true,
+      "details": {
+        "actual": "repair",
+        "expected": "repair"
+      }
+    },
+    {
+      "name": "learning recap names the learner accomplishment",
+      "passed": true,
+      "details": {
+        "actual": "You fixed the cause—and proved it.",
+        "expected": "You fixed the cause—and proved it."
+      }
+    },
+    {
+      "name": "learning recap keeps the four phase order",
+      "passed": true,
+      "details": {
+        "actual": "observe,decide,act,verify",
+        "expected": "observe,decide,act,verify"
+      }
+    },
+    {
+      "name": "learning recap explains the repaired action",
+      "passed": true,
+      "details": {
+        "actual": "act clear blockage",
+        "expected": "act clear blockage"
+      }
+    },
+    {
+      "name": "learning recap reports the verified crop total",
+      "passed": true,
+      "details": {
+        "actual": 3,
+        "expected": 3
+      }
+    },
+    {
+      "name": "learning recap credits an observed failure",
+      "passed": true,
+      "details": {
+        "actual": true,
+        "expected": true
+      }
+    },
+    {
+      "name": "learning recap identifies the changed line",
+      "passed": true,
+      "details": {
+        "actual": 3,
+        "expected": 3
+      }
+    },
+    {
+      "name": "learning recap preserves the failed action",
+      "passed": true,
+      "details": {
+        "actual": "act water tomatoes",
+        "expected": "act water tomatoes"
+      }
+    },
+    {
+      "name": "learning recap preserves the repaired action",
+      "passed": true,
+      "details": {
+        "actual": "act clear blockage",
+        "expected": "act clear blockage"
+      }
+    },
+    {
+      "name": "learning recap tile is visible",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "learning recap renders four visible phase cards",
+      "passed": true,
+      "details": {
+        "actual": 4,
+        "expected": 4
+      }
+    },
+    {
+      "name": "learning takeaway tells the player they debugged an agent",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "keyboard focus moves to the mission debrief",
+      "passed": true,
+      "details": {
+        "actual": "receipt-panel",
+        "expected": "receipt-panel"
+      }
+    },
+    {
+      "name": "background controls become inert behind the debrief",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "learning explanation uses readable body type",
+      "passed": true,
+      "details": {}
+    },
+    {
       "name": "visible receipt session matches state",
       "passed": true,
       "details": {
@@ -475,8 +588,8 @@
       "name": "feedback link stays on the game origin",
       "passed": true,
       "details": {
-        "actual": "http://127.0.0.1:53449",
-        "expected": "http://127.0.0.1:53449"
+        "actual": "http://127.0.0.1:56448",
+        "expected": "http://127.0.0.1:56448"
       }
     },
     {
@@ -499,9 +612,99 @@
       "name": "visible Give feedback href matches state",
       "passed": true,
       "details": {
-        "actual": "http://127.0.0.1:53449/feedback/?session_id=AVBW-TEST-0001",
-        "expected": "http://127.0.0.1:53449/feedback/?session_id=AVBW-TEST-0001"
+        "actual": "http://127.0.0.1:56448/feedback/?session_id=AVBW-TEST-0001",
+        "expected": "http://127.0.0.1:56448/feedback/?session_id=AVBW-TEST-0001"
       }
+    },
+    {
+      "name": "1280 debrief stays fully inside the viewport",
+      "passed": true,
+      "details": {
+        "document": {
+          "height": 720,
+          "width": 1280
+        },
+        "tile": {
+          "bottom": 539.1328125,
+          "height": 358.265625,
+          "left": 50,
+          "right": 1230,
+          "top": 180.8671875,
+          "width": 1180
+        },
+        "recap": {
+          "bottom": 474.1328125,
+          "height": 178,
+          "left": 65,
+          "right": 1215,
+          "top": 296.1328125,
+          "width": 1150
+        },
+        "actions": {
+          "bottom": 526.1328125,
+          "height": 34,
+          "left": 923.515625,
+          "right": 1215,
+          "top": 492.1328125,
+          "width": 291.484375
+        },
+        "tileOverflow": {
+          "horizontal": false,
+          "vertical": false
+        },
+        "actionHitTests": [
+          true,
+          true,
+          true
+        ]
+      }
+    },
+    {
+      "name": "1280 page has no hidden document overflow",
+      "passed": true,
+      "details": {
+        "height": 720,
+        "width": 1280
+      }
+    },
+    {
+      "name": "1280 debrief needs no internal scrolling",
+      "passed": true,
+      "details": {
+        "horizontal": false,
+        "vertical": false
+      }
+    },
+    {
+      "name": "explanation remains above the receipt actions",
+      "passed": true,
+      "details": {
+        "recap": {
+          "bottom": 474.1328125,
+          "height": 178,
+          "left": 65,
+          "right": 1215,
+          "top": 296.1328125,
+          "width": 1150
+        },
+        "actions": {
+          "bottom": 526.1328125,
+          "height": 34,
+          "left": 923.515625,
+          "right": 1215,
+          "top": 492.1328125,
+          "width": 291.484375
+        }
+      }
+    },
+    {
+      "name": "all debrief actions remain hit-testable",
+      "passed": true,
+      "details": [
+        true,
+        true,
+        true
+      ]
     },
     {
       "name": "feedback continuity exposes render_game_to_text",
@@ -585,7 +788,7 @@
       "name": "feedback export produces a local download",
       "passed": true,
       "details": {
-        "downloadedPath": "/var/folders/2x/zw6qlh_d6_x5r_p8cf1g3xww0000gn/T/playwright-artifacts-EUic65/fd568ef9-79c4-481d-8cae-d13f16897c9b"
+        "downloadedPath": "/var/folders/2x/zw6qlh_d6_x5r_p8cf1g3xww0000gn/T/playwright-artifacts-Si1jRG/fbfc8ac5-b6b0-41b6-8b3c-0470468e6bd9"
       }
     },
     {
@@ -684,11 +887,37 @@
       }
     },
     {
+      "name": "reset clears the learning recap",
+      "passed": true,
+      "details": {
+        "actual": null,
+        "expected": null
+      }
+    },
+    {
       "name": "reset returns verification to NOT_RUN",
       "passed": true,
       "details": {
         "actual": "NOT_RUN",
         "expected": "NOT_RUN"
+      }
+    },
+    {
+      "name": "reset hides the mission debrief",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "reset restores background controls to the focus order",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "reset returns focus to the program editor",
+      "passed": true,
+      "details": {
+        "actual": "program-editor",
+        "expected": "program-editor"
       }
     },
     {
@@ -836,6 +1065,7 @@
     "compilerError": "artifacts/screenshots/agentville-build-week-compiler-error.png",
     "failure": "artifacts/screenshots/agentville-build-week-failure.png",
     "receipt": "artifacts/screenshots/agentville-build-week-receipt.png",
+    "debrief1280": "artifacts/screenshots/agentville-build-week-debrief-1280.png",
     "feedback": "artifacts/screenshots/agentville-build-week-feedback.png",
     "debug": "artifacts/screenshots/agentville-build-week-smoke-error.png",
     "report": "artifacts/evidence/latest-smoke.json"
@@ -851,7 +1081,7 @@
     "server": {
       "root": "/Volumes/beefybackup/agentville-build-week/dist",
       "stderr": "",
-      "stdout": "AgentVille running at http://127.0.0.1:53449"
+      "stdout": "AgentVille running at http://127.0.0.1:56448"
     }
   }
 }

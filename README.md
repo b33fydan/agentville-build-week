@@ -2,7 +2,7 @@
 
 **A five-minute voxel lesson about building agents that prove their work.**
 
-AgentVille: Build Week Edition is a clean-room browser game for OpenAI Build Week's Education track. A player writes a tiny, safe agent program; compiles it into a visible plan; watches one farm agent named Bert execute it; discovers that valid syntax can still produce the wrong result; repairs one line; and receives a verification receipt derived from the changed farm.
+AgentVille: Build Week Edition is a clean-room browser game for OpenAI Build Week's Education track. A player writes a tiny, safe agent program; compiles it into a visible plan; watches one farm agent named Bert execute it; discovers that valid syntax can still produce the wrong result; repairs one line; and receives a verification receipt derived from the changed farm. A final mission debrief translates the four commands into plain language and tells the player exactly what they accomplished.
 
 **Play:** [b33fydan.github.io/agentville-build-week](https://b33fydan.github.io/agentville-build-week/) · **Source:** [github.com/b33fydan/agentville-build-week](https://github.com/b33fydan/agentville-build-week)
 
@@ -48,7 +48,7 @@ This first draft is valid and safe, but it fails honestly: watering cannot pass 
 act clear blockage
 ```
 
-Bert walks to the jam, clears it, water advances through the downstream channel, all three beds change to watered, and verification issues a receipt with before/after evidence.
+Bert walks to the jam, clears it, water advances through the downstream channel, all three beds change to watered, and verification issues a receipt with before/after evidence. The closing debrief then explains the loop as **Look → Choose → Change → Check** and names the learner's work: they debugged an agent by using evidence to repair behavior.
 
 ## Why this teaches agents
 
@@ -59,6 +59,7 @@ Most coding lessons stop at “the program ran.” AgentVille separates five ide
 3. **Execution:** What did Bert actually attempt?
 4. **Diagnosis:** Why did the world remain unchanged?
 5. **Verification:** Does the resulting farm satisfy the goal?
+6. **Reflection:** What did each line contribute, and what did the learner just do?
 
 The failure is not a game-over screen. It is the lesson: an agent can follow a valid plan that addresses a symptom instead of a cause.
 
@@ -95,12 +96,14 @@ src/compiler.js ── immutable allowlisted plan
     ▼
 src/mission.js  ── deterministic before/after evidence + receipt
     │
-    ├── src/app.js   ── lesson state, trace, feedback continuity
-    └── src/world.js ── procedural isometric farm presentation
+    ├── src/debrief.js ── truthful plain-language learning recap
+    ├── src/app.js      ── lesson state, trace, feedback continuity
+    └── src/world.js    ── procedural isometric farm presentation
 ```
 
 - `src/compiler.js` — strict four-line compiler and safety diagnostics
 - `src/mission.js` — pure mission transitions and world-state receipt
+- `src/debrief.js` — immutable end-of-mission explanation derived from the receipt
 - `src/world.js` — one procedural isometric farm, water, crops, debris, and Bert
 - `src/app.js` — deterministic timeline, accessible Workbench, state hooks
 - `feedback/` — session-preserving local feedback and JSON evidence export
@@ -114,7 +117,7 @@ src/mission.js  ── deterministic before/after evidence + receipt
 ```bash
 npm test              # compiler, sandbox, state transitions, receipts
 npm run test:browser  # full typed draft → FAIL → repair → PASS flow
-npm run test:public   # same 92-assertion flow against the live Pages URL
+npm run test:public   # same full flow against the live Pages URL
 npm run smoke         # unit tests + production build + browser flow
 npm run capture       # refresh the canonical submission screenshots
 ```
@@ -126,7 +129,7 @@ The app also exposes two deterministic automation seams:
 
 The browser smoke rejects console/page errors, external requests, state/DOM disagreement, missing session continuity, and a false PASS. Machine-readable results are written to `artifacts/evidence/latest-smoke.json` for local production and `artifacts/evidence/latest-public-smoke.json` for the deployed build.
 
-Current validation passes 23/23 Node tests, 92/92 browser assertions against local production `dist/`, and 92/92 browser assertions against the public Pages deployment.
+Current validation passes 26/26 Node tests and 117/117 browser assertions against local production `dist/`. The last public report remains at its previously deployed 92/92 baseline until this debrief release is published and rehearsed.
 
 ## Production build and deployment
 

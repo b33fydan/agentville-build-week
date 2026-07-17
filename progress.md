@@ -39,3 +39,13 @@ Original prompt: Build a clean-room hackathon project called AgentVille: Build W
 - Recorded the first successful Pages build and deployment as [Actions run 29554682024](https://github.com/b33fydan/agentville-build-week/actions/runs/29554682024) at commit `cb57621`.
 - Confirmed HTTP 200 for the live root, feedback route, styles, JavaScript modules, and build metadata.
 - Added `npm run test:public`; current validation is 23/23 Node tests, 92/92 local browser assertions, and 92/92 public browser assertions with empty browser/network diagnostics.
+
+## 2026-07-17 — Learner debrief
+
+- Responded to live learner feedback that the PASS state should explain what happened, why all four lines worked, and what the player accomplished.
+- Reframed the verification receipt as a centered field-note debrief with a plain-language Look → Choose → Change → Check sequence and an explicit “You just debugged an agent” takeaway.
+- Added `src/debrief.js`, a deeply immutable view model derived from the authoritative PASS receipt; it never influences verification and stays truthful for both repair and direct-success paths.
+- Made the debrief the active keyboard region while visible, set the dimmed page behind it inert, and restored editor focus on same-document replay.
+- Added three Node tests and 25 browser assertions for explanation semantics, focus, inert state, readable type, 1280×720 containment, action hit-testing, and reset cleanup.
+- `npm run smoke` passes locally with 26/26 Node tests and 117/117 production-browser assertions; canonical 1600×900 and 1280×720 debrief captures were visually inspected.
+- Next: deploy this release, rerun `npm run test:public`, and preserve the updated public proof.

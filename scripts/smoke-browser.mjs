@@ -38,6 +38,7 @@ const ARTIFACTS = Object.freeze({
   compilerError: "artifacts/screenshots/agentville-build-week-compiler-error.png",
   failure: "artifacts/screenshots/agentville-build-week-failure.png",
   receipt: "artifacts/screenshots/agentville-build-week-receipt.png",
+  debrief1280: "artifacts/screenshots/agentville-build-week-debrief-1280.png",
   feedback: "artifacts/screenshots/agentville-build-week-feedback.png",
   debug: "artifacts/screenshots/agentville-build-week-smoke-error.png",
   report: "artifacts/evidence/latest-smoke.json",
@@ -303,6 +304,36 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     equal("receipt after state releases water", passed.receipt?.after?.waterReleased, true);
     equal("receipt after state proves three watered beds", passed.receipt?.after?.tomatoBedsWatered, 3);
     check("receipt panel is visible", await page.getByTestId("receipt").isVisible());
+    check("learning recap is exposed in automation state", passed.learningRecap !== null);
+    equal("learning recap records the repair path", passed.learningRecap?.path, "repair");
+    equal("learning recap names the learner accomplishment", passed.learningRecap?.title, "You fixed the cause—and proved it.");
+    equal(
+      "learning recap keeps the four phase order",
+      passed.learningRecap?.phases.map(({ phase }) => phase).join(","),
+      "observe,decide,act,verify",
+    );
+    equal("learning recap explains the repaired action", passed.learningRecap?.phases[2]?.command, "act clear blockage");
+    equal("learning recap reports the verified crop total", passed.learningRecap?.result.tomatoBedsWateredAfter, 3);
+    equal("learning recap credits an observed failure", passed.learningRecap?.learner.diagnosedFailure, true);
+    equal("learning recap identifies the changed line", passed.learningRecap?.learner.changedLine, 3);
+    equal("learning recap preserves the failed action", passed.learningRecap?.learner.from, "act water tomatoes");
+    equal("learning recap preserves the repaired action", passed.learningRecap?.learner.to, "act clear blockage");
+    check("learning recap tile is visible", await page.getByTestId("learning-recap").isVisible());
+    equal("learning recap renders four visible phase cards", await page.locator("[data-recap-phase]:visible").count(), 4);
+    check(
+      "learning takeaway tells the player they debugged an agent",
+      (await page.getByTestId("learning-takeaway").textContent())?.includes("You just debugged an agent."),
+    );
+    await page.waitForFunction(() => document.activeElement?.id === "receipt-panel");
+    equal("keyboard focus moves to the mission debrief", await page.evaluate(() => document.activeElement?.id), "receipt-panel");
+    check(
+      "background controls become inert behind the debrief",
+      await page.evaluate(() => [".topbar", ".stage-rail", ".workspace"].every((selector) => document.querySelector(selector)?.inert)),
+    );
+    check(
+      "learning explanation uses readable body type",
+      await page.getByTestId("recap-observe").locator("[data-recap-copy]").evaluate((node) => parseFloat(getComputedStyle(node).fontSize) >= 12),
+    );
     equal(
       "visible receipt session matches state",
       (await page.getByTestId("receipt-session-id").textContent())?.trim(),
@@ -323,6 +354,69 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
       passed.feedbackHref,
     );
     await captureViewport(page, screenshotPaths.receipt);
+
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await waitForPaint(page);
+    const debriefLayout = await page.evaluate(() => {
+      const rect = (selector) => {
+        const node = document.querySelector(selector);
+        const bounds = node.getBoundingClientRect();
+        return {
+          bottom: bounds.bottom,
+          height: bounds.height,
+          left: bounds.left,
+          right: bounds.right,
+          top: bounds.top,
+          width: bounds.width,
+        };
+      };
+      const hitTest = (selector) => {
+        const target = document.querySelector(selector);
+        const bounds = target.getBoundingClientRect();
+        const hit = document.elementFromPoint(bounds.left + bounds.width / 2, bounds.top + bounds.height / 2);
+        return Boolean(hit && (hit === target || target.contains(hit)));
+      };
+      const tile = document.querySelector("#receipt-panel");
+      return {
+        document: {
+          height: document.documentElement.scrollHeight,
+          width: document.documentElement.scrollWidth,
+        },
+        tile: rect("#receipt-panel"),
+        recap: rect('[data-testid="learning-recap"]'),
+        actions: rect(".receipt-actions"),
+        tileOverflow: {
+          horizontal: tile.scrollWidth > tile.clientWidth,
+          vertical: tile.scrollHeight > tile.clientHeight,
+        },
+        actionHitTests: ["#copy-receipt", "#feedback-link", "#reset-button"].map(hitTest),
+      };
+    });
+    check(
+      "1280 debrief stays fully inside the viewport",
+      debriefLayout.tile.left >= 0 &&
+        debriefLayout.tile.top >= 0 &&
+        debriefLayout.tile.right <= 1280 &&
+        debriefLayout.tile.bottom <= 720,
+      debriefLayout,
+    );
+    check(
+      "1280 page has no hidden document overflow",
+      debriefLayout.document.width <= 1280 && debriefLayout.document.height <= 720,
+      debriefLayout.document,
+    );
+    check(
+      "1280 debrief needs no internal scrolling",
+      !debriefLayout.tileOverflow.horizontal && !debriefLayout.tileOverflow.vertical,
+      debriefLayout.tileOverflow,
+    );
+    check(
+      "explanation remains above the receipt actions",
+      debriefLayout.recap.bottom <= debriefLayout.actions.top,
+      { recap: debriefLayout.recap, actions: debriefLayout.actions },
+    );
+    check("all debrief actions remain hit-testable", debriefLayout.actionHitTests.every(Boolean), debriefLayout.actionHitTests);
+    await captureViewport(page, screenshotPaths.debrief1280);
 
     feedbackPage = await context.newPage();
     attachGuards(feedbackPage, "feedback");
@@ -398,7 +492,15 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     equal("reset clears attempts", reset.session.attemptCount, 0);
     equal("reset clears the program", reset.program.sourceLines.length, 0);
     equal("reset clears the receipt", reset.receipt, null);
+    equal("reset clears the learning recap", reset.learningRecap, null);
     equal("reset returns verification to NOT_RUN", reset.verification.status, "NOT_RUN");
+    check("reset hides the mission debrief", await page.getByTestId("receipt").isHidden());
+    check(
+      "reset restores background controls to the focus order",
+      await page.evaluate(() => [".topbar", ".stage-rail", ".workspace"].every((selector) => !document.querySelector(selector)?.inert)),
+    );
+    await page.waitForFunction(() => document.activeElement?.id === "program-editor");
+    equal("reset returns focus to the program editor", await page.evaluate(() => document.activeElement?.id), "program-editor");
 
     equal("browser emitted no console errors", diagnostics.consoleErrors.length, 0);
     equal("browser emitted no uncaught page errors", diagnostics.pageErrors.length, 0);

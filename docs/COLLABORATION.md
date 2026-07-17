@@ -26,8 +26,14 @@ This ID is preserved for Build Week `/feedback` and development-session traceabi
 - Published the clean-room source at [github.com/b33fydan/agentville-build-week](https://github.com/b33fydan/agentville-build-week).
 - Deployed the static production build at [b33fydan.github.io/agentville-build-week](https://b33fydan.github.io/agentville-build-week/).
 - Preserved the first successful deployment as [Actions run 29554682024](https://github.com/b33fydan/agentville-build-week/actions/runs/29554682024) at commit `cb57621`.
-- Confirmed HTTP 200 at the live origin and reran the complete causal lesson with `npm run test:public`; current validation is 23/23 Node tests, 92/92 local browser assertions, and 92/92 public browser assertions.
+- Confirmed HTTP 200 at the live origin and reran the complete causal lesson with `npm run test:public`; checkpoint validation was 23/23 Node tests, 92/92 local browser assertions, and 92/92 public browser assertions.
 - Kept genuine human playtests, the demo video, and any separate event-issued `/feedback` ID explicitly pending rather than inferring evidence.
+
+## 2026-07-17 — Learner debrief refinement
+
+**Human feedback:** The mission felt compelling for a non-technical learner, but its ending needed to explain what happened, why the four lines worked, and what the player personally did.
+
+**Codex / GPT-5.6 contribution:** Turned the compact receipt into a readable field-note debrief without changing compiler or verifier authority. The new recap derives its claims from the PASS receipt, translates the phases into Look → Choose → Change → Check, credits the learner's evidence-driven repair, stays truthful for direct-success and repair paths, removes obscured controls from keyboard focus, and is covered at 1600×900 and 1280×720.
 
 ## Clean-room declaration
 

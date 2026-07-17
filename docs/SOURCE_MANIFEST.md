@@ -10,6 +10,7 @@
 | `src/app.js` | Lesson state machine, execution timeline, receipt, automation hooks | Authored clean-room for this repository |
 | `src/compiler.js` | Four-line allowlisted teaching-language compiler | Authored clean-room for this repository |
 | `src/mission.js` | Deterministic East Channel world transitions and proof | Authored clean-room for this repository |
+| `src/debrief.js` | Receipt-derived plain-language learning recap | Authored clean-room for this repository |
 | `src/world.js` | Procedural Canvas 2D isometric farm, Bert, water, crops, and debris | Authored clean-room for this repository |
 | `src/styles.css` | Field-manual visual system and responsive layout | Authored clean-room for this repository |
 | `feedback/` | Local session-preserving feedback form and evidence export | Authored clean-room for this repository |

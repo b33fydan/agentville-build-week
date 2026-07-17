@@ -26,11 +26,12 @@
 | Criterion | Artifact or command | Status |
 | --- | --- | --- |
 | A1 | `npm run test:public` against [GitHub Pages](https://b33fydan.github.io/agentville-build-week/) | PASS — 92/92 public browser assertions |
-| A2–A15 | `npm run smoke` | PASS — 23/23 Node tests + 92/92 local browser assertions |
+| A2–A16 | `npm run smoke` | PASS — 26/26 Node tests + 117/117 local browser assertions |
 | Hero frame | `artifacts/screenshots/agentville-build-week-hero.png` | Captured and inspected |
 | Compiler error | `artifacts/screenshots/agentville-build-week-compiler-error.png` | Captured and inspected |
 | Failure frame | `artifacts/screenshots/agentville-build-week-failure.png` | Captured and inspected |
 | Receipt frame | `artifacts/screenshots/agentville-build-week-receipt.png` | Captured and inspected |
+| Debrief at judging viewport | `artifacts/screenshots/agentville-build-week-debrief-1280.png` | Captured and inspected at 1280×720; no clipping or scroll |
 | Feedback continuity | `artifacts/screenshots/agentville-build-week-feedback.png` | Captured and inspected |
 | Local machine evidence | `artifacts/evidence/latest-smoke.json` | PASS against `dist/`; diagnostics empty |
 | Public mission smoke | `artifacts/evidence/latest-public-smoke.json` via `npm run test:public` | PASS — 92/92; console, page, request, response, and dialog diagnostics empty |

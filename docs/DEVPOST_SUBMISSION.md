@@ -22,6 +22,8 @@ The player opens a compact voxel farm and sees that debris blocks the East Chann
 
 Their first program compiles. Bert executes it. It still fails because `act water tomatoes` treats the dry crops instead of the blockage. The execution trace and deterministic Codex Coach connect that failed verification to line 3. The player changes one instruction to `act clear blockage`, recompiles, and watches Bert clear the debris. Water travels downstream, the tomato beds visibly recover, and the verifier issues a receipt containing the before state, action, after state, session ID, and PASS verdict.
 
+The mission closes with a field-note debrief that explains the four lines as Look, Choose, Change, and Check. It also credits the learner directly: they used an honest failure as evidence, repaired behavior rather than syntax, reran the plan, and proved the result—the core act of debugging an agent.
+
 The same receipt ID is carried to `/feedback`, where a playtest response can be exported as JSON for evidence.
 
 ## How we built it
@@ -30,7 +32,7 @@ The game is a static HTML, CSS, and JavaScript application. Canvas 2D draws the 
 
 The Workbench language is an explicit allowlist, not arbitrary scripting. The compiler creates an immutable four-step plan. A pure deterministic simulator owns the blocked channel, released water, and three tomato-bed states. The visual timeline consumes that evidence but cannot decide the verdict.
 
-Node's built-in test runner covers the parser, sandbox rejections, state transitions, receipt, reset, determinism, and public-smoke arguments. The current suite passes 23/23. A Playwright smoke types into the real editor and validates the complete production flow from invalid syntax through failure, repair, receipt, feedback continuity, reset, responsive layout, and same-origin-only networking; both local production and public runs pass 92/92 assertions.
+Node's built-in test runner covers the parser, sandbox rejections, state transitions, receipt, learning recap, reset, determinism, and public-smoke arguments. The current suite passes 26/26. A Playwright smoke types into the real editor and validates the complete production flow from invalid syntax through failure, repair, debrief, receipt, feedback continuity, reset, responsive layout, and same-origin-only networking; the updated local production run passes 117/117 assertions. The last public proof remains at its 92/92 baseline until this debrief release is deployed.
 
 GitHub Pages deploys the static `dist/` artifact only after that local production smoke passes. The first deployment succeeded in Actions run `29554682024` at commit `cb57621`; a second full rehearsal against the public URL passed 92/92 browser assertions.
 
@@ -55,6 +57,7 @@ The shipped Codex Coach is deterministic and locally authored from that collabor
 - A real typed editor with safe line-level diagnostics and no evaluation seam
 - A procedural voxel farm with one readable causal conflict
 - A verification receipt generated from before/after world state
+- A plain-language mission debrief that explains all four lines and the learner's repair
 - A feedback route that preserves the exact mission session ID
 - Automated unit and browser coverage plus submission-ready evidence frames
 - A static artifact deployed on GitHub Pages without a backend or secret

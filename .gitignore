@@ -11,6 +11,7 @@ artifacts/screenshots/*.png
 !artifacts/screenshots/agentville-build-week-compiler-error.png
 !artifacts/screenshots/agentville-build-week-failure.png
 !artifacts/screenshots/agentville-build-week-receipt.png
+!artifacts/screenshots/agentville-build-week-debrief-1280.png
 !artifacts/screenshots/agentville-build-week-feedback.png
 !.gitkeep
 .env

@@ -165,24 +165,86 @@
         </aside>
       </div>
 
-      <section id="receipt-panel" class="receipt-panel" data-testid="receipt" aria-labelledby="receipt-title" hidden>
-        <div class="receipt-stamp" data-testid="verification-status"><span>✓</span>PASS</div>
-        <div class="receipt-heading">
-          <p class="eyebrow">Verification receipt</p>
-          <h2 id="receipt-title">Bert changed the world correctly.</h2>
-          <p id="receipt-summary">The channel is clear and all tomato beds are watered.</p>
-        </div>
-        <dl class="receipt-grid">
-          <div><dt>Session</dt><dd id="receipt-session" data-testid="receipt-session-id">—</dd></div>
-          <div><dt>Observed</dt><dd id="receipt-observed">—</dd></div>
-          <div><dt>Action</dt><dd id="receipt-action">—</dd></div>
-          <div><dt>Proof</dt><dd id="receipt-proof">—</dd></div>
-        </dl>
-        <div class="receipt-actions">
-          <button id="copy-receipt" class="secondary-button" type="button">Copy receipt</button>
-          <a id="feedback-link" class="primary-button" data-testid="give-feedback" href="./feedback/">Give feedback <i aria-hidden="true">→</i></a>
-          <button id="reset-button" class="text-button" data-testid="reset-mission" type="button">Replay mission</button>
-        </div>
+      <section
+        id="receipt-panel"
+        class="receipt-panel"
+        data-testid="receipt"
+        aria-labelledby="receipt-title"
+        aria-describedby="receipt-summary"
+        tabindex="-1"
+        hidden
+      >
+        <header class="debrief-header">
+          <div class="receipt-stamp" data-testid="verification-status"><span>✓</span>PASS</div>
+          <div class="receipt-heading">
+            <p class="eyebrow">Mission complete · What you learned</p>
+            <h2 id="receipt-title">You fixed the cause—and proved it.</h2>
+            <p id="receipt-summary">You used the failed result as a clue and changed line 3 from “water tomatoes” to “clear blockage.”</p>
+          </div>
+          <aside class="debrief-takeaway" data-testid="learning-takeaway">
+            <p class="eyebrow">What you did</p>
+            <strong id="recap-takeaway-title">You just debugged an agent.</strong>
+            <p id="recap-takeaway-copy">You read the evidence, repaired one line, reran the plan, and checked the result. That’s an agent loop: look, choose, do, check.</p>
+          </aside>
+        </header>
+
+        <section class="learning-recap" data-testid="learning-recap" aria-labelledby="recap-title">
+          <div class="recap-heading">
+            <div>
+              <p class="eyebrow">The four-line loop</p>
+              <h3 id="recap-title">Why your program worked</h3>
+            </div>
+            <p id="recap-intro">Each line had one job. Together, they turned evidence into a checked result.</p>
+          </div>
+          <ol class="recap-phases">
+            <li data-recap-phase="observe" data-testid="recap-observe">
+              <span class="recap-number">01</span>
+              <div>
+                <strong>Observe <small>Look</small></strong>
+                <code data-recap-command>observe irrigation</code>
+                <p data-recap-copy>Found a blocked channel and 3 dry beds.</p>
+              </div>
+            </li>
+            <li data-recap-phase="decide" data-testid="recap-decide">
+              <span class="recap-number">02</span>
+              <div>
+                <strong>Decide <small>Choose</small></strong>
+                <code data-recap-command>decide if irrigation is blocked</code>
+                <p data-recap-copy>Named the blockage as the first problem.</p>
+              </div>
+            </li>
+            <li data-recap-phase="act" data-testid="recap-act">
+              <span class="recap-number">03</span>
+              <div>
+                <strong>Act <small>Change</small></strong>
+                <code data-recap-command>act clear blockage</code>
+                <p data-recap-copy>Cleared the debris, so water could flow.</p>
+              </div>
+            </li>
+            <li data-recap-phase="verify" data-testid="recap-verify">
+              <span class="recap-number">04</span>
+              <div>
+                <strong>Verify <small>Check</small></strong>
+                <code data-recap-command>verify tomatoes are watered</code>
+                <p data-recap-copy>Checked the farm: 3 of 3 beds watered.</p>
+              </div>
+            </li>
+          </ol>
+        </section>
+
+        <footer class="receipt-footer">
+          <dl class="receipt-grid">
+            <div><dt>Session</dt><dd id="receipt-session" data-testid="receipt-session-id">—</dd></div>
+            <div><dt>Observed</dt><dd id="receipt-observed">—</dd></div>
+            <div><dt>Action</dt><dd id="receipt-action">—</dd></div>
+            <div><dt>Proof</dt><dd id="receipt-proof">—</dd></div>
+          </dl>
+          <div class="receipt-actions">
+            <button id="copy-receipt" class="secondary-button" type="button">Copy receipt</button>
+            <a id="feedback-link" class="primary-button" data-testid="give-feedback" href="./feedback/">Give feedback <i aria-hidden="true">→</i></a>
+            <button id="reset-button" class="text-button" data-testid="reset-mission" type="button">Replay mission</button>
+          </div>
+        </footer>
       </section>
 
       <div id="announcer" class="sr-only" aria-live="polite"></div>
