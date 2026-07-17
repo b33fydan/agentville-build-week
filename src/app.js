@@ -6,7 +6,7 @@ import {
   runMission,
   snapshotMissionState,
 } from "./mission.js";
-import { FarmRenderer } from "./world.js";
+import { FarmRenderer, IRRIGATION_SIGN } from "./world.js";
 
 const DRAFT_PROGRAM = [
   "observe irrigation",
@@ -832,6 +832,14 @@ function snapshotForAutomation() {
       eastChannel: world.waterReleased ? "flowing" : world.irrigationBlocked ? "blocked" : "idle",
       tomatoBeds: { watered: world.tomatoBedsWatered, total: world.tomatoBedsTotal },
       visibleTomatoBedsWatered: visibleWorld.cropsWatered,
+      landmarks: [
+        {
+          id: IRRIGATION_SIGN.id,
+          label: IRRIGATION_SIGN.label,
+          pointsTo: IRRIGATION_SIGN.pointsTo,
+          position: { ...IRRIGATION_SIGN.position },
+        },
+      ],
     },
     trace: state.lastTrace.map(({ line, phase, command, outcome, message }) => ({ line, phase, command, outcome, message })),
     verification: { ...state.verification },

@@ -16,8 +16,8 @@
 ## Run 1 — First-time comprehension
 
 1. Ask: “Please finish this lesson. Think aloud if you are comfortable.”
-2. Observe whether the player notices the upstream water, obstruction, dry downstream channel, and tomato beds.
-3. Record whether they use **Show draft**, type four lines, and understand the plan preview.
+2. Observe whether the player notices the **IRRIGATION** sign, upstream water, obstruction, dry downstream channel, and tomato beds.
+3. Record whether they enter `observe irrigation` before using **Show draft**, then whether they type four lines and understand the plan preview.
 4. After the first run, record whether they read verification before editing.
 5. Stop the timer when the PASS receipt becomes visible or at five minutes.
 6. Open **Give feedback** and confirm the displayed session ID matches the receipt.
@@ -55,6 +55,8 @@ Save one consented record as `artifacts/evidence/playtest-YYYY-MM-DD-<tester-cod
   "completedWithinFiveMinutes": false,
   "secondsToFirstFailure": null,
   "secondsFailureToRepair": null,
+  "noticedIrrigationSign": false,
+  "authoredObserveBeforeDraftHint": false,
   "usedDraftHint": false,
   "verbalCoachingGiven": false,
   "observations": [],

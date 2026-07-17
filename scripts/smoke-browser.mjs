@@ -35,6 +35,7 @@ const REPAIRED_PROGRAM = DRAFT_PROGRAM.replace("act water tomatoes", "act clear 
 
 const ARTIFACTS = Object.freeze({
   hero: "artifacts/screenshots/agentville-build-week-hero.png",
+  irrigationCue1280: "artifacts/screenshots/agentville-build-week-irrigation-cue-1280.png",
   compilerError: "artifacts/screenshots/agentville-build-week-compiler-error.png",
   failure: "artifacts/screenshots/agentville-build-week-failure.png",
   receipt: "artifacts/screenshots/agentville-build-week-receipt.png",
@@ -203,7 +204,40 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     equal("start restores blocked irrigation", started.world.blockage, "debris-present");
     equal("start keeps channel stopped", started.world.eastChannel, "blocked");
     equal("start restores three dry beds", started.world.tomatoBeds.watered, 0);
+    const irrigationSign = started.world.landmarks?.find(({ id }) => id === "irrigation-sign");
+    equal("farm exposes the irrigation sign", irrigationSign?.label, "IRRIGATION");
+    equal("irrigation sign points to the East Channel", irrigationSign?.pointsTo, "East Channel");
+    check(
+      "canvas description names the visible irrigation clue",
+      (await page.getByTestId("farm-canvas").getAttribute("aria-label"))?.includes("IRRIGATION sign"),
+    );
     await captureViewport(page, screenshotPaths.hero);
+
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await waitForPaint(page);
+    const authoringLayout = await page.evaluate(() => ({
+      canvas: {
+        height: document.querySelector("#farm-canvas").getBoundingClientRect().height,
+        width: document.querySelector("#farm-canvas").getBoundingClientRect().width,
+      },
+      document: {
+        height: document.documentElement.scrollHeight,
+        width: document.documentElement.scrollWidth,
+      },
+    }));
+    check(
+      "1280 irrigation clue keeps a visible farm canvas",
+      authoringLayout.canvas.width >= 700 && authoringLayout.canvas.height >= 500,
+      authoringLayout,
+    );
+    check(
+      "1280 authoring view has no document overflow",
+      authoringLayout.document.width <= 1280 && authoringLayout.document.height <= 720,
+      authoringLayout,
+    );
+    await captureViewport(page, screenshotPaths.irrigationCue1280);
+    await page.setViewportSize({ width: 1600, height: 900 });
+    await waitForPaint(page);
 
     const initialWorldHash = started.world.worldHash;
     const initialWorldRevision = started.world.revision;

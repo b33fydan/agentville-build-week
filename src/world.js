@@ -33,6 +33,13 @@ const PALETTE = Object.freeze({
 const MAP_WIDTH = 9;
 const MAP_HEIGHT = 7;
 
+export const IRRIGATION_SIGN = Object.freeze({
+  id: "irrigation-sign",
+  label: "IRRIGATION",
+  pointsTo: "East Channel",
+  position: Object.freeze({ x: 2.75, y: 2.45 }),
+});
+
 export class FarmRenderer {
   constructor(canvas) {
     this.canvas = canvas;
@@ -334,7 +341,7 @@ export class FarmRenderer {
         this.drawFence(prop.x, prop.y, prop.axis);
         break;
       case "sign":
-        this.drawSign(prop.x, prop.y);
+        this.drawSign(prop.x, prop.y, prop.label);
         break;
       default:
         break;
@@ -491,20 +498,46 @@ export class FarmRenderer {
     ctx.stroke();
   }
 
-  drawSign(x, y) {
+  drawSign(x, y, label) {
     const ctx = this.context;
     const p = this.project(x, y, 0.28);
-    ctx.fillStyle = PALETTE.ink;
-    ctx.fillRect(p.x - 1, p.y - 20, 3, 20);
-    ctx.fillStyle = PALETTE.paper;
+    const boardWidth = clamp(this.tileWidth * 1.08, 58, 74);
+    const boardHeight = clamp(this.tileHeight * 0.52, 17, 21);
+    const boardLeft = p.x - boardWidth / 2;
+    const boardTop = p.y - boardHeight - 19;
+
+    ctx.save();
+    ctx.fillStyle = "rgba(29, 43, 34, 0.24)";
+    ctx.fillRect(boardLeft + 3, boardTop + 3, boardWidth, boardHeight);
+
+    ctx.fillStyle = PALETTE.woodLeft;
     ctx.strokeStyle = PALETTE.ink;
-    ctx.lineWidth = 1;
-    ctx.fillRect(p.x - 17, p.y - 29, 34, 13);
-    ctx.strokeRect(p.x - 17, p.y - 29, 34, 13);
+    ctx.lineWidth = 1.5;
+    ctx.fillRect(p.x - 2.5, boardTop + boardHeight - 1, 5, p.y - boardTop - boardHeight + 2);
+    ctx.strokeRect(p.x - 2.5, boardTop + boardHeight - 1, 5, p.y - boardTop - boardHeight + 2);
+
+    ctx.fillStyle = PALETTE.paper;
+    ctx.fillRect(boardLeft, boardTop, boardWidth, boardHeight);
+    ctx.strokeRect(boardLeft, boardTop, boardWidth, boardHeight);
+
+    ctx.fillStyle = PALETTE.water;
+    ctx.fillRect(boardLeft + 3, boardTop + 3, 4, boardHeight - 6);
+
     ctx.fillStyle = PALETTE.ink;
-    ctx.font = `700 ${Math.max(6, this.tileWidth / 10)}px ${getComputedStyle(document.documentElement).getPropertyValue("--mono")}`;
+    ctx.font = `800 ${clamp(this.tileWidth / 8.6, 7, 9)}px ${getComputedStyle(document.documentElement).getPropertyValue("--mono")}`;
     ctx.textAlign = "center";
-    ctx.fillText("EAST", p.x, p.y - 20);
+    ctx.textBaseline = "middle";
+    ctx.fillText(label, p.x + 3, boardTop + boardHeight / 2 + 0.5);
+
+    ctx.fillStyle = PALETTE.water;
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y - 5);
+    ctx.lineTo(p.x + 4, p.y - 10);
+    ctx.lineTo(p.x - 4, p.y - 10);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
   }
 
   drawBert(bert, timeMs) {
@@ -652,7 +685,12 @@ function createProps() {
     { type: "fence", x: 6.2, y: 6.15, axis: "x" },
     { type: "fence", x: 8.15, y: 2.1, axis: "y" },
     { type: "fence", x: 8.15, y: 3.1, axis: "y" },
-    { type: "sign", x: 5.15, y: 2.15 },
+    {
+      type: "sign",
+      x: IRRIGATION_SIGN.position.x,
+      y: IRRIGATION_SIGN.position.y,
+      label: IRRIGATION_SIGN.label,
+    },
   ];
 }
 

@@ -35,6 +35,12 @@ This ID is preserved for Build Week `/feedback` and development-session traceabi
 
 **Codex / GPT-5.6 contribution:** Turned the compact receipt into a readable field-note debrief without changing compiler or verifier authority. The new recap derives its claims from the PASS receipt, translates the phases into Look → Choose → Change → Check, credits the learner's evidence-driven repair, stays truthful for direct-success and repair paths, removes obscured controls from keyboard focus, and is covered at 1600×900 and 1280×720. Commit `8d2f0b5` deployed in [Actions run 29618190795](https://github.com/b33fydan/agentville-build-week/actions/runs/29618190795), and the public mission passed 117/117 browser assertions.
 
+## 2026-07-17 — Diegetic observation clue
+
+**Human feedback:** The blank after `observe` should prompt a learner to inspect the farm and infer the target. A small map sign reading “irrigation” would supply the vocabulary without supplying the answer.
+
+**Codex / GPT-5.6 contribution:** Reworked the farm's obscured `EAST` marker into a readable upstream **IRRIGATION** sign that points into the channel but never names the blockage repair. Mirrored the visible landmark in the canvas description and `render_game_to_text()`, added semantic browser assertions, and preserved a dedicated 1280×720 evidence frame. The playtest protocol now measures whether a novice notices the sign and authors `observe irrigation` before opening the full draft hint.
+
 ## Clean-room declaration
 
 The build did not copy or adapt implementation code, art, screenshots, or generated artifacts from `/Volumes/beefybackup/AgentVille`. Source and visuals were authored within `/Volumes/beefybackup/agentville-build-week`; game art is procedural Canvas 2D plus CSS.

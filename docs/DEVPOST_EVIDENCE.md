@@ -26,8 +26,9 @@
 | Criterion | Artifact or command | Status |
 | --- | --- | --- |
 | A1 | `npm run test:public` against [GitHub Pages](https://b33fydan.github.io/agentville-build-week/) | PASS — 117/117 public browser assertions |
-| A2–A16 | `npm run smoke` | PASS — 26/26 Node tests + 117/117 local browser assertions |
+| A2–A17 | `npm run smoke` | PASS — 26/26 Node tests + 122/122 local browser assertions |
 | Hero frame | `artifacts/screenshots/agentville-build-week-hero.png` | Captured and inspected |
+| Irrigation clue at judging viewport | `artifacts/screenshots/agentville-build-week-irrigation-cue-1280.png` | Captured and inspected at 1280×720; sign readable, canvas visible, no page overflow |
 | Compiler error | `artifacts/screenshots/agentville-build-week-compiler-error.png` | Captured and inspected |
 | Failure frame | `artifacts/screenshots/agentville-build-week-failure.png` | Captured and inspected |
 | Receipt frame | `artifacts/screenshots/agentville-build-week-receipt.png` | Captured and inspected |

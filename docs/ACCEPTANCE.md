@@ -32,6 +32,7 @@ A first-time player can open the game in a desktop browser and complete one dete
 | A14 | Arbitrary JavaScript, network/file primitives, loops, extra phases, and unsupported actions are rejected before execution. | Compiler sandbox tests |
 | A15 | The production build contains no external game assets or copied reference-repo material. | Source manifest + clean-room disclosure |
 | A16 | PASS opens a readable mission debrief that explains what happened, why all four phases worked, and what the learner changed; reset removes it and restores focus. | Debrief unit tests + 1280×720 browser smoke + screenshot |
+| A17 | The authoring view visibly labels the channel **IRRIGATION** so a novice can infer `observe irrigation` without exposing the repair action; the same landmark is available to assistive technology and automation. | 1280×720 browser smoke + screenshot + canvas description |
 
 ## Manual acceptance before submission
 
@@ -41,7 +42,7 @@ A first-time player can open the game in a desktop browser and complete one dete
 | M2 | The public deployment completes the same full mission in the declared judging browser. | [Live Pages URL](https://b33fydan.github.io/agentville-build-week/) + `npm run test:public` | **PASS** — 117/117 browser assertions on 2026-07-17 |
 | M3 | The demo video shows the authored draft, failure, repair, world change, receipt, and feedback session continuity. | Timestamped Devpost evidence index | Pending video |
 
-All automated criteria pass: 26/26 Node tests, 117/117 local production-browser assertions, and 117/117 public-browser assertions. M2 and the A16 debrief are complete; M1 and M3 remain visibly incomplete until genuine human and video evidence exists.
+All automated criteria pass locally: 26/26 Node tests and 122/122 production-browser assertions. The deployed baseline remains 117/117 until A17 is published and rehearsed. M2 and the A16 debrief are complete; M1 and M3 remain visibly incomplete until genuine human and video evidence exists.
 
 ## Non-goals for this build
 

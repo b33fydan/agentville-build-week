@@ -50,3 +50,12 @@ Original prompt: Build a clean-room hackathon project called AgentVille: Build W
 - `npm run smoke` passes locally with 26/26 Node tests and 117/117 production-browser assertions; canonical 1600×900 and 1280×720 debrief captures were visually inspected.
 - Deployed commit `8d2f0b5` in GitHub Actions run `29618190795`; Pages reported the same SHA.
 - `npm run test:public` then passed 117/117 against the live URL with empty browser and network diagnostics, and the public evidence report was preserved.
+
+## 2026-07-17 — Irrigation observation clue
+
+- Responded to learner feedback that `observe ___` needed a visual noun on the farm rather than another explicit Workbench answer.
+- Replaced the obscured `EAST` marker with a wider upstream **IRRIGATION** sign that points into the channel without naming the debris or repair action.
+- Mirrored the visible landmark in the canvas accessibility description and `render_game_to_text()` so visual, assistive, and automated readings stay aligned.
+- Added five browser assertions for sign semantics, accessible copy, 1280×720 canvas visibility, and overflow; the full local production run passes 26/26 Node tests and 122/122 browser assertions.
+- Captured and visually inspected the clue at 1600×900 and 1280×720, plus a focused canvas frame through the reusable web-game client.
+- Next: deploy this release, rerun the 122-assertion flow publicly, and preserve the updated deployment proof.

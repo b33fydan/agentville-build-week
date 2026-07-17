@@ -2,11 +2,11 @@
   "schema": "agentville.browser-smoke.v1",
   "status": "PASS",
   "invocation": "smoke",
-  "startedAt": "2026-07-17T22:28:48.080Z",
-  "finishedAt": "2026-07-17T22:28:58.936Z",
-  "durationMs": 10856,
+  "startedAt": "2026-07-17T23:43:20.273Z",
+  "finishedAt": "2026-07-17T23:43:34.567Z",
+  "durationMs": 14294,
   "target": "dist",
-  "baseUrl": "http://127.0.0.1:56448",
+  "baseUrl": "http://127.0.0.1:57533",
   "browser": {
     "engine": "chromium",
     "headless": true,
@@ -92,6 +92,55 @@
       "details": {
         "actual": 0,
         "expected": 0
+      }
+    },
+    {
+      "name": "farm exposes the irrigation sign",
+      "passed": true,
+      "details": {
+        "actual": "IRRIGATION",
+        "expected": "IRRIGATION"
+      }
+    },
+    {
+      "name": "irrigation sign points to the East Channel",
+      "passed": true,
+      "details": {
+        "actual": "East Channel",
+        "expected": "East Channel"
+      }
+    },
+    {
+      "name": "canvas description names the visible irrigation clue",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "1280 irrigation clue keeps a visible farm canvas",
+      "passed": true,
+      "details": {
+        "canvas": {
+          "height": 584,
+          "width": 856
+        },
+        "document": {
+          "height": 720,
+          "width": 1280
+        }
+      }
+    },
+    {
+      "name": "1280 authoring view has no document overflow",
+      "passed": true,
+      "details": {
+        "canvas": {
+          "height": 584,
+          "width": 856
+        },
+        "document": {
+          "height": 720,
+          "width": 1280
+        }
       }
     },
     {
@@ -588,8 +637,8 @@
       "name": "feedback link stays on the game origin",
       "passed": true,
       "details": {
-        "actual": "http://127.0.0.1:56448",
-        "expected": "http://127.0.0.1:56448"
+        "actual": "http://127.0.0.1:57533",
+        "expected": "http://127.0.0.1:57533"
       }
     },
     {
@@ -612,8 +661,8 @@
       "name": "visible Give feedback href matches state",
       "passed": true,
       "details": {
-        "actual": "http://127.0.0.1:56448/feedback/?session_id=AVBW-TEST-0001",
-        "expected": "http://127.0.0.1:56448/feedback/?session_id=AVBW-TEST-0001"
+        "actual": "http://127.0.0.1:57533/feedback/?session_id=AVBW-TEST-0001",
+        "expected": "http://127.0.0.1:57533/feedback/?session_id=AVBW-TEST-0001"
       }
     },
     {
@@ -788,7 +837,7 @@
       "name": "feedback export produces a local download",
       "passed": true,
       "details": {
-        "downloadedPath": "/var/folders/2x/zw6qlh_d6_x5r_p8cf1g3xww0000gn/T/playwright-artifacts-Si1jRG/fbfc8ac5-b6b0-41b6-8b3c-0470468e6bd9"
+        "downloadedPath": "/var/folders/2x/zw6qlh_d6_x5r_p8cf1g3xww0000gn/T/playwright-artifacts-4FF4bd/6563acbf-7fe3-4762-a7be-8c500c76a60a"
       }
     },
     {
@@ -1062,6 +1111,7 @@
   },
   "artifacts": {
     "hero": "artifacts/screenshots/agentville-build-week-hero.png",
+    "irrigationCue1280": "artifacts/screenshots/agentville-build-week-irrigation-cue-1280.png",
     "compilerError": "artifacts/screenshots/agentville-build-week-compiler-error.png",
     "failure": "artifacts/screenshots/agentville-build-week-failure.png",
     "receipt": "artifacts/screenshots/agentville-build-week-receipt.png",
@@ -1081,7 +1131,7 @@
     "server": {
       "root": "/Volumes/beefybackup/agentville-build-week/dist",
       "stderr": "",
-      "stdout": "AgentVille running at http://127.0.0.1:56448"
+      "stdout": "AgentVille running at http://127.0.0.1:57533"
     }
   }
 }

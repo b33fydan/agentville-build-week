@@ -18,7 +18,7 @@ Farming makes that idea visible. If water does not reach a tomato bed, the world
 
 ## What it does
 
-The player opens a compact voxel farm and sees that debris blocks the East Channel before three tomato beds. In the typed Agent Workbench they write four safe instructions: observe, decide, act, and verify.
+The player opens a compact voxel farm and sees a small **IRRIGATION** sign beside the channel, upstream water, debris, and three dry tomato beds. The sign gives a beginner enough vocabulary to infer `observe irrigation` without revealing what Bert should do. In the typed Agent Workbench they write four safe instructions: observe, decide, act, and verify.
 
 Their first program compiles. Bert executes it. It still fails because `act water tomatoes` treats the dry crops instead of the blockage. The execution trace and deterministic Codex Coach connect that failed verification to line 3. The player changes one instruction to `act clear blockage`, recompiles, and watches Bert clear the debris. Water travels downstream, the tomato beds visibly recover, and the verifier issues a receipt containing the before state, action, after state, session ID, and PASS verdict.
 
@@ -32,7 +32,7 @@ The game is a static HTML, CSS, and JavaScript application. Canvas 2D draws the 
 
 The Workbench language is an explicit allowlist, not arbitrary scripting. The compiler creates an immutable four-step plan. A pure deterministic simulator owns the blocked channel, released water, and three tomato-bed states. The visual timeline consumes that evidence but cannot decide the verdict.
 
-Node's built-in test runner covers the parser, sandbox rejections, state transitions, receipt, learning recap, reset, determinism, and public-smoke arguments. The current suite passes 26/26. A Playwright smoke types into the real editor and validates the complete production flow from invalid syntax through failure, repair, debrief, receipt, feedback continuity, reset, responsive layout, and same-origin-only networking; both local production and public runs pass 117/117 assertions.
+Node's built-in test runner covers the parser, sandbox rejections, state transitions, receipt, learning recap, reset, determinism, and public-smoke arguments. The current suite passes 26/26. A Playwright smoke types into the real editor and validates the complete production flow from the visible irrigation landmark through invalid syntax, failure, repair, debrief, receipt, feedback continuity, reset, responsive layout, and same-origin-only networking; the updated local production run passes 122/122 assertions. The latest deployed proof remains at 117/117 until this clue release is published.
 
 GitHub Pages deploys the static `dist/` artifact only after that local production smoke passes. The first deployment succeeded in Actions run `29554682024` at commit `cb57621`; the learner-debrief release succeeded in Actions run `29618190795` at commit `8d2f0b5`, then passed the full 117/117 flow against the public URL.
 

@@ -33,7 +33,7 @@ Open [http://127.0.0.1:4173](http://127.0.0.1:4173). No account, API key, build 
 
 ## The mission
 
-The West Reservoir is full, but debris blocks the East Channel before water can reach three tomato beds. The Workbench teaches exactly four phases:
+The West Reservoir is full, but debris blocks the East Channel before water can reach three tomato beds. A small in-world **IRRIGATION** sign gives a first-time learner the missing noun for `observe ___` without revealing the blockage or its repair. The Workbench teaches exactly four phases:
 
 ```agent
 observe irrigation
@@ -104,7 +104,7 @@ src/mission.js  ── deterministic before/after evidence + receipt
 - `src/compiler.js` — strict four-line compiler and safety diagnostics
 - `src/mission.js` — pure mission transitions and world-state receipt
 - `src/debrief.js` — immutable end-of-mission explanation derived from the receipt
-- `src/world.js` — one procedural isometric farm, water, crops, debris, and Bert
+- `src/world.js` — one procedural isometric farm, irrigation landmark, water, crops, debris, and Bert
 - `src/app.js` — deterministic timeline, accessible Workbench, state hooks
 - `feedback/` — session-preserving local feedback and JSON evidence export
 - `tests/` — Node tests for the language and simulator
@@ -129,7 +129,7 @@ The app also exposes two deterministic automation seams:
 
 The browser smoke rejects console/page errors, external requests, state/DOM disagreement, missing session continuity, and a false PASS. Machine-readable results are written to `artifacts/evidence/latest-smoke.json` for local production and `artifacts/evidence/latest-public-smoke.json` for the deployed build.
 
-Current validation passes 26/26 Node tests, 117/117 browser assertions against local production `dist/`, and 117/117 against the public Pages deployment.
+Current validation passes 26/26 Node tests and 122/122 browser assertions against local production `dist/`. The most recent public proof remains 117/117 until the irrigation-clue release is deployed and rehearsed.
 
 ## Production build and deployment
 
