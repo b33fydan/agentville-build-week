@@ -1,0 +1,857 @@
+{
+  "schema": "agentville.browser-smoke.v1",
+  "status": "PASS",
+  "invocation": "smoke",
+  "startedAt": "2026-07-17T04:12:42.949Z",
+  "finishedAt": "2026-07-17T04:12:51.473Z",
+  "durationMs": 8524,
+  "target": "dist",
+  "baseUrl": "http://127.0.0.1:52772",
+  "browser": {
+    "engine": "chromium",
+    "headless": true,
+    "playwrightVersion": "1.61.1",
+    "viewport": {
+      "width": 1600,
+      "height": 900
+    }
+  },
+  "assertions": [
+    {
+      "name": "production build exists",
+      "passed": true,
+      "details": {
+        "root": "/Volumes/beefybackup/agentville-build-week/dist"
+      }
+    },
+    {
+      "name": "welcome exposes render_game_to_text",
+      "passed": true,
+      "details": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "app reports ready",
+      "passed": true,
+      "details": {
+        "actual": true,
+        "expected": true
+      }
+    },
+    {
+      "name": "deterministic seed is active",
+      "passed": true,
+      "details": {
+        "actual": "east-channel-v1",
+        "expected": "east-channel-v1"
+      }
+    },
+    {
+      "name": "mission starts at welcome",
+      "passed": true,
+      "details": {
+        "actual": "welcome",
+        "expected": "welcome"
+      }
+    },
+    {
+      "name": "started mission exposes render_game_to_text",
+      "passed": true,
+      "details": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "start creates first deterministic session",
+      "passed": true,
+      "details": {
+        "actual": "AVBW-TEST-0001",
+        "expected": "AVBW-TEST-0001"
+      }
+    },
+    {
+      "name": "start restores blocked irrigation",
+      "passed": true,
+      "details": {
+        "actual": "debris-present",
+        "expected": "debris-present"
+      }
+    },
+    {
+      "name": "start keeps channel stopped",
+      "passed": true,
+      "details": {
+        "actual": "blocked",
+        "expected": "blocked"
+      }
+    },
+    {
+      "name": "start restores three dry beds",
+      "passed": true,
+      "details": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "invalid program exposes render_game_to_text",
+      "passed": true,
+      "details": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "unsafe syntax is rejected",
+      "passed": true,
+      "details": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "unsafe syntax points to line 3",
+      "passed": true,
+      "details": {
+        "actual": 3,
+        "expected": 3
+      }
+    },
+    {
+      "name": "unsafe syntax reports forbidden token",
+      "passed": true,
+      "details": {
+        "actual": "FORBIDDEN_TOKEN",
+        "expected": "FORBIDDEN_TOKEN"
+      }
+    },
+    {
+      "name": "invalid syntax cannot change world hash",
+      "passed": true,
+      "details": {
+        "actual": "east-channel-v1:B1:W0:C0",
+        "expected": "east-channel-v1:B1:W0:C0"
+      }
+    },
+    {
+      "name": "invalid syntax cannot increment world revision",
+      "passed": true,
+      "details": {
+        "actual": 1,
+        "expected": 1
+      }
+    },
+    {
+      "name": "invalid syntax cannot create a receipt",
+      "passed": true,
+      "details": {
+        "actual": null,
+        "expected": null
+      }
+    },
+    {
+      "name": "compiler error is visibly tied to line 3",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "compiled water draft exposes render_game_to_text",
+      "passed": true,
+      "details": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "valid draft compiles",
+      "passed": true,
+      "details": {
+        "actual": true,
+        "expected": true
+      }
+    },
+    {
+      "name": "valid draft exposes four plan steps",
+      "passed": true,
+      "details": {
+        "actual": 4,
+        "expected": 4
+      }
+    },
+    {
+      "name": "compiled phases preserve observe-decide-act-verify order",
+      "passed": true,
+      "details": {
+        "actual": "observe,decide,act,verify",
+        "expected": "observe,decide,act,verify"
+      }
+    },
+    {
+      "name": "compile leaves world unchanged",
+      "passed": true,
+      "details": {
+        "actual": "east-channel-v1:B1:W0:C0",
+        "expected": "east-channel-v1:B1:W0:C0"
+      }
+    },
+    {
+      "name": "four planned steps are visible",
+      "passed": true,
+      "details": {
+        "actual": 4,
+        "expected": 4
+      }
+    },
+    {
+      "name": "running water draft exposes render_game_to_text",
+      "passed": true,
+      "details": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "first draft enters running mode",
+      "passed": true,
+      "details": {
+        "actual": "running",
+        "expected": "running"
+      }
+    },
+    {
+      "name": "moving water draft exposes render_game_to_text",
+      "passed": true,
+      "details": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "Bert visibly moves during execution",
+      "passed": true,
+      "details": {
+        "position": {
+          "x": 3.84,
+          "y": 5.04
+        },
+        "moving": true,
+        "action": "think"
+      }
+    },
+    {
+      "name": "Bert leaves the starting position",
+      "passed": true,
+      "details": {
+        "before": {
+          "x": 2.2,
+          "y": 5.25
+        },
+        "after": {
+          "x": 3.84,
+          "y": 5.04
+        }
+      }
+    },
+    {
+      "name": "execution trace advances before completion",
+      "passed": true,
+      "details": {
+        "traceLength": 1
+      }
+    },
+    {
+      "name": "failed water draft exposes render_game_to_text",
+      "passed": true,
+      "details": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "first accepted draft reaches FAIL",
+      "passed": true,
+      "details": {
+        "actual": "FAIL",
+        "expected": "FAIL"
+      }
+    },
+    {
+      "name": "failed draft keeps blockage present",
+      "passed": true,
+      "details": {
+        "actual": "debris-present",
+        "expected": "debris-present"
+      }
+    },
+    {
+      "name": "failed draft releases no water",
+      "passed": true,
+      "details": {
+        "actual": "blocked",
+        "expected": "blocked"
+      }
+    },
+    {
+      "name": "failed draft waters zero beds",
+      "passed": true,
+      "details": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "failed draft leaves world hash unchanged",
+      "passed": true,
+      "details": {
+        "actual": "east-channel-v1:B1:W0:C0",
+        "expected": "east-channel-v1:B1:W0:C0"
+      }
+    },
+    {
+      "name": "failure coach focuses line 3",
+      "passed": true,
+      "details": {
+        "actual": 3,
+        "expected": 3
+      }
+    },
+    {
+      "name": "failure coach recommends the allowlisted repair",
+      "passed": true,
+      "details": {
+        "actual": "act clear blockage",
+        "expected": "act clear blockage"
+      }
+    },
+    {
+      "name": "failure coach is visible",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "compiled repair exposes render_game_to_text",
+      "passed": true,
+      "details": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "repair compiles",
+      "passed": true,
+      "details": {
+        "actual": true,
+        "expected": true
+      }
+    },
+    {
+      "name": "repair changes only the action command",
+      "passed": true,
+      "details": {
+        "actual": "act clear blockage",
+        "expected": "act clear blockage"
+      }
+    },
+    {
+      "name": "repair compile still leaves world unchanged",
+      "passed": true,
+      "details": {
+        "actual": "east-channel-v1:B1:W0:C0",
+        "expected": "east-channel-v1:B1:W0:C0"
+      }
+    },
+    {
+      "name": "passing repair exposes render_game_to_text",
+      "passed": true,
+      "details": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "repair reaches PASS",
+      "passed": true,
+      "details": {
+        "actual": "PASS",
+        "expected": "PASS"
+      }
+    },
+    {
+      "name": "repair clears the blockage",
+      "passed": true,
+      "details": {
+        "actual": "cleared",
+        "expected": "cleared"
+      }
+    },
+    {
+      "name": "repair releases East Channel water",
+      "passed": true,
+      "details": {
+        "actual": "flowing",
+        "expected": "flowing"
+      }
+    },
+    {
+      "name": "repair waters all tomato beds",
+      "passed": true,
+      "details": {
+        "actual": 3,
+        "expected": 3
+      }
+    },
+    {
+      "name": "repair changes authoritative world hash",
+      "passed": true,
+      "details": {
+        "before": "east-channel-v1:B1:W0:C0",
+        "after": "east-channel-v1:B0:W1:C3"
+      }
+    },
+    {
+      "name": "receipt verdict is PASS",
+      "passed": true,
+      "details": {
+        "actual": "PASS",
+        "expected": "PASS"
+      }
+    },
+    {
+      "name": "receipt preserves mission session",
+      "passed": true,
+      "details": {
+        "actual": "AVBW-TEST-0001",
+        "expected": "AVBW-TEST-0001"
+      }
+    },
+    {
+      "name": "receipt records the repair action",
+      "passed": true,
+      "details": {
+        "actual": "act clear blockage",
+        "expected": "act clear blockage"
+      }
+    },
+    {
+      "name": "receipt before state is blocked",
+      "passed": true,
+      "details": {
+        "actual": true,
+        "expected": true
+      }
+    },
+    {
+      "name": "receipt after state is clear",
+      "passed": true,
+      "details": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "receipt after state releases water",
+      "passed": true,
+      "details": {
+        "actual": true,
+        "expected": true
+      }
+    },
+    {
+      "name": "receipt after state proves three watered beds",
+      "passed": true,
+      "details": {
+        "actual": 3,
+        "expected": 3
+      }
+    },
+    {
+      "name": "receipt panel is visible",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "visible receipt session matches state",
+      "passed": true,
+      "details": {
+        "actual": "AVBW-TEST-0001",
+        "expected": "AVBW-TEST-0001"
+      }
+    },
+    {
+      "name": "feedback link stays on the game origin",
+      "passed": true,
+      "details": {
+        "actual": "http://127.0.0.1:52772",
+        "expected": "http://127.0.0.1:52772"
+      }
+    },
+    {
+      "name": "feedback link uses the feedback route",
+      "passed": true,
+      "details": {
+        "actual": "/feedback/",
+        "expected": "/feedback/"
+      }
+    },
+    {
+      "name": "feedback link carries exact receipt ID",
+      "passed": true,
+      "details": {
+        "actual": "AVBW-TEST-0001",
+        "expected": "AVBW-TEST-0001"
+      }
+    },
+    {
+      "name": "visible Give feedback href matches state",
+      "passed": true,
+      "details": {
+        "actual": "http://127.0.0.1:52772/feedback/?session_id=AVBW-TEST-0001",
+        "expected": "http://127.0.0.1:52772/feedback/?session_id=AVBW-TEST-0001"
+      }
+    },
+    {
+      "name": "feedback continuity exposes render_game_to_text",
+      "passed": true,
+      "details": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "feedback page preserves query session",
+      "passed": true,
+      "details": {
+        "actual": "AVBW-TEST-0001",
+        "expected": "AVBW-TEST-0001"
+      }
+    },
+    {
+      "name": "feedback page matches stored PASS receipt",
+      "passed": true,
+      "details": {
+        "actual": true,
+        "expected": true
+      }
+    },
+    {
+      "name": "visible feedback session matches receipt",
+      "passed": true,
+      "details": {
+        "actual": "AVBW-TEST-0001",
+        "expected": "AVBW-TEST-0001"
+      }
+    },
+    {
+      "name": "saved feedback exposes render_game_to_text",
+      "passed": true,
+      "details": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "feedback state reports saved",
+      "passed": true,
+      "details": {
+        "actual": true,
+        "expected": true
+      }
+    },
+    {
+      "name": "saved feedback preserves session ID",
+      "passed": true,
+      "details": {
+        "actual": "AVBW-TEST-0001",
+        "expected": "AVBW-TEST-0001"
+      }
+    },
+    {
+      "name": "saved feedback carries PASS verdict",
+      "passed": true,
+      "details": {
+        "actual": "PASS",
+        "expected": "PASS"
+      }
+    },
+    {
+      "name": "saved feedback preserves rating",
+      "passed": true,
+      "details": {
+        "actual": 5,
+        "expected": 5
+      }
+    },
+    {
+      "name": "saved feedback preserves evidence consent",
+      "passed": true,
+      "details": {
+        "actual": true,
+        "expected": true
+      }
+    },
+    {
+      "name": "feedback export produces a local download",
+      "passed": true,
+      "details": {
+        "downloadedPath": "/var/folders/2x/zw6qlh_d6_x5r_p8cf1g3xww0000gn/T/playwright-artifacts-RUjRoS/92f907c7-2af7-4150-8796-10d6075d9245"
+      }
+    },
+    {
+      "name": "feedback export preserves exact receipt ID",
+      "passed": true,
+      "details": {
+        "actual": "AVBW-TEST-0001",
+        "expected": "AVBW-TEST-0001"
+      }
+    },
+    {
+      "name": "feedback export uses evidence schema",
+      "passed": true,
+      "details": {
+        "actual": "agentville.feedback.v1",
+        "expected": "agentville.feedback.v1"
+      }
+    },
+    {
+      "name": "reset mission exposes render_game_to_text",
+      "passed": true,
+      "details": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "reset stays in the same page instance",
+      "passed": true,
+      "details": {
+        "actual": "same-document-reset",
+        "expected": "same-document-reset"
+      }
+    },
+    {
+      "name": "reset does not create a navigation entry",
+      "passed": true,
+      "details": {
+        "actual": 1,
+        "expected": 1
+      }
+    },
+    {
+      "name": "reset creates a new session",
+      "passed": true,
+      "details": {
+        "before": "AVBW-TEST-0001",
+        "after": "AVBW-TEST-0002"
+      }
+    },
+    {
+      "name": "reset restores initial world hash",
+      "passed": true,
+      "details": {
+        "actual": "east-channel-v1:B1:W0:C0",
+        "expected": "east-channel-v1:B1:W0:C0"
+      }
+    },
+    {
+      "name": "reset restores blockage",
+      "passed": true,
+      "details": {
+        "actual": "debris-present",
+        "expected": "debris-present"
+      }
+    },
+    {
+      "name": "reset restores three dry beds",
+      "passed": true,
+      "details": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "reset clears attempts",
+      "passed": true,
+      "details": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "reset clears the program",
+      "passed": true,
+      "details": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "reset clears the receipt",
+      "passed": true,
+      "details": {
+        "actual": null,
+        "expected": null
+      }
+    },
+    {
+      "name": "reset returns verification to NOT_RUN",
+      "passed": true,
+      "details": {
+        "actual": "NOT_RUN",
+        "expected": "NOT_RUN"
+      }
+    },
+    {
+      "name": "browser emitted no console errors",
+      "passed": true,
+      "details": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "browser emitted no uncaught page errors",
+      "passed": true,
+      "details": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "browser made no non-same-origin requests",
+      "passed": true,
+      "details": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "browser had no failed same-origin requests",
+      "passed": true,
+      "details": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "browser received no error responses",
+      "passed": true,
+      "details": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "browser opened no unexpected dialogs",
+      "passed": true,
+      "details": {
+        "actual": 0,
+        "expected": 0
+      }
+    }
+  ],
+  "stateSummary": {
+    "initial": {
+      "mode": "authoring",
+      "stage": "program",
+      "sessionId": "AVBW-TEST-0001",
+      "attemptCount": 0,
+      "worldHash": "east-channel-v1:B1:W0:C0",
+      "worldRevision": 1,
+      "blockage": "debris-present",
+      "eastChannel": "blocked",
+      "tomatoBedsWatered": 0,
+      "verification": "NOT_RUN",
+      "coachLine": null,
+      "receiptVerdict": null
+    },
+    "invalid": {
+      "mode": "authoring",
+      "stage": "program",
+      "sessionId": "AVBW-TEST-0001",
+      "attemptCount": 0,
+      "worldHash": "east-channel-v1:B1:W0:C0",
+      "worldRevision": 1,
+      "blockage": "debris-present",
+      "eastChannel": "blocked",
+      "tomatoBedsWatered": 0,
+      "verification": "NOT_RUN",
+      "coachLine": null,
+      "receiptVerdict": null
+    },
+    "compiledDraft": {
+      "mode": "compiled",
+      "stage": "program",
+      "sessionId": "AVBW-TEST-0001",
+      "attemptCount": 0,
+      "worldHash": "east-channel-v1:B1:W0:C0",
+      "worldRevision": 1,
+      "blockage": "debris-present",
+      "eastChannel": "blocked",
+      "tomatoBedsWatered": 0,
+      "verification": "READY",
+      "coachLine": null,
+      "receiptVerdict": null
+    },
+    "failure": {
+      "mode": "failure",
+      "stage": "failure",
+      "sessionId": "AVBW-TEST-0001",
+      "attemptCount": 1,
+      "worldHash": "east-channel-v1:B1:W0:C0",
+      "worldRevision": 1,
+      "blockage": "debris-present",
+      "eastChannel": "blocked",
+      "tomatoBedsWatered": 0,
+      "verification": "FAIL",
+      "coachLine": 3,
+      "receiptVerdict": null
+    },
+    "success": {
+      "mode": "proof",
+      "stage": "proof",
+      "sessionId": "AVBW-TEST-0001",
+      "attemptCount": 2,
+      "worldHash": "east-channel-v1:B0:W1:C3",
+      "worldRevision": 2,
+      "blockage": "cleared",
+      "eastChannel": "flowing",
+      "tomatoBedsWatered": 3,
+      "verification": "PASS",
+      "coachLine": 4,
+      "receiptVerdict": "PASS"
+    },
+    "feedback": {
+      "feedbackSaved": true,
+      "receiptMatched": true,
+      "sessionId": "AVBW-TEST-0001"
+    },
+    "reset": {
+      "mode": "authoring",
+      "stage": "program",
+      "sessionId": "AVBW-TEST-0002",
+      "attemptCount": 0,
+      "worldHash": "east-channel-v1:B1:W0:C0",
+      "worldRevision": 3,
+      "blockage": "debris-present",
+      "eastChannel": "blocked",
+      "tomatoBedsWatered": 0,
+      "verification": "NOT_RUN",
+      "coachLine": null,
+      "receiptVerdict": null
+    }
+  },
+  "artifacts": {
+    "hero": "artifacts/screenshots/agentville-build-week-hero.png",
+    "compilerError": "artifacts/screenshots/agentville-build-week-compiler-error.png",
+    "failure": "artifacts/screenshots/agentville-build-week-failure.png",
+    "receipt": "artifacts/screenshots/agentville-build-week-receipt.png",
+    "feedback": "artifacts/screenshots/agentville-build-week-feedback.png",
+    "debug": "artifacts/screenshots/agentville-build-week-smoke-error.png",
+    "report": "artifacts/evidence/latest-smoke.json"
+  },
+  "diagnostics": {
+    "consoleErrors": [],
+    "pageErrors": [],
+    "externalRequests": [],
+    "requestFailures": [],
+    "responseErrors": [],
+    "dialogs": [],
+    "runnerError": null,
+    "server": {
+      "root": "/Volumes/beefybackup/agentville-build-week/dist",
+      "stderr": "",
+      "stdout": "AgentVille running at http://127.0.0.1:52772"
+    }
+  }
+}
