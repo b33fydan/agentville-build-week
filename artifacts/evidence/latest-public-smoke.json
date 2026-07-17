@@ -2,9 +2,9 @@
   "schema": "agentville.browser-smoke.v1",
   "status": "PASS",
   "invocation": "smoke",
-  "startedAt": "2026-07-17T22:34:01.661Z",
-  "finishedAt": "2026-07-17T22:34:12.726Z",
-  "durationMs": 11065,
+  "startedAt": "2026-07-17T23:47:11.338Z",
+  "finishedAt": "2026-07-17T23:47:25.907Z",
+  "durationMs": 14569,
   "target": "public",
   "baseUrl": "https://b33fydan.github.io/agentville-build-week/",
   "browser": {
@@ -93,6 +93,55 @@
       "details": {
         "actual": 0,
         "expected": 0
+      }
+    },
+    {
+      "name": "farm exposes the irrigation sign",
+      "passed": true,
+      "details": {
+        "actual": "IRRIGATION",
+        "expected": "IRRIGATION"
+      }
+    },
+    {
+      "name": "irrigation sign points to the East Channel",
+      "passed": true,
+      "details": {
+        "actual": "East Channel",
+        "expected": "East Channel"
+      }
+    },
+    {
+      "name": "canvas description names the visible irrigation clue",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "1280 irrigation clue keeps a visible farm canvas",
+      "passed": true,
+      "details": {
+        "canvas": {
+          "height": 584,
+          "width": 856
+        },
+        "document": {
+          "height": 720,
+          "width": 1280
+        }
+      }
+    },
+    {
+      "name": "1280 authoring view has no document overflow",
+      "passed": true,
+      "details": {
+        "canvas": {
+          "height": 584,
+          "width": 856
+        },
+        "document": {
+          "height": 720,
+          "width": 1280
+        }
       }
     },
     {
@@ -789,7 +838,7 @@
       "name": "feedback export produces a local download",
       "passed": true,
       "details": {
-        "downloadedPath": "/var/folders/2x/zw6qlh_d6_x5r_p8cf1g3xww0000gn/T/playwright-artifacts-6q3Eum/565c2f93-ddd4-4377-8af4-d296616daba7"
+        "downloadedPath": "/var/folders/2x/zw6qlh_d6_x5r_p8cf1g3xww0000gn/T/playwright-artifacts-gxzHqN/dfec4444-2607-4658-8766-d1c70f52502d"
       }
     },
     {
@@ -1063,6 +1112,7 @@
   },
   "artifacts": {
     "hero": "artifacts/screenshots/agentville-build-week-hero.png",
+    "irrigationCue1280": "artifacts/screenshots/agentville-build-week-irrigation-cue-1280.png",
     "compilerError": "artifacts/screenshots/agentville-build-week-compiler-error.png",
     "failure": "artifacts/screenshots/agentville-build-week-failure.png",
     "receipt": "artifacts/screenshots/agentville-build-week-receipt.png",

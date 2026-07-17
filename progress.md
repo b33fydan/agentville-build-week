@@ -58,4 +58,5 @@ Original prompt: Build a clean-room hackathon project called AgentVille: Build W
 - Mirrored the visible landmark in the canvas accessibility description and `render_game_to_text()` so visual, assistive, and automated readings stay aligned.
 - Added five browser assertions for sign semantics, accessible copy, 1280×720 canvas visibility, and overflow; the full local production run passes 26/26 Node tests and 122/122 browser assertions.
 - Captured and visually inspected the clue at 1600×900 and 1280×720, plus a focused canvas frame through the reusable web-game client.
-- Next: deploy this release, rerun the 122-assertion flow publicly, and preserve the updated deployment proof.
+- Deployed commit `8c01c21` in GitHub Actions run `29621501693`; Pages reported the same SHA.
+- `npm run test:public` then passed 122/122 against the live URL with empty browser and network diagnostics, and the updated public evidence was preserved.

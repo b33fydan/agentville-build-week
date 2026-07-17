@@ -39,7 +39,7 @@ This ID is preserved for Build Week `/feedback` and development-session traceabi
 
 **Human feedback:** The blank after `observe` should prompt a learner to inspect the farm and infer the target. A small map sign reading “irrigation” would supply the vocabulary without supplying the answer.
 
-**Codex / GPT-5.6 contribution:** Reworked the farm's obscured `EAST` marker into a readable upstream **IRRIGATION** sign that points into the channel but never names the blockage repair. Mirrored the visible landmark in the canvas description and `render_game_to_text()`, added semantic browser assertions, and preserved a dedicated 1280×720 evidence frame. The playtest protocol now measures whether a novice notices the sign and authors `observe irrigation` before opening the full draft hint.
+**Codex / GPT-5.6 contribution:** Reworked the farm's obscured `EAST` marker into a readable upstream **IRRIGATION** sign that points into the channel but never names the blockage repair. Mirrored the visible landmark in the canvas description and `render_game_to_text()`, added semantic browser assertions, and preserved a dedicated 1280×720 evidence frame. The playtest protocol now measures whether a novice notices the sign and authors `observe irrigation` before opening the full draft hint. Commit `8c01c21` deployed in [Actions run 29621501693](https://github.com/b33fydan/agentville-build-week/actions/runs/29621501693), and the live mission passed 122/122 browser assertions.
 
 ## Clean-room declaration
 

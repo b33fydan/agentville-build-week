@@ -32,9 +32,9 @@ The game is a static HTML, CSS, and JavaScript application. Canvas 2D draws the 
 
 The Workbench language is an explicit allowlist, not arbitrary scripting. The compiler creates an immutable four-step plan. A pure deterministic simulator owns the blocked channel, released water, and three tomato-bed states. The visual timeline consumes that evidence but cannot decide the verdict.
 
-Node's built-in test runner covers the parser, sandbox rejections, state transitions, receipt, learning recap, reset, determinism, and public-smoke arguments. The current suite passes 26/26. A Playwright smoke types into the real editor and validates the complete production flow from the visible irrigation landmark through invalid syntax, failure, repair, debrief, receipt, feedback continuity, reset, responsive layout, and same-origin-only networking; the updated local production run passes 122/122 assertions. The latest deployed proof remains at 117/117 until this clue release is published.
+Node's built-in test runner covers the parser, sandbox rejections, state transitions, receipt, learning recap, reset, determinism, and public-smoke arguments. The current suite passes 26/26. A Playwright smoke types into the real editor and validates the complete production flow from the visible irrigation landmark through invalid syntax, failure, repair, debrief, receipt, feedback continuity, reset, responsive layout, and same-origin-only networking; both local production and public runs pass 122/122 assertions.
 
-GitHub Pages deploys the static `dist/` artifact only after that local production smoke passes. The first deployment succeeded in Actions run `29554682024` at commit `cb57621`; the learner-debrief release succeeded in Actions run `29618190795` at commit `8d2f0b5`, then passed the full 117/117 flow against the public URL.
+GitHub Pages deploys the static `dist/` artifact only after that local production smoke passes. The first deployment succeeded in Actions run `29554682024` at commit `cb57621`; the irrigation-clue release succeeded in Actions run `29621501693` at commit `8c01c21`, then passed the full 122/122 flow against the public URL.
 
 ## GPT-5.6 / Codex collaboration
 
