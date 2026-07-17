@@ -1,0 +1,13 @@
+.DS_Store
+._*
+**/._*
+node_modules/
+dist/
+playwright-report/
+test-results/
+artifacts/screenshots/*.png
+artifacts/evidence/*.json
+!.gitkeep
+.env
+.env.*
+!.env.example
