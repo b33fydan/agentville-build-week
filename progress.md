@@ -14,6 +14,17 @@ Original prompt: Build a clean-room hackathon project called AgentVille: Build W
 - Run the three genuine first-time sessions in `docs/PLAYTEST_PROTOCOL.md`.
 - Record the demo video and any separate event `/feedback` ID in the evidence ledger.
 
+## 2026-07-18 — Progressive teaching pass (in progress)
+
+- Began the learner-directed refinement that checks one instruction at a time and rewards Observe, Decide, and Act with deterministic Bert rehearsals before the complete program can run.
+- Added a frozen prefix validator that reuses the strict allowlist but cannot emit an executable safe plan; `compileProgram()` and `runMission()` remain the only authority path for world mutation and receipts.
+- Delayed blockage labels until the learner observes and decides, added an accessible Bert speech layer, an accurate goal/tools/limits teaching note, and a locked Lesson 02 weather-window teaser.
+- Added two compiler tests; at that intermediate checkpoint the suite passed 28/28 Node tests and browser/evidence work remained.
+- Completed the progressive browser flow with 214 assertions: wrong Observe/help, current-line hint and accessibility parity, locked skipped phases, Bert's irrigation walk, staged evidence, Decide/lightbulb boundary note, Act rehearsal, strict full compile, stale-repair guards, honest FAIL, held grand payoff, PASS, Lesson 02 teaser, `/feedback`, and same-document reset. All browser/network diagnostics are empty.
+- Visually inspected the irrigation clue, Observe error, Observe Aha, Decide/lightbulb, failure, and 1280×720 debrief frames. Speech, concept note, Workbench controls, and weather bulletin stay contained with no document or receipt scrolling.
+- Updated acceptance, README, collaboration, Devpost, playtest, and source-manifest documentation for the new authority boundary and learner experience.
+- `COPYFILE_DISABLE=1 npm run smoke` passes the production `dist/` build with 28/28 Node tests and 214/214 browser assertions; all diagnostics are empty. Clean-tree hygiene, dated commit, deployment, and public smoke remain.
+
 ## 2026-07-16 — Playable loop
 
 - Implemented the strict four-line compiler and immutable allowlisted plans.

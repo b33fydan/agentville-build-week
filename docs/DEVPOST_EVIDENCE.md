@@ -13,6 +13,7 @@
 - [ ] Two-to-three-minute uncut critical-flow demo
 - [x] Hero screenshot showing the farm and Agent Workbench
 - [x] Compiler-error screenshot with line number and fix suggestion
+- [x] Observe success and Decide/lightbulb teaching screenshots at 1280×720
 - [x] Failed-verification screenshot with blocked water visible
 - [x] Passing receipt screenshot with session ID visible
 - [x] `/feedback/` screenshot showing the same session ID
@@ -25,16 +26,20 @@
 
 | Criterion | Artifact or command | Status |
 | --- | --- | --- |
-| A1 | `npm run test:public` against [GitHub Pages](https://b33fydan.github.io/agentville-build-week/) | PASS — 122/122 public browser assertions |
-| A2–A17 | `npm run smoke` | PASS — 26/26 Node tests + 122/122 local browser assertions |
+| A1 | `npm run test:public` against [GitHub Pages](https://b33fydan.github.io/agentville-build-week/) | Last deployed baseline PASS — 122/122 public browser assertions; progressive release pending deployment proof |
+| A2–A20 | `npm run smoke` | PASS — 28/28 Node tests + 214/214 production-dist browser assertions |
 | Hero frame | `artifacts/screenshots/agentville-build-week-hero.png` | Captured and inspected |
 | Irrigation clue at judging viewport | `artifacts/screenshots/agentville-build-week-irrigation-cue-1280.png` | Captured and inspected at 1280×720; sign readable, canvas visible, no page overflow |
+| Observe error at judging viewport | `artifacts/screenshots/agentville-build-week-observe-error-1280.png` | Captured and inspected at 1280×720; Bert question visible, no repair disclosed |
+| Observe reward at judging viewport | `artifacts/screenshots/agentville-build-week-observe-success-1280.png` | Captured and inspected at 1280×720; stopped-flow evidence and Aha response visible |
+| Decide reward at judging viewport | `artifacts/screenshots/agentville-build-week-decide-aha-1280.png` | Captured and inspected at 1280×720; lightbulb, agent-boundary note, and controls contained |
+| Grand repaired payoff | `artifacts/screenshots/agentville-build-week-grand-payoff-1280.png` | Captured and inspected at 1280×720 before the receipt; channel clear, 3/3 beds watered, Verify visible |
 | Compiler error | `artifacts/screenshots/agentville-build-week-compiler-error.png` | Captured and inspected |
 | Failure frame | `artifacts/screenshots/agentville-build-week-failure.png` | Captured and inspected |
 | Receipt frame | `artifacts/screenshots/agentville-build-week-receipt.png` | Captured and inspected |
 | Debrief at judging viewport | `artifacts/screenshots/agentville-build-week-debrief-1280.png` | Captured and inspected at 1280×720; no clipping or scroll |
 | Feedback continuity | `artifacts/screenshots/agentville-build-week-feedback.png` | Captured and inspected |
-| Local machine evidence | `artifacts/evidence/latest-smoke.json` | PASS against `dist/`; diagnostics empty |
+| Local machine evidence | `artifacts/evidence/latest-smoke.json` | PASS against production `dist/`, 214/214; diagnostics empty |
 | Public mission smoke | `artifacts/evidence/latest-public-smoke.json` via `npm run test:public` | PASS — 122/122; console, page, request, response, and dialog diagnostics empty |
 | Human evidence | `artifacts/evidence/playtest-YYYY-MM-DD-<tester>.json` | Pending genuine sessions |
 | Source evidence | [github.com/b33fydan/agentville-build-week](https://github.com/b33fydan/agentville-build-week) | PUBLIC repository; first deployed commit `cb57621` |
@@ -48,6 +53,7 @@
 - **First successful deployment:** Actions run `29554682024` at commit `cb57621`
 - **Learner-debrief deployment:** Actions run `29618190795` at commit `8d2f0b5`
 - **Irrigation-clue deployment:** Actions run `29621501693` at commit `8c01c21`
+- **Latest predecessor proof deployment:** Actions run `29621632492` at commit `5290b08`
 - **Public verification:** HTTP 200 plus `npm run test:public` with 122/122 browser assertions
 - **Still pending:** three genuine playtests, demo video URL, and any separate Build Week `/feedback` ID
 

@@ -9,6 +9,10 @@ artifacts/browser/
 artifacts/screenshots/*.png
 !artifacts/screenshots/agentville-build-week-hero.png
 !artifacts/screenshots/agentville-build-week-irrigation-cue-1280.png
+!artifacts/screenshots/agentville-build-week-observe-error-1280.png
+!artifacts/screenshots/agentville-build-week-observe-success-1280.png
+!artifacts/screenshots/agentville-build-week-decide-aha-1280.png
+!artifacts/screenshots/agentville-build-week-grand-payoff-1280.png
 !artifacts/screenshots/agentville-build-week-compiler-error.png
 !artifacts/screenshots/agentville-build-week-failure.png
 !artifacts/screenshots/agentville-build-week-receipt.png

@@ -18,11 +18,13 @@ Farming makes that idea visible. If water does not reach a tomato bed, the world
 
 ## What it does
 
-The player opens a compact voxel farm and sees a small **IRRIGATION** sign beside the channel, upstream water, debris, and three dry tomato beds. The sign gives a beginner enough vocabulary to infer `observe irrigation` without revealing what Bert should do. In the typed Agent Workbench they write four safe instructions: observe, decide, act, and verify.
+The player opens a compact voxel farm with three dry tomato beds and a small **IRRIGATION** sign beside the channel. The cause is not labeled yet. The sign gives a beginner enough vocabulary to infer `observe irrigation` without revealing what Bert should do.
+
+In the typed Agent Workbench they teach one safe instruction at a time: observe, decide, act, and verify. A wrong Observe gives Bert a whimsical question. The correct line makes him walk to the channel and report stopped flow. Decide produces a lightbulb and an accurate boundary lesson: agents can choose from evidence, but people define their goals, tools, and limits. These partial rehearsals are rewarding but deliberately non-authoritative; they cannot change the farm or create proof.
 
 Their first program compiles. Bert executes it. It still fails because `act water tomatoes` treats the dry crops instead of the blockage. The execution trace and deterministic Codex Coach connect that failed verification to line 3. The player changes one instruction to `act clear blockage`, recompiles, and watches Bert clear the debris. Water travels downstream, the tomato beds visibly recover, and the verifier issues a receipt containing the before state, action, after state, session ID, and PASS verdict.
 
-The mission closes with a field-note debrief that explains the four lines as Look, Choose, Change, and Check. It also credits the learner directly: they used an honest failure as evidence, repaired behavior rather than syntax, reran the plan, and proved the result—the core act of debugging an agent.
+The mission closes with a field-note debrief that explains the four lines as Look, Choose, Change, and Check. It credits the learner directly: they used an honest failure as evidence, repaired behavior rather than syntax, reran the plan, and proved the result—the core act of debugging an agent. A final weather-window signal teases Lesson 02—plant the east field before rain makes the soil muddy—without pretending that the completed Mission 01 result broke.
 
 The same receipt ID is carried to `/feedback`, where a playtest response can be exported as JSON for evidence.
 
@@ -30,9 +32,9 @@ The same receipt ID is carried to `/feedback`, where a playtest response can be 
 
 The game is a static HTML, CSS, and JavaScript application. Canvas 2D draws the entire isometric voxel farm procedurally; there are no downloaded game assets.
 
-The Workbench language is an explicit allowlist, not arbitrary scripting. The compiler creates an immutable four-step plan. A pure deterministic simulator owns the blocked channel, released water, and three tomato-bed states. The visual timeline consumes that evidence but cannot decide the verdict.
+The Workbench language is an explicit allowlist, not arbitrary scripting. A deeply frozen prefix checker can validate lesson steps but never emit an executable plan. The full compiler creates an immutable four-step plan. A pure deterministic simulator owns the blocked channel, released water, and three tomato-bed states. The visual timeline consumes that evidence but cannot decide the verdict.
 
-Node's built-in test runner covers the parser, sandbox rejections, state transitions, receipt, learning recap, reset, determinism, and public-smoke arguments. The current suite passes 26/26. A Playwright smoke types into the real editor and validates the complete production flow from the visible irrigation landmark through invalid syntax, failure, repair, debrief, receipt, feedback continuity, reset, responsive layout, and same-origin-only networking; both local production and public runs pass 122/122 assertions.
+Node's built-in test runner covers the parser, non-executable prefix records, sandbox rejections, state transitions, receipt, learning recap, reset, determinism, and public-smoke arguments. The progressive suite passes 28/28. A Playwright smoke types into the real editor and validates the complete production flow from the visible irrigation landmark through Observe error and walk, Decide/lightbulb, staged Act/Verify construction, full execution, failure, repair, held grand payoff, debrief, weather teaser, receipt, feedback continuity, reset, responsive layout, and same-origin-only networking. Local production passes 214/214 assertions; the evidence ledger records the public total after deployment.
 
 GitHub Pages deploys the static `dist/` artifact only after that local production smoke passes. The first deployment succeeded in Actions run `29554682024` at commit `cb57621`; the irrigation-clue release succeeded in Actions run `29621501693` at commit `8c01c21`, then passed the full 122/122 flow against the public URL.
 
@@ -54,6 +56,7 @@ The shipped Codex Coach is deterministic and locally authored from that collabor
 ## Accomplishments
 
 - One coherent mission that makes planning, execution, failure, repair, and proof visible
+- Progressive Bert reactions that give each new learner instruction a payoff without granting partial programs world authority
 - A real typed editor with safe line-level diagnostics and no evaluation seam
 - A procedural voxel farm with one readable causal conflict
 - A verification receipt generated from before/after world state
@@ -70,7 +73,7 @@ We also learned that model-assisted education benefits from a hard authority bou
 
 ## What's next
 
-After three first-time learner sessions and the Build Week feedback review, the next bounded step is one additional mission that reuses the same four phases without adding loops or multiple agents. Live model coaching would remain optional and could only explain compiler/world evidence; it would never mutate the farm or issue receipts.
+After three first-time learner sessions and the Build Week feedback review, the next bounded step is to turn the locked weather-window signal into Lesson 02 while reusing the same four phases and avoiding loops or multiple agents. Live model coaching would remain optional and could only explain compiler/world evidence; it would never mutate the farm or issue receipts.
 
 ## Technologies
 

@@ -7,6 +7,7 @@ import {
   compile,
   compileProgram,
   isSafePlan,
+  validateProgramPrefix,
 } from "../src/compiler.js";
 
 const WATER_PROGRAM = [
@@ -81,6 +82,40 @@ test("compiler accepts CRLF and one conventional terminal newline", () => {
 
   assert.equal(result.ok, true);
   assert.equal(result.plan.source, REPAIR_PROGRAM);
+});
+
+test("lesson prefixes validate safely without creating executable plans", () => {
+  const lines = WATER_PROGRAM.split("\n");
+
+  for (let count = 1; count <= 4; count += 1) {
+    const result = validateProgramPrefix(lines.slice(0, count).join("\n"));
+    assert.equal(result.ok, true);
+    assert.equal(result.acceptedCount, count);
+    assert.equal(result.complete, count === 4);
+    assert.equal(result.nextPhase, PHASES[count] ?? null);
+    assert.equal(result.steps.length, count);
+    assert.equal("plan" in result, false);
+    assert.equal("kind" in result, false);
+    assert.equal(isSafePlan(result), false);
+    assert.equal(Object.isFrozen(result), true);
+    assert.equal(Object.isFrozen(result.steps), true);
+    assert.ok(result.steps.every(Object.isFrozen));
+  }
+});
+
+test("lesson prefixes reuse strict order and sandbox diagnostics", () => {
+  const wrongOrder = validateProgramPrefix("decide if irrigation is blocked");
+  const orderError = errorWithCode(wrongOrder, "PHASE_ORDER");
+  assert.equal(orderError.line, 1);
+  assert.match(orderError.suggestion, /observe irrigation/u);
+
+  const unsafe = validateProgramPrefix("observe irrigation\nact fetch farm");
+  const unsafeError = errorWithCode(unsafe, "FORBIDDEN_TOKEN");
+  assert.equal(unsafeError.line, 2);
+  assert.equal("plan" in unsafe, false);
+
+  const extra = validateProgramPrefix(`${WATER_PROGRAM}\nact clear blockage`);
+  errorWithCode(extra, "LINE_COUNT");
 });
 
 test("successful compiler output is deeply immutable", () => {

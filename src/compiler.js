@@ -172,18 +172,82 @@ function validateLine(lineText, index) {
 }
 
 function buildPlan(source, lines) {
-  const steps = lines.map((command, index) => ({
-    line: index + 1,
-    phase: PHASES[index],
-    command,
-    label: LABELS[command],
-  }));
+  const steps = buildSteps(lines);
 
   return deepFreeze({
     kind: PLAN_KIND,
     version: PLAN_VERSION,
     source,
     steps,
+  });
+}
+
+function buildSteps(lines) {
+  return lines.map((command, index) => ({
+    line: index + 1,
+    phase: PHASES[index],
+    command,
+    label: LABELS[command],
+  }));
+}
+
+/**
+ * Validate an incomplete lesson program without creating an executable plan.
+ * Prefix results are teaching records only; runMission accepts only the
+ * four-line safe plan produced by compileProgram().
+ *
+ * @param {string} source Player-authored prefix containing one to four lines.
+ * @returns {{ok: true, complete: boolean, acceptedCount: number, nextPhase: string|null, steps: object[]}|{ok: false, errors: object[]}}
+ */
+export function validateProgramPrefix(source) {
+  if (typeof source !== "string") {
+    return deepFreeze({
+      ok: false,
+      errors: [
+        issue(
+          1,
+          "SOURCE_TYPE",
+          "The lesson program must be plain text.",
+          "Enter a text line beginning with observe.",
+        ),
+      ],
+    });
+  }
+
+  const normalizedSource = normalizeSource(source);
+  const lines = normalizedSource.split("\n");
+  const errors = [];
+
+  if (lines.length > PHASES.length) {
+    errors.push(
+      issue(
+        PHASES.length + 1,
+        "LINE_COUNT",
+        `The lesson program has ${lines.length} lines; extra lines are not allowed.`,
+        "Remove every line after line 4.",
+      ),
+    );
+  }
+
+  for (let index = 0; index < Math.min(lines.length, PHASES.length); index += 1) {
+    const lineIssue = validateLine(lines[index], index);
+    if (lineIssue) errors.push(lineIssue);
+  }
+
+  for (let index = PHASES.length; index < lines.length; index += 1) {
+    if (lines[index].length === 0) continue;
+    const unsafeIssue = findUnsafeIssue(lines[index], index + 1);
+    if (unsafeIssue) errors.push(unsafeIssue);
+  }
+
+  if (errors.length > 0) return deepFreeze({ ok: false, errors });
+
+  return deepFreeze({
+    ok: true,
+    complete: lines.length === PHASES.length,
+    acceptedCount: lines.length,
+    nextPhase: PHASES[lines.length] ?? null,
+    steps: buildSteps(lines),
   });
 }
 

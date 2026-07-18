@@ -334,7 +334,7 @@ export class FarmRenderer {
         this.drawCropBed(prop.x, prop.y, prop.index, state, timeMs);
         break;
       case "debris":
-        if (state.blocked) this.drawDebris(prop.x, prop.y, timeMs);
+        if (state.blocked) this.drawDebris(prop.x, prop.y, timeMs, state.blockageRevealed);
         else this.drawClearedDebris(prop.x, prop.y);
         break;
       case "fence":
@@ -441,7 +441,7 @@ export class FarmRenderer {
     }
   }
 
-  drawDebris(x, y, timeMs) {
+  drawDebris(x, y, timeMs, highlighted = true) {
     const wobble = this.reducedMotion ? 0 : Math.sin(timeMs / 420) * 0.01;
     this.drawSmallCube(x - 0.12, y + 0.05, 0.28, 0.46, 0.36, {
       top: "#d08a43",
@@ -453,6 +453,8 @@ export class FarmRenderer {
       left: "#a66232",
       right: "#81442b",
     }, -wobble);
+
+    if (!highlighted) return;
 
     const p = this.project(x, y, 0.98);
     const ctx = this.context;
@@ -656,6 +658,7 @@ export class FarmRenderer {
 function normalizeState(state) {
   return {
     blocked: state.blocked !== false,
+    blockageRevealed: Boolean(state.blockageRevealed),
     cropsWatered: clamp(Number(state.cropsWatered ?? 0), 0, 3),
     routeVisible: Boolean(state.routeVisible),
     route: Array.isArray(state.route) ? state.route : [],

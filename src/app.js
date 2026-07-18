@@ -1,4 +1,4 @@
-import { PHASES, compileProgram } from "./compiler.js";
+import { PHASES, compileProgram, validateProgramPrefix } from "./compiler.js";
 import { createLearningRecap } from "./debrief.js";
 import {
   MISSION_NAME,
@@ -14,11 +14,14 @@ const DRAFT_PROGRAM = [
   "act water tomatoes",
   "verify tomatoes are watered",
 ].join("\n");
+const DRAFT_LINES = Object.freeze(DRAFT_PROGRAM.split("\n"));
 
 const REPAIR_ACTION = "act clear blockage";
+const BERT_START = Object.freeze({ x: 2.2, y: 5.25 });
+const OBSERVE_DESTINATION = Object.freeze({ x: 4.25, y: 3.45 });
 const MISSION_DURATION_MS = 5 * 60 * 1000;
-const EXECUTION_MARKS = Object.freeze([700, 1550, 2750, 4100]);
-const EXECUTION_DURATION_MS = 4300;
+const EXECUTION_MARKS = Object.freeze([850, 1850, 3200, 4400]);
+const EXECUTION_DURATION_MS = 5200;
 const STAGES = Object.freeze(["inspect", "program", "failure", "repair", "proof"]);
 const TEST_MODE = new URLSearchParams(window.location.search).get("test") === "1";
 const SEED = new URLSearchParams(window.location.search).get("seed") || "east-channel-v1";
@@ -35,6 +38,10 @@ const elements = {
   factCrops: query("#fact-crops"),
   blockageCallout: query("#blockage-callout"),
   bertTag: query("#bert-tag"),
+  bertSpeech: query("#bert-speech"),
+  bertCue: query("#bert-cue"),
+  bertSpeechCopy: query("#bert-speech-copy"),
+  agentBoundaryNote: query("#agent-boundary-note"),
   captionPhase: query("#caption-phase"),
   sceneCaption: query("#scene-caption"),
   startButton: query("#start-button"),
@@ -47,6 +54,7 @@ const elements = {
   languageReference: query("#language-reference"),
   hintButton: query("#hint-button"),
   editor: query("#program-editor"),
+  editorHelp: query("#editor-help"),
   editorStatus: query("#editor-status"),
   lineNumbers: query("#line-numbers"),
   traceOutput: query("#trace-output"),
@@ -101,10 +109,10 @@ const state = {
   receipt: null,
   lastTrace: [],
   execution: null,
-  hintRevealed: false,
+  lesson: createInitialLessonState(),
   reducedMotion: prefersReducedMotion.matches,
   visual: {
-    bert: { x: 2.2, y: 5.25, moving: false, action: "idle" },
+    bert: { ...BERT_START, moving: false, action: "idle" },
     route: [],
     routeVisible: false,
     cropsWatered: 0,
@@ -167,13 +175,13 @@ function beginMission({ replay = false } = {}) {
   state.failureSeen = false;
   state.failedSource = null;
   state.coach = null;
-  state.verification = { status: "NOT_RUN", message: "Write and run the first plan." };
+  state.verification = { status: "NOT_RUN", message: "Teach Bert what to observe first." };
   state.receipt = null;
   state.lastTrace = [];
   state.execution = null;
-  state.hintRevealed = false;
+  state.lesson = createInitialLessonState();
   state.visual = {
-    bert: { x: 2.2, y: 5.25, moving: false, action: "idle" },
+    bert: { ...BERT_START, moving: false, action: "idle" },
     route: [],
     routeVisible: false,
     cropsWatered: 0,
@@ -185,66 +193,82 @@ function beginMission({ replay = false } = {}) {
   elements.hintButton.disabled = false;
   elements.receiptPanel.hidden = true;
   elements.copyReceipt.textContent = "Copy receipt";
-  resetLanguageReference();
   render();
-  announce(replay ? "Mission reset. The East Channel is blocked again." : "Mission started. Type the four-line draft in the Agent Workbench.");
+  announce(
+    replay
+      ? "Mission reset. Teach Bert what to observe first."
+      : "Mission started. Teach Bert one instruction at a time, beginning with observe.",
+  );
   requestAnimationFrame(() => elements.editor.focus());
 }
 
 function revealDraft() {
-  state.hintRevealed = true;
-  elements.languageCard.classList.add("is-revealed");
-  elements.languageReference.replaceChildren(
-    ...DRAFT_PROGRAM.split("\n").map((line) => {
-      const item = document.createElement("li");
-      const code = document.createElement("code");
-      const note = document.createElement("span");
-      code.textContent = line.split(" ")[0];
-      note.textContent = line.slice(line.indexOf(" ") + 1);
-      item.append(code, note);
-      return item;
-    }),
+  const phaseIndex = lessonFocusIndex();
+  state.lesson.hintedPhases[phaseIndex] = true;
+  state.domDirty = true;
+  render();
+  announce(
+    state.failureSeen
+      ? `Repair hint revealed: ${REPAIR_ACTION}.`
+      : `Hint revealed for line ${phaseIndex + 1}.`,
   );
-  elements.hintButton.textContent = "Draft shown";
-  elements.hintButton.disabled = true;
-  announce("Starter draft revealed. Type each line into the editor.");
-}
-
-function resetLanguageReference() {
-  const descriptions = ["read world state", "choose from evidence", "change one thing", "prove the outcome"];
-  elements.languageReference.replaceChildren(
-    ...PHASES.map((phase, index) => {
-      const item = document.createElement("li");
-      const code = document.createElement("code");
-      const description = document.createElement("span");
-      code.textContent = phase;
-      description.textContent = descriptions[index];
-      item.append(code, description);
-      return item;
-    }),
-  );
-  elements.languageCard.classList.remove("is-revealed");
-  elements.hintButton.textContent = "Show draft";
 }
 
 function onEditorInput() {
-  if (state.mode === "running") return;
+  if (state.mode === "running" || state.lesson.status === "rehearsing") return;
   const nextSource = elements.editor.value;
   const sourceChanged = nextSource !== state.source;
   state.source = nextSource;
 
   if (sourceChanged && state.compiledPlan?.source !== nextSource) {
     state.compileResult = null;
+    state.lesson.validation = null;
     state.compiledPlan = null;
     state.compiledEditorSource = null;
     state.visual.routeVisible = false;
     state.lastTrace = [];
   }
 
+  if (!state.failureSeen) {
+    const enteredLines = programLines(nextSource);
+    let retainedCount = 0;
+    while (
+      retainedCount < state.lesson.acceptedSteps.length &&
+      enteredLines[retainedCount] === state.lesson.acceptedSteps[retainedCount].command
+    ) {
+      retainedCount += 1;
+    }
+
+    if (retainedCount < state.lesson.acceptedSteps.length) {
+      state.lesson.acceptedSteps = state.lesson.acceptedSteps.slice(0, retainedCount);
+      state.lesson.validation = null;
+      state.lesson.status = "prompt";
+      state.lesson.evidenceLevel = retainedCount === 0 ? 0 : retainedCount === 1 ? 1 : 2;
+      state.lesson.conceptVisible = retainedCount >= 2;
+      state.lesson.bertMessage = promptForPhase(retainedCount);
+      resetBertForLesson(retainedCount);
+    }
+  }
+
   if (state.failureSeen && nextSource !== state.failedSource) {
     state.mode = "repair";
     state.stage = "repair";
-  } else if (!state.failureSeen) {
+    state.lesson.status = "repair";
+    state.lesson.bertMessage = repairFailureMessage();
+    state.verification = {
+      status: "FAIL",
+      message: "0 of 3 tomato beds are watered; the blockage is still present.",
+    };
+  } else if (state.failureSeen) {
+    state.mode = "failure";
+    state.stage = "failure";
+    state.lesson.status = "repair";
+    state.lesson.bertMessage = repairFailureMessage();
+    state.verification = {
+      status: "FAIL",
+      message: "0 of 3 tomato beds are watered; the blockage is still present.",
+    };
+  } else {
     state.mode = "authoring";
     state.stage = "program";
   }
@@ -254,10 +278,54 @@ function onEditorInput() {
 }
 
 function compileCurrentProgram() {
-  if (state.mode === "running") return;
+  if (state.mode === "running" || state.lesson.status === "rehearsing") return;
   state.source = elements.editor.value;
+  state.lastTrace = [];
+
+  if (state.failureSeen || programLines(state.source).length === PHASES.length) {
+    compileFullProgram();
+    return;
+  }
+
+  let result = validateProgramPrefix(state.source);
+  if (
+    result.ok &&
+    result.acceptedCount > state.lesson.acceptedSteps.length + 1
+  ) {
+    result = lockedPrefixResult(state.lesson.acceptedSteps.length);
+  }
+  state.lesson.validation = result;
+  state.compileResult = null;
+  state.compiledPlan = null;
+  state.compiledEditorSource = null;
+  state.visual.routeVisible = false;
+
+  if (!result.ok) {
+    state.verification = { status: "NOT_RUN", message: "Compiler stopped before world execution." };
+    state.lesson.status = "error";
+    state.lesson.bertMessage = {
+      cue: "?",
+      tone: "question",
+      text: questionAfterError(result.errors[0]),
+    };
+    state.mode = "authoring";
+    state.stage = "program";
+    announce(`Compile stopped at line ${result.errors[0].line}. ${result.errors[0].suggestion}`);
+    requestAnimationFrame(() => focusLine(result.errors[0].line));
+  } else {
+    const acceptedStep = result.steps.at(-1);
+    state.lesson.acceptedSteps = result.steps;
+    startLessonRehearsal(acceptedStep);
+  }
+
+  state.domDirty = true;
+  render();
+}
+
+function compileFullProgram() {
   const result = compileProgram(state.source);
   state.compileResult = result;
+  state.lesson.validation = null;
   state.lastTrace = [];
 
   if (!result.ok) {
@@ -265,22 +333,76 @@ function compileCurrentProgram() {
     state.compiledEditorSource = null;
     state.visual.routeVisible = false;
     state.verification = { status: "NOT_RUN", message: "Compiler stopped before world execution." };
+    state.lesson.status = "error";
+    state.lesson.bertMessage = state.failureSeen
+      ? {
+          cue: "?",
+          tone: "question",
+          text: "That repair is not ready yet. Which action changes the cause?",
+        }
+      : {
+          cue: "?",
+          tone: "question",
+          text: questionAfterError(result.errors[0]),
+        };
     state.mode = state.failureSeen ? "repair" : "authoring";
     state.stage = state.failureSeen ? "repair" : "program";
     announce(`Compile stopped at line ${result.errors[0].line}. ${result.errors[0].suggestion}`);
+    requestAnimationFrame(() => focusLine(result.errors[0].line));
   } else {
     state.compiledPlan = result.plan;
     state.compiledEditorSource = state.source;
+    state.lesson.acceptedSteps = result.plan.steps;
+    state.lesson.status = "ready";
+    state.lesson.evidenceLevel = 2;
+    state.lesson.conceptVisible = !state.failureSeen;
+    state.lesson.bertMessage = state.failureSeen
+      ? {
+          cue: "✓",
+          tone: "idea",
+          text: "That repair targets the cause. Let’s run the full loop again.",
+        }
+      : {
+          cue: "✓",
+          tone: "idea",
+          text: "All four instructions are ready. I’ll run the full loop, then check the farm.",
+        };
     state.mode = state.failureSeen ? "repair-ready" : "compiled";
     state.stage = state.failureSeen ? "repair" : "program";
-    state.visual.route = routeForAction(result.plan.steps[2].command, state.visual.bert);
+    state.visual.route = routeForAction(result.plan.steps[2].command, BERT_START);
     state.visual.routeVisible = true;
     state.verification = { status: "READY", message: "Four safe phases compiled. World state has not changed yet." };
-    announce("Compile succeeded. Four safe phases are ready to run with Bert.");
+    announce("Compile succeeded. Four safe phases are ready to run as one complete agent loop.");
+    requestAnimationFrame(() => elements.runButton.focus());
   }
 
   state.domDirty = true;
   render();
+}
+
+function startLessonRehearsal(step) {
+  const durationMs = step.phase === "observe" ? 1450 : 950;
+  const route =
+    step.phase === "observe"
+      ? [
+          { x: state.visual.bert.x, y: state.visual.bert.y },
+          { x: 3.25, y: 4.95 },
+          { ...OBSERVE_DESTINATION },
+        ]
+      : [{ x: state.visual.bert.x, y: state.visual.bert.y }];
+  state.lesson.status = "rehearsing";
+  state.lesson.rehearsal = { elapsedMs: 0, durationMs, phase: step.phase, route };
+  state.lesson.bertMessage = rehearsalStartMessage(step.phase);
+  state.verification = {
+    status: "NOT_RUN",
+    message: `Line ${step.line} is safe teaching input. The farm has not changed.`,
+  };
+  state.visual.route = route;
+  state.visual.routeVisible = step.phase === "observe";
+  state.visual.bert.moving = step.phase === "observe";
+  state.visual.bert.action = step.phase === "decide" ? "think" : "inspect";
+  elements.editor.disabled = true;
+  announce(`Line ${step.line} accepted for rehearsal. Authoritative world state is unchanged.`);
 }
 
 function runCurrentProgram() {
@@ -293,9 +415,13 @@ function runCurrentProgram() {
 
   state.attemptCount += 1;
   state.mode = "running";
+  state.lesson.status = "executing";
+  state.lesson.conceptVisible = false;
+  state.lesson.bertMessage = executionMessage(0, action);
   state.verification = { status: "RUNNING", message: "Bert is executing the compiled plan." };
   state.lastTrace = [];
-  state.visual.route = routeForAction(action, state.visual.bert);
+  state.visual.bert = { ...BERT_START, moving: true, action: "inspect" };
+  state.visual.route = routeForAction(action, BERT_START);
   state.visual.routeVisible = true;
   state.visual.bert.action = "inspect";
   state.visual.bert.moving = true;
@@ -328,8 +454,53 @@ function update(deltaMs) {
     }
   }
 
+  if (state.lesson.rehearsal) updateLessonRehearsal(safeDelta);
   if (state.execution) updateExecution(safeDelta);
   render();
+}
+
+function updateLessonRehearsal(deltaMs) {
+  const rehearsal = state.lesson.rehearsal;
+  rehearsal.elapsedMs += deltaMs;
+
+  if (rehearsal.phase === "observe") {
+    const progress = clamp(rehearsal.elapsedMs / rehearsal.durationMs, 0, 1);
+    const position = positionAlongRoute(rehearsal.route, progress);
+    state.visual.bert.x = position.x;
+    state.visual.bert.y = position.y;
+    state.visual.bert.moving = progress < 1;
+  } else {
+    state.visual.bert.moving = false;
+    state.visual.bert.action = rehearsal.phase === "decide" ? "think" : "inspect";
+  }
+
+  if (rehearsal.elapsedMs >= rehearsal.durationMs) finishLessonRehearsal(rehearsal.phase);
+}
+
+function finishLessonRehearsal(phase) {
+  const phaseIndex = PHASES.indexOf(phase);
+  state.lesson.rehearsal = null;
+  state.lesson.status = "prompt";
+  state.lesson.evidenceLevel = phaseIndex === 0 ? 1 : phaseIndex >= 1 ? 2 : state.lesson.evidenceLevel;
+  state.lesson.conceptVisible = phaseIndex >= 1;
+  state.lesson.bertMessage = rehearsalCompleteMessage(phase);
+  state.visual.bert.moving = false;
+  state.visual.bert.action = phase === "decide" ? "think" : "idle";
+  state.visual.routeVisible = false;
+  elements.editor.disabled = false;
+
+  if (state.lesson.acceptedSteps.length < PHASES.length && !elements.editor.value.endsWith("\n")) {
+    elements.editor.value += "\n";
+    state.source = elements.editor.value;
+  }
+
+  state.domDirty = true;
+  render();
+  announce(`${phase} accepted. ${PHASES[phaseIndex + 1]} is now unlocked.`);
+  requestAnimationFrame(() => {
+    elements.editor.focus();
+    elements.editor.setSelectionRange(elements.editor.value.length, elements.editor.value.length);
+  });
 }
 
 function updateExecution(deltaMs) {
@@ -353,6 +524,10 @@ function updateExecution(deltaMs) {
     const completedIndex = execution.completedSteps;
     execution.completedSteps += 1;
     state.lastTrace = execution.result.trace.slice(0, execution.completedSteps);
+    state.lesson.bertMessage = executionMessage(
+      Math.min(execution.completedSteps, PHASES.length - 1),
+      execution.action,
+    );
 
     if (completedIndex === 2 && execution.action === REPAIR_ACTION) {
       state.missionState = execution.result.state;
@@ -392,6 +567,9 @@ function finishExecution() {
     state.stage = "failure";
     state.failureSeen = true;
     state.failedSource = state.source;
+    state.lesson.status = "repair";
+    state.lesson.conceptVisible = false;
+    state.lesson.bertMessage = repairFailureMessage();
     state.compiledPlan = null;
     state.verification = {
       status: "FAIL",
@@ -413,6 +591,13 @@ function finishExecution() {
       message: "The blockage is clear, water was released, and 3 of 3 tomato beds are watered.",
     };
     state.receipt = result.receipt;
+    state.lesson.status = "complete";
+    state.lesson.conceptVisible = false;
+    state.lesson.bertMessage = {
+      cue: "✓",
+      tone: "idea",
+      text: "Check passed: 3 of 3 tomato beds are watered.",
+    };
     state.coach = {
       source: "Codex-authored deterministic coach",
       focusLine: 4,
@@ -432,22 +617,26 @@ function finishExecution() {
 function render() {
   const visualWorld = visualWorldState();
   renderer.render(visualWorld, state.elapsedRuntimeMs);
-  positionWorldLabels();
 
-  if (!state.domDirty) return;
-  state.domDirty = false;
-  elements.app.dataset.mode = state.mode;
-  elements.app.dataset.ready = String(state.ready);
-  renderStageRail();
-  renderClock();
-  renderWorldStatus(visualWorld);
-  renderLesson();
-  renderEditorStatus();
-  renderCompilerBadge();
-  renderTrace();
-  renderControls();
-  renderReceipt();
-  elements.verificationStatus.textContent = state.verification.status;
+  if (state.domDirty) {
+    state.domDirty = false;
+    elements.app.dataset.mode = state.mode;
+    elements.app.dataset.ready = String(state.ready);
+    renderStageRail();
+    renderClock();
+    renderWorldStatus(visualWorld);
+    renderLesson();
+    renderLanguageReference();
+    renderBertTeaching();
+    renderEditorStatus();
+    renderCompilerBadge();
+    renderTrace();
+    renderControls();
+    renderReceipt();
+    elements.verificationStatus.textContent = state.verification.status;
+  }
+
+  positionWorldLabels();
 }
 
 function renderStageRail() {
@@ -479,23 +668,50 @@ function renderClock() {
 function renderWorldStatus(visualWorld) {
   const blocked = visualWorld.blocked;
   const watered = visualWorld.cropsWatered;
-  elements.factBlockage.lastChild.textContent = blocked ? "Channel blocked" : "Channel clear";
+  const evidenceLevel =
+    state.mode === "welcome" ? 0 : state.failureSeen || state.mode !== "authoring" ? 2 : state.lesson.evidenceLevel;
+  const flowLabel = !blocked
+    ? "Channel clear"
+    : evidenceLevel >= 2
+      ? "Channel blocked"
+      : evidenceLevel === 1
+        ? "Flow stopped"
+        : "Irrigation unchecked";
+  elements.factBlockage.lastChild.textContent = flowLabel;
   elements.factBlockage.classList.toggle("is-good", !blocked);
   elements.factCrops.lastChild.textContent = `${watered} / 3 watered`;
   elements.factCrops.classList.toggle("is-good", watered === 3);
-  elements.blockageCallout.style.opacity = blocked ? "1" : "0";
-  elements.blockageCallout.style.transform = blocked ? "translateY(0)" : "translateY(-8px)";
+  const showBlockageEvidence = blocked && evidenceLevel >= 1;
+  elements.blockageCallout.hidden = !showBlockageEvidence;
+  if (showBlockageEvidence) {
+    elements.blockageCallout.querySelector("b").textContent = evidenceLevel >= 2 ? "Debris jam" : "Flow stopped";
+    elements.blockageCallout.querySelector("small").textContent =
+      evidenceLevel >= 2 ? "Water stops here" : "Something is in the channel";
+  }
+  elements.canvas.setAttribute(
+    "aria-label",
+    evidenceLevel === 0
+      ? "A compact isometric voxel farm with three dry tomato beds. A small IRRIGATION sign marks the East Channel, and Bert waits nearby."
+      : blocked
+        ? "A compact isometric voxel farm. The IRRIGATION sign marks the East Channel, where stopped water and debris are visible before three dry tomato beds. Bert is inspecting the channel."
+        : "A compact isometric voxel farm. The East Channel is clear, water is flowing, and all three tomato beds are watered. Bert stands beside the repaired irrigation.",
+  );
 
   const copy = {
-    welcome: ["WORLD STATE", "Blocked channel → dry tomatoes"],
-    authoring: ["OBSERVE", "The debris stops every downstream segment"],
+    welcome: ["WORLD STATE", "Dry tomatoes · cause unknown"],
+    authoring:
+      evidenceLevel === 0
+        ? ["OBSERVE", "Dry tomatoes · find the farm system"]
+        : evidenceLevel === 1
+          ? ["OBSERVED", "Water stops before the tomato beds"]
+          : ["DECIDED", "The irrigation is blocked"],
     compiled: ["PLAN VISIBLE", "Cyan route preview · world unchanged"],
     running: ["EXECUTING", `Bert is running phase ${Math.min((state.execution?.completedSteps ?? 0) + 1, 4)} of 4`],
     failure: ["VERIFY · FAIL", "No water released · repair line 3"],
     repair: ["REPAIR", "Change the action, keep the evidence"],
     "repair-ready": ["PLAN REPAIRED", "Clear blockage → release water → verify"],
     proof: ["VERIFY · PASS", "Channel clear → 3 / 3 tomato beds watered"],
-  }[state.mode] ?? ["WORLD STATE", "Blocked channel → dry tomatoes"];
+  }[state.mode] ?? ["WORLD STATE", "Dry tomatoes · cause unknown"];
   elements.captionPhase.textContent = copy[0];
   elements.sceneCaption.textContent = copy[1];
 
@@ -503,18 +719,36 @@ function renderWorldStatus(visualWorld) {
     elements.worldObjective.textContent = "Verified: water reached every tomato bed.";
   } else if (state.failureSeen) {
     elements.worldObjective.textContent = "The first plan was safe, but it did not change the farm.";
+  } else if (evidenceLevel === 0) {
+    elements.worldObjective.textContent = "Use the farm’s labels to tell Bert what to inspect first.";
+  } else if (evidenceLevel === 1) {
+    elements.worldObjective.textContent = "Bert found stopped water. Turn that evidence into a decision.";
   } else {
-    elements.worldObjective.textContent = "Inspect the channel, program Bert, and prove the water arrives.";
+    elements.worldObjective.textContent = "Teach Bert what to do, then define how success will be checked.";
   }
 }
 
 function renderLesson() {
+  const phaseIndex = lessonFocusIndex();
+  const progressiveLessons = [
+    ["Line 1 · Observe", "Tell Bert what to inspect.", "Begin with observe, then name something visible on the farm."],
+    ["Line 2 · Decide", "Turn evidence into a condition.", "Tell Bert what question to answer about the irrigation."],
+    ["Line 3 · Act", "Choose one safe action.", "A safe instruction can still produce the wrong result in the world."],
+    ["Line 4 · Verify", "Define what success looks like.", "Tell Bert what fact must be true after he acts."],
+  ];
   const lessons = {
     welcome: ["Step 1", "Inspect the farm first.", "Start the mission to open Bert's local workbench."],
-    authoring: ["Step 2 · Program", "Write a four-phase draft.", "Use the phases in order. Let the first action try to water the tomatoes."],
+    authoring:
+      state.lesson.status === "rehearsing"
+        ? [
+            `Line ${phaseIndex + 1} · Rehearsal`,
+            `Bert is trying ${PHASES[phaseIndex]}.`,
+            "This preview teaches the step. Only a complete program can change the farm.",
+          ]
+        : progressiveLessons[phaseIndex],
     compiled: ["Plan · Ready", "Read the plan before it runs.", "Compilation proves the language is safe. Verification will prove whether it works."],
     running: ["Execution · Live", "Watch cause become effect.", "The trace and Bert advance together; the farm remains the source of truth."],
-    failure: ["Step 3 · Diagnose", "The syntax passed. The world did not.", "Line 3 tried to water through debris. Replace that action, then compile again."],
+    failure: ["Step 3 · Diagnose", "The syntax passed. The world did not.", "Bert followed line 3, but water could not cross the debris. Repair that action."],
     repair: ["Step 4 · Repair", "Change one causal instruction.", `Use ${REPAIR_ACTION} on line 3. Keep observe, decide, and verify unchanged.`],
     "repair-ready": ["Repair · Ready", "The new plan addresses the cause.", "Run it again and let verification inspect the resulting farm."],
     proof: ["Step 5 · Proof", "World change verified.", "Your receipt records what Bert observed, changed, and proved."],
@@ -523,6 +757,86 @@ function renderLesson() {
   elements.lessonStep.textContent = step;
   elements.promptTitle.textContent = title;
   elements.lessonCopy.textContent = copy;
+}
+
+function renderLanguageReference() {
+  const descriptions = [
+    "read world state",
+    "choose from evidence",
+    "change one thing",
+    "prove the outcome",
+  ];
+  const activeIndex = lessonFocusIndex();
+  const hasActivePhase =
+    state.mode === "authoring" || state.mode === "failure" || state.mode === "repair";
+
+  elements.languageReference.replaceChildren(
+    ...PHASES.map((phase, index) => {
+      const item = document.createElement("li");
+      const code = document.createElement("code");
+      const description = document.createElement("span");
+      const isComplete =
+        index < state.lesson.acceptedSteps.length && !(state.failureSeen && index === 2);
+      const isActive = hasActivePhase && index === activeIndex;
+      const isHinted = state.lesson.hintedPhases[index] && isActive;
+      const descriptionText = isHinted
+        ? hintLineForPhase(index).slice(phase.length + 1)
+        : isComplete
+          ? "accepted · world unchanged"
+          : descriptions[index];
+      item.dataset.phase = phase;
+      item.classList.toggle("is-complete", isComplete);
+      item.classList.toggle("is-active", isActive);
+      item.classList.toggle("is-locked", !isComplete && !isActive);
+      item.classList.toggle("is-hinted", isHinted);
+      item.setAttribute("aria-current", isActive ? "step" : "false");
+      item.setAttribute(
+        "aria-label",
+        `${phase}: ${isComplete ? "accepted" : isActive ? "current instruction" : "locked"}. ${descriptionText}`,
+      );
+      code.textContent = phase;
+      description.textContent = descriptionText;
+      item.append(code, description);
+      return item;
+    }),
+  );
+
+  const promptIndex = lessonFocusIndex();
+  const help = [
+    "Tell Bert what to inspect. Begin with observe, then name something visible on the farm.",
+    "Turn the stopped flow into a yes-or-no decision about the irrigation.",
+    "Choose a safe action. Compilation checks safety; the farm will check effectiveness.",
+    "Define the world fact that will prove the tomatoes were helped.",
+  ];
+  elements.editorHelp.textContent = state.failureSeen
+    ? "Repair only line 3. Keep the evidence and success check unchanged."
+    : help[promptIndex];
+  elements.editor.placeholder = state.failureSeen
+    ? "Repair line 3: act …"
+    : `Line ${promptIndex + 1}: ${PHASES[promptIndex]} …`;
+
+  const compileLabel = elements.compileButton.querySelector("span");
+  compileLabel.textContent = state.failureSeen
+    ? "Compile repair"
+    : programLines(elements.editor.value).length === 4
+      ? "Compile full plan"
+      : "Check line";
+}
+
+function renderBertTeaching() {
+  const visible = state.mode !== "welcome" && state.mode !== "proof" && Boolean(state.lesson.bertMessage);
+  elements.bertSpeech.hidden = !visible;
+  elements.bertTag.hidden = visible;
+  if (visible) {
+    elements.bertCue.textContent = state.lesson.bertMessage.cue;
+    elements.bertSpeechCopy.textContent = state.lesson.bertMessage.text;
+    elements.bertSpeech.dataset.tone = state.lesson.bertMessage.tone;
+  }
+
+  elements.agentBoundaryNote.hidden = !(
+    state.lesson.conceptVisible &&
+    ["authoring", "compiled"].includes(state.mode)
+  );
 }
 
 function renderEditorStatus() {
@@ -550,6 +864,12 @@ function renderCompilerBadge() {
   } else if (state.compileResult?.ok === false) {
     elements.compilerBadge.textContent = "Fix source";
     elements.compilerBadge.classList.add("is-bad");
+  } else if (state.lesson.validation?.ok === false) {
+    elements.compilerBadge.textContent = "Fix this line";
+    elements.compilerBadge.classList.add("is-bad");
+  } else if (state.lesson.acceptedSteps.length > 0) {
+    elements.compilerBadge.textContent = `${state.lesson.acceptedSteps.length} / 4 safe`;
+    elements.compilerBadge.classList.add("is-good");
   } else {
     elements.compilerBadge.textContent = state.mode === "welcome" ? "Waiting" : "Local compiler";
   }
@@ -559,8 +879,15 @@ function renderTrace() {
   elements.traceOutput.replaceChildren();
   let eventCount = 0;
 
-  if (state.compileResult?.ok === false) {
-    for (const error of state.compileResult.errors) {
+  const teachingErrors =
+    state.compileResult?.ok === false
+      ? state.compileResult.errors
+      : state.lesson.validation?.ok === false
+        ? state.lesson.validation.errors
+        : null;
+
+  if (teachingErrors) {
+    for (const error of teachingErrors) {
       elements.traceOutput.append(createErrorTrace(error));
       eventCount += 1;
     }
@@ -581,6 +908,17 @@ function renderTrace() {
   } else if (state.compiledPlan) {
     for (const step of state.compiledPlan.steps) {
       elements.traceOutput.append(createTraceItem(step, "planned", "Allowlisted and ready for execution."));
+      eventCount += 1;
+    }
+  } else if (state.lesson.acceptedSteps.length > 0) {
+    for (const step of state.lesson.acceptedSteps) {
+      elements.traceOutput.append(
+        createTraceItem(
+          step,
+          "learned",
+          "Safe lesson step accepted. It cannot change the farm until the full program runs.",
+        ),
+      );
       eventCount += 1;
     }
   }
@@ -609,7 +947,10 @@ function renderTrace() {
     const mark = document.createElement("span");
     const copy = document.createElement("p");
     mark.textContent = "›_";
-    copy.textContent = state.mode === "welcome" ? "Your plan will become visible here." : "Type the draft, then compile it into a plan.";
+    copy.textContent =
+      state.mode === "welcome"
+        ? "Your plan will become visible here."
+        : "Teach one line, check it, then watch Bert respond.";
     empty.append(mark, copy);
     elements.traceOutput.append(empty);
   }
@@ -659,9 +1000,32 @@ function createErrorTrace(error) {
 function renderControls() {
   const hasSource = elements.editor.value.trim().length > 0;
   const sameFailedSource = state.failureSeen && elements.editor.value === state.failedSource;
-  elements.compileButton.disabled = state.mode === "welcome" || state.mode === "running" || !hasSource || sameFailedSource;
+  const enteredLines = programLines(elements.editor.value);
+  const sameAcceptedPrefix =
+    !state.failureSeen &&
+    enteredLines.length === state.lesson.acceptedSteps.length &&
+    enteredLines.every((line, index) => line === state.lesson.acceptedSteps[index]?.command);
+  elements.compileButton.disabled =
+    state.mode === "welcome" ||
+    state.mode === "running" ||
+    state.lesson.status === "rehearsing" ||
+    !hasSource ||
+    sameFailedSource ||
+    sameAcceptedPrefix;
   elements.runButton.disabled = state.mode === "running" || !state.compiledPlan || state.compiledEditorSource !== elements.editor.value;
-  elements.hintButton.disabled = state.mode === "welcome" || state.hintRevealed;
+  const hintIndex = lessonFocusIndex();
+  elements.hintButton.textContent = state.lesson.hintedPhases[hintIndex]
+    ? "Hint shown"
+    : state.failureSeen
+      ? "Hint repair"
+      : "Hint this line";
+  elements.hintButton.disabled =
+    state.mode === "welcome" ||
+    state.mode === "running" ||
+    state.lesson.status === "rehearsing" ||
+    state.mode === "compiled" ||
+    state.mode === "repair-ready" ||
+    state.lesson.hintedPhases[hintIndex];
 }
 
 function renderReceipt() {
@@ -694,8 +1058,12 @@ function renderReceipt() {
 
 function visualWorldState() {
   const snapshot = snapshotMissionState(state.missionState);
+  const blockageRevealed =
+    state.mode !== "welcome" &&
+    (state.failureSeen || state.mode !== "authoring" || state.lesson.evidenceLevel >= 1);
   return {
     blocked: snapshot.irrigationBlocked,
+    blockageRevealed,
     cropsWatered: state.execution?.action === REPAIR_ACTION ? state.execution.visualCropCount : state.visual.cropsWatered || snapshot.tomatoBedsWatered,
     routeVisible: state.visual.routeVisible,
     route: state.visual.route,
@@ -710,6 +1078,41 @@ function positionWorldLabels() {
   const bert = renderer.project(state.visual.bert.x, state.visual.bert.y, 1.28);
   elements.bertTag.style.left = `${clamp(bert.x + 12, 10, renderer.width - 80)}px`;
   elements.bertTag.style.top = `${clamp(bert.y - 18, 80, renderer.height - 60)}px`;
+
+  if (!elements.bertSpeech.hidden) {
+    const bubbleWidth = Math.min(elements.bertSpeech.offsetWidth || 236, 236);
+    const bubbleHeight = elements.bertSpeech.offsetHeight || 72;
+    const candidates = [
+      { left: bert.x + 22, top: bert.y + 12 },
+      { left: bert.x - bubbleWidth - 22, top: bert.y + 12 },
+      { left: bert.x + 22, top: bert.y - bubbleHeight - 24 },
+      { left: bert.x - bubbleWidth - 22, top: bert.y - bubbleHeight - 24 },
+    ].map((candidate, index) => ({
+      index,
+      left: clamp(candidate.left, 12, renderer.width - bubbleWidth - 12),
+      top: clamp(candidate.top, 90, renderer.height - bubbleHeight - 56),
+    }));
+    const sign = renderer.project(IRRIGATION_SIGN.position.x, IRRIGATION_SIGN.position.y, 1.15);
+    const exclusions = [
+      { left: 12, top: 12, right: Math.min(renderer.width * 0.48, 420), bottom: 172 },
+      { left: sign.x - 42, top: sign.y - 25, right: sign.x + 82, bottom: sign.y + 30 },
+      { left: blockage.x - 12, top: blockage.y - 45, right: blockage.x + 145, bottom: blockage.y + 34 },
+      { left: 8, top: renderer.height - 58, right: renderer.width - 8, bottom: renderer.height - 6 },
+    ];
+    const scored = candidates.map((candidate) => {
+      const rect = {
+        left: candidate.left,
+        top: candidate.top,
+        right: candidate.left + bubbleWidth,
+        bottom: candidate.top + bubbleHeight,
+      };
+      const overlap = exclusions.reduce((total, exclusion) => total + overlapArea(rect, exclusion), 0);
+      return { ...candidate, score: overlap + candidate.index * 20 };
+    });
+    scored.sort((a, b) => a.score - b.score);
+    elements.bertSpeech.style.left = `${scored[0].left}px`;
+    elements.bertSpeech.style.top = `${scored[0].top}px`;
+  }
 }
 
 function routeForAction(action, start) {
@@ -721,7 +1124,7 @@ function routeForAction(action, start) {
 }
 
 function positionAlongRoute(route, progress) {
-  if (route.length === 0) return { x: 2.2, y: 5.25 };
+  if (route.length === 0) return { ...BERT_START };
   if (route.length === 1) return route[0];
   const scaled = clamp(progress, 0, 1) * (route.length - 1);
   const index = Math.min(Math.floor(scaled), route.length - 2);
@@ -730,6 +1133,12 @@ function positionAlongRoute(route, progress) {
     x: lerp(route[index].x, route[index + 1].x, local),
     y: lerp(route[index].y, route[index + 1].y, local),
   };
+}
+
+function overlapArea(a, b) {
+  const width = Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left));
+  const height = Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+  return width * height;
 }
 
 function outcomeClass(outcome) {
@@ -816,7 +1225,40 @@ function snapshotForAutomation() {
         ok: state.compileResult?.ok ?? null,
         error: compileError ? { line: compileError.line, code: compileError.code, suggestion: compileError.suggestion } : null,
       },
+      lessonCheck: {
+        ok: state.lesson.validation?.ok ?? null,
+        error:
+          state.lesson.validation?.ok === false
+            ? {
+                line: state.lesson.validation.errors[0].line,
+                code: state.lesson.validation.errors[0].code,
+                suggestion: state.lesson.validation.errors[0].suggestion,
+              }
+            : null,
+      },
       plan,
+    },
+    lesson: {
+      status: state.lesson.status,
+      currentPhase:
+        state.lesson.rehearsal
+          ? state.lesson.rehearsal.phase
+          : ["failure", "repair"].includes(state.mode)
+            ? "act"
+            : state.lesson.acceptedSteps.length >= PHASES.length
+              ? null
+              : PHASES[state.lesson.acceptedSteps.length],
+      acceptedCommands: state.lesson.acceptedSteps.map((step) => step.command),
+      evidenceLevel: state.lesson.evidenceLevel,
+      conceptVisible: state.lesson.conceptVisible,
+      rehearsal: state.lesson.rehearsal
+        ? {
+            phase: state.lesson.rehearsal.phase,
+            elapsedMs: Math.round(state.lesson.rehearsal.elapsedMs),
+            durationMs: state.lesson.rehearsal.durationMs,
+          }
+        : null,
+      bertMessage: state.lesson.bertMessage ? { ...state.lesson.bertMessage } : null,
     },
     crew: {
       bert: {
@@ -846,6 +1288,15 @@ function snapshotForAutomation() {
     coach: state.coach ? { ...state.coach } : null,
     receipt: state.receipt ? structuredClone(state.receipt) : null,
     learningRecap: learningRecap ? structuredClone(learningRecap) : null,
+    nextLesson:
+      state.receipt?.verdict === "PASS"
+        ? {
+            id: "lesson-02-weather-window",
+            status: "TEASER",
+            signal: "Rain reaches AgentVille soon.",
+            objective: "Plant the east field before the soil turns muddy.",
+          }
+        : null,
     feedbackHref: state.receipt ? new URL(elements.feedbackLink.href, window.location.href).href : null,
   };
 }
@@ -878,6 +1329,160 @@ state.ready = true;
 state.domDirty = true;
 render();
 if (!TEST_MODE) requestAnimationFrame(animationLoop);
+
+function createInitialLessonState() {
+  return {
+    acceptedSteps: [],
+    status: "prompt",
+    validation: null,
+    rehearsal: null,
+    evidenceLevel: 0,
+    conceptVisible: false,
+    hintedPhases: [false, false, false, false],
+    bertMessage: null,
+  };
+}
+
+function programLines(source) {
+  if (typeof source !== "string" || source.length === 0) return [];
+  const normalized = source.replace(/\r\n?/gu, "\n");
+  const withoutTerminalNewline = normalized.endsWith("\n")
+    ? normalized.slice(0, -1)
+    : normalized;
+  return withoutTerminalNewline.length === 0 ? [] : withoutTerminalNewline.split("\n");
+}
+
+function lessonFocusIndex() {
+  if (state.failureSeen) return 2;
+  const error =
+    state.compileResult?.ok === false
+      ? state.compileResult.errors[0]
+      : state.lesson.validation?.ok === false
+        ? state.lesson.validation.errors[0]
+        : null;
+  if (error) return clamp(error.line - 1, 0, PHASES.length - 1);
+  if (state.lesson.rehearsal) return PHASES.indexOf(state.lesson.rehearsal.phase);
+  return Math.min(state.lesson.acceptedSteps.length, PHASES.length - 1);
+}
+
+function lockedPrefixResult(acceptedCount) {
+  const line = acceptedCount + 1;
+  const phase = PHASES[acceptedCount];
+  const allowedPrefix = line === 1 ? "line 1" : `lines 1–${line}`;
+  const error = Object.freeze({
+    line,
+    code: "LINE_LOCKED",
+    message: `Check line ${line} (${phase}) before adding later instructions.`,
+    suggestion: `Keep only ${allowedPrefix}, then check ${phase}.`,
+  });
+  return Object.freeze({ ok: false, errors: Object.freeze([error]) });
+}
+
+function repairFailureMessage() {
+  return {
+    cue: "!",
+    tone: "warning",
+    text: "I followed line 3—but water can’t pass the debris. Which action changes the cause?",
+  };
+}
+
+function questionAfterError(error) {
+  const phase = PHASES[Math.min(Math.max((error?.line ?? 1) - 1, 0), PHASES.length - 1)];
+  const questions = {
+    observe: "Hmm… the tomatoes need water. What farm system should I inspect first?",
+    decide: "Water should be flowing, but it isn’t. What should I conclude from that evidence?",
+    act: "The irrigation is blocked. What safe action should I try?",
+    verify: "How will we prove the tomatoes were actually helped?",
+  };
+  return questions[phase];
+}
+
+function promptForPhase(index) {
+  const prompts = [
+    null,
+    {
+      cue: "?",
+      tone: "question",
+      text: "Water should be flowing, but it isn’t. What should I conclude from that evidence?",
+    },
+    {
+      cue: "💡",
+      tone: "idea",
+      text: "Decision: the irrigation is blocked. What safe action should I try?",
+    },
+    {
+      cue: "?",
+      tone: "question",
+      text: "How will we prove the tomatoes were actually helped?",
+    },
+  ];
+  return prompts[index] ?? null;
+}
+
+function rehearsalStartMessage(phase) {
+  const messages = {
+    observe: { cue: "…", tone: "working", text: "I’m checking the irrigation system…" },
+    decide: { cue: "…", tone: "working", text: "I’m comparing the stopped flow with the tomato beds…" },
+    act: { cue: "→", tone: "working", text: "I’m reading the action you chose…" },
+    verify: { cue: "✓", tone: "working", text: "I’m preparing the success check…" },
+  };
+  return messages[phase];
+}
+
+function rehearsalCompleteMessage(phase) {
+  const messages = {
+    observe: {
+      cue: "!",
+      tone: "idea",
+      text: "Aha! This irrigation channel feeds the tomatoes—but water stops before the beds.",
+    },
+    decide: {
+      cue: "💡",
+      tone: "idea",
+      text: "Decision: the irrigation is blocked. What action should I try?",
+    },
+    act: {
+      cue: "✓",
+      tone: "idea",
+      text: "Safe action ready. Now tell me how we’ll prove it worked.",
+    },
+    verify: {
+      cue: "✓",
+      tone: "idea",
+      text: "The success check is ready. Now I can run the complete loop.",
+    },
+  };
+  return messages[phase];
+}
+
+function executionMessage(phaseIndex, action) {
+  const messages = [
+    { cue: "01", tone: "working", text: "Observe: I’m inspecting the irrigation." },
+    { cue: "02", tone: "idea", text: "Decide: the evidence says the irrigation is blocked." },
+    {
+      cue: "03",
+      tone: action === REPAIR_ACTION ? "idea" : "working",
+      text:
+        action === REPAIR_ACTION
+          ? "Act: I’m clearing the blockage—the cause."
+          : "Act: I’m trying line 3 and watering the tomatoes.",
+    },
+    { cue: "04", tone: "working", text: "Verify: I’m checking all three tomato beds." },
+  ];
+  return messages[phaseIndex];
+}
+
+function hintLineForPhase(index) {
+  if (state.failureSeen && index === 2) return REPAIR_ACTION;
+  return DRAFT_LINES[index];
+}
+
+function resetBertForLesson(retainedCount) {
+  const position = retainedCount > 0 ? OBSERVE_DESTINATION : BERT_START;
+  state.visual.bert = { ...position, moving: false, action: "idle" };
+  state.visual.route = [];
+  state.visual.routeVisible = false;
+}
 
 function query(selector) {
   const element = document.querySelector(selector);

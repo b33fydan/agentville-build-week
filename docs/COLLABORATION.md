@@ -41,6 +41,14 @@ This ID is preserved for Build Week `/feedback` and development-session traceabi
 
 **Codex / GPT-5.6 contribution:** Reworked the farm's obscured `EAST` marker into a readable upstream **IRRIGATION** sign that points into the channel but never names the blockage repair. Mirrored the visible landmark in the canvas description and `render_game_to_text()`, added semantic browser assertions, and preserved a dedicated 1280×720 evidence frame. The playtest protocol now measures whether a novice notices the sign and authors `observe irrigation` before opening the full draft hint. Commit `8c01c21` deployed in [Actions run 29621501693](https://github.com/b33fydan/agentville-build-week/actions/runs/29621501693), and the live mission passed 122/122 browser assertions.
 
+## 2026-07-18 — Progressive Bert tutoring and payoff
+
+**Human vision:** Replace the all-at-once four-line entry with a playful exchange. Let a wrong Observe produce Bert's whimsical question, reward the correct noun with a walk and an “Aha,” show a lightbulb when evidence becomes a decision, explain what people still control, then replay the complete program for a stronger payoff. End on a coherent weather interruption that creates curiosity for Lesson 02.
+
+**Codex / GPT-5.6 contribution:** Converted that narrative into a bounded teaching state machine while preserving the existing safety and proof contract. Prefix checks reuse the compiler allowlist but cannot create plans, mutate the farm, advance world revision, or issue receipts. Initial UI copy withholds the blockage; Observe reveals stopped flow and Decide names the blockage. The autonomy note says agents can choose from evidence while people define goals, tools, and limits. The guided complete program still fails honestly, the repaired program receives the full water-and-crop payoff, and PASS adds a locked rain-window teaser without weakening the Mission 01 receipt. The real-browser proof now covers progressive focus, Bert reactions, staged evidence, 1280×720 containment, world-authority invariants, the debrief, and `/feedback` continuity.
+
+**Skill influence:** The Codex web-game workflow required deterministic `advanceTime()` rehearsals and screenshot inspection; the frontend-design pass kept the new bubbles and warning bulletin inside the existing field-manual visual language instead of adding a competing interface system.
+
 ## Clean-room declaration
 
 The build did not copy or adapt implementation code, art, screenshots, or generated artifacts from `/Volumes/beefybackup/AgentVille`. Source and visuals were authored within `/Volumes/beefybackup/agentville-build-week`; game art is procedural Canvas 2D plus CSS.

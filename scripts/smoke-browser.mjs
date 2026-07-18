@@ -24,18 +24,15 @@ const DRAFT_PROGRAM = [
   "verify tomatoes are watered",
 ].join("\n");
 
-const INVALID_PROGRAM = [
-  "observe irrigation",
-  "decide if irrigation is blocked",
-  "act fetch farm",
-  "verify tomatoes are watered",
-].join("\n");
-
 const REPAIRED_PROGRAM = DRAFT_PROGRAM.replace("act water tomatoes", "act clear blockage");
 
 const ARTIFACTS = Object.freeze({
   hero: "artifacts/screenshots/agentville-build-week-hero.png",
   irrigationCue1280: "artifacts/screenshots/agentville-build-week-irrigation-cue-1280.png",
+  observeError1280: "artifacts/screenshots/agentville-build-week-observe-error-1280.png",
+  observeSuccess1280: "artifacts/screenshots/agentville-build-week-observe-success-1280.png",
+  decideAha1280: "artifacts/screenshots/agentville-build-week-decide-aha-1280.png",
+  grandPayoff1280: "artifacts/screenshots/agentville-build-week-grand-payoff-1280.png",
   compilerError: "artifacts/screenshots/agentville-build-week-compiler-error.png",
   failure: "artifacts/screenshots/agentville-build-week-failure.png",
   receipt: "artifacts/screenshots/agentville-build-week-receipt.png",
@@ -245,21 +242,174 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     const compileButton = page.getByTestId("compile-program");
     const runButton = page.getByTestId("run-program");
 
-    await editor.fill(INVALID_PROGRAM);
-    await compileButton.click();
-    const invalid = await readTextState(page, "invalid program", check);
-    stateSummary.invalid = summarizeMission(invalid);
-    equal("unsafe syntax is rejected", invalid.program.compile.ok, false);
-    equal("unsafe syntax points to line 3", invalid.program.compile.error?.line, 3);
-    equal("unsafe syntax reports forbidden token", invalid.program.compile.error?.code, "FORBIDDEN_TOKEN");
-    equal("invalid syntax cannot change world hash", invalid.world.worldHash, initialWorldHash);
-    equal("invalid syntax cannot increment world revision", invalid.world.revision, initialWorldRevision);
-    equal("invalid syntax cannot create a receipt", invalid.receipt, null);
+    equal("progressive lesson starts at Observe", started.lesson.currentPhase, "observe");
+    equal("progressive lesson starts with no accepted commands", started.lesson.acceptedCommands.length, 0);
+    equal("initial blockage evidence is hidden", started.lesson.evidenceLevel, 0);
+    check("Bert waits silently until the learner needs help", await page.getByTestId("bert-speech").isHidden());
+    check("initial canvas description does not disclose debris", !(await page.getByTestId("farm-canvas").getAttribute("aria-label"))?.includes("debris"));
+    check("initial blockage callout is hidden", await page.locator("#blockage-callout").isHidden());
+    check("full-program run starts disabled", await runButton.isDisabled());
+    await page.locator("#hint-button").click();
+    const currentHint = (await page.locator("#language-reference").textContent()) ?? "";
+    check("line hint reveals the irrigation noun", currentHint.includes("irrigation"));
     check(
-      "compiler error is visibly tied to line 3",
-      (await page.getByTestId("compiler-trace").textContent())?.includes("LINE 3"),
+      "line hint is included in the accessible phase name",
+      (await page.locator('[data-phase="observe"]').getAttribute("aria-label"))?.includes("irrigation"),
     );
+    check("line hint does not reveal Decide, Act, or Verify commands", !currentHint.includes("if irrigation is blocked") && !currentHint.includes("water tomatoes") && !currentHint.includes("tomatoes are watered"));
+    equal("hint never writes source for the learner", await editor.inputValue(), "");
+
+    await editor.fill("observe tomatoes");
+    await compileButton.click();
+    const invalid = await readTextState(page, "invalid Observe", check);
+    stateSummary.invalid = summarizeMission(invalid);
+    equal("invalid Observe is rejected by the lesson checker", invalid.program.lessonCheck.ok, false);
+    equal("invalid Observe points to line 1", invalid.program.lessonCheck.error?.line, 1);
+    equal("invalid Observe reports exact syntax", invalid.program.lessonCheck.error?.code, "SYNTAX");
+    equal("a partial lesson never reports a full compile", invalid.program.compile.ok, null);
+    equal("invalid Observe cannot change world hash", invalid.world.worldHash, initialWorldHash);
+    equal("invalid Observe cannot increment world revision", invalid.world.revision, initialWorldRevision);
+    equal("invalid Observe cannot create a plan", invalid.program.plan.length, 0);
+    equal("invalid Observe cannot create a receipt", invalid.receipt, null);
+    check(
+      "compiler error is visibly tied to line 1",
+      (await page.getByTestId("compiler-trace").textContent())?.includes("LINE 1"),
+    );
+    check("Bert responds with a visible question", await page.getByTestId("bert-speech").isVisible());
+    check(
+      "Bert asks what to inspect without disclosing the repair",
+      (await page.getByTestId("bert-speech").textContent())?.toLowerCase().includes("what farm system") &&
+        !(await page.getByTestId("bert-speech").textContent())?.toLowerCase().includes("clear blockage"),
+    );
+    await page.waitForFunction(() => document.activeElement?.id === "program-editor");
+    equal("invalid Observe returns focus to line 1", await page.evaluate(() => document.activeElement?.id), "program-editor");
     await captureViewport(page, screenshotPaths.compilerError);
+
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await waitForPaint(page);
+    await captureViewport(page, screenshotPaths.observeError1280);
+
+    await editor.fill("observe fetch");
+    await compileButton.click();
+    const unsafePrefix = await readTextState(page, "unsafe Observe", check);
+    equal("unsafe prefix reports a forbidden token", unsafePrefix.program.lessonCheck.error?.code, "FORBIDDEN_TOKEN");
+    equal("unsafe prefix stays non-executable", unsafePrefix.program.plan.length, 0);
+    equal("unsafe prefix keeps world revision stable", unsafePrefix.world.revision, initialWorldRevision);
+
+    await editor.fill(DRAFT_PROGRAM.split("\n").slice(0, 2).join("\n"));
+    await compileButton.click();
+    const lockedPrefix = await readTextState(page, "locked multi-line prefix", check);
+    equal("two unchecked lines cannot skip the Observe rehearsal", lockedPrefix.program.lessonCheck.error?.code, "LINE_LOCKED");
+    equal("locked multi-line prefix accepts no commands", lockedPrefix.lesson.acceptedCommands.length, 0);
+    equal("locked multi-line prefix creates no plan", lockedPrefix.program.plan.length, 0);
+    equal("locked multi-line prefix leaves world revision stable", lockedPrefix.world.revision, initialWorldRevision);
+
+    await editor.fill("observe irrigation");
+    await compileButton.click();
+    const observing = await readTextState(page, "Observe rehearsal", check);
+    equal("accepted Observe enters a rehearsal", observing.lesson.status, "rehearsing");
+    equal("Observe is the rehearsal phase", observing.lesson.rehearsal?.phase, "observe");
+    equal("Observe prefix does not compile a plan", observing.program.compile.ok, null);
+    equal("Run remains disabled during Observe rehearsal", await runButton.isDisabled(), true);
+    await advanceTime(page, 700);
+    const observingMidway = await readTextState(page, "moving Observe rehearsal", check);
+    check("Bert walks toward irrigation during Observe", observingMidway.crew.bert.moving, observingMidway.crew.bert);
+    check(
+      "Bert leaves his starting tile during Observe",
+      observingMidway.crew.bert.position.x !== started.crew.bert.position.x ||
+        observingMidway.crew.bert.position.y !== started.crew.bert.position.y,
+      { before: started.crew.bert.position, after: observingMidway.crew.bert.position },
+    );
+    equal("Observe rehearsal cannot change world hash", observingMidway.world.worldHash, initialWorldHash);
+    equal("Observe rehearsal cannot increment world revision", observingMidway.world.revision, initialWorldRevision);
+    await advanceTime(page, 800);
+    const observed = await readTextState(page, "accepted Observe", check);
+    equal("Observe becomes the first accepted command", observed.lesson.acceptedCommands.join(","), "observe irrigation");
+    equal("Decide unlocks after Observe", observed.lesson.currentPhase, "decide");
+    equal("Observe reveals stopped-flow evidence", observed.lesson.evidenceLevel, 1);
+    check("Observe produces Bert's Aha response", observed.lesson.bertMessage?.text.startsWith("Aha!"));
+    equal("accepted Observe leaves the authoritative world unchanged", observed.world.worldHash, initialWorldHash);
+    check("stopped-flow callout appears after Observe", await page.locator("#blockage-callout").isVisible());
+    await page.waitForFunction(() => document.activeElement?.id === "program-editor");
+    await captureViewport(page, screenshotPaths.observeSuccess1280);
+
+    await editor.fill(DRAFT_PROGRAM.split("\n").slice(0, 2).join("\n"));
+    await compileButton.click();
+    await advanceTime(page, 1000);
+    const decided = await readTextState(page, "accepted Decide", check);
+    equal(
+      "Observe and Decide remain accepted in order",
+      decided.lesson.acceptedCommands.join(","),
+      "observe irrigation,decide if irrigation is blocked",
+    );
+    equal("Act unlocks after Decide", decided.lesson.currentPhase, "act");
+    equal("Decide names the blockage evidence", decided.lesson.evidenceLevel, 2);
+    equal("decision teaching boundary becomes visible", decided.lesson.conceptVisible, true);
+    check("lightbulb cue appears with Bert's decision", (await page.getByTestId("bert-cue").textContent())?.includes("💡"));
+    check("agent-boundary note is visible", await page.getByTestId("agent-boundary-note").isVisible());
+    check(
+      "agent-boundary note accurately names human limits",
+      (await page.getByTestId("agent-boundary-note").textContent())?.includes("goal, tools, and limits"),
+    );
+    equal("Decide rehearsal cannot change world hash", decided.world.worldHash, initialWorldHash);
+    equal("Decide rehearsal cannot increment world revision", decided.world.revision, initialWorldRevision);
+    check(
+      "Bert teaching copy remains readable at 1280",
+      await page.getByTestId("bert-speech").evaluate((node) => parseFloat(getComputedStyle(node.querySelector("p")).fontSize) >= 12),
+    );
+    const teachingLayout = await page.evaluate(() => {
+      const rect = (selector) => {
+        const bounds = document.querySelector(selector).getBoundingClientRect();
+        return {
+          bottom: bounds.bottom,
+          left: bounds.left,
+          right: bounds.right,
+          top: bounds.top,
+        };
+      };
+      const scene = rect(".scene-card");
+      return {
+        scene,
+        bubble: rect("#bert-speech"),
+        concept: rect("#agent-boundary-note"),
+        document: {
+          height: document.documentElement.scrollHeight,
+          width: document.documentElement.scrollWidth,
+        },
+      };
+    });
+    check(
+      "1280 Bert bubble stays inside the farm",
+      teachingLayout.bubble.left >= teachingLayout.scene.left &&
+        teachingLayout.bubble.right <= teachingLayout.scene.right &&
+        teachingLayout.bubble.top >= teachingLayout.scene.top &&
+        teachingLayout.bubble.bottom <= teachingLayout.scene.bottom,
+      teachingLayout,
+    );
+    check(
+      "1280 agent-boundary note stays inside the farm",
+      teachingLayout.concept.left >= teachingLayout.scene.left &&
+        teachingLayout.concept.right <= teachingLayout.scene.right &&
+        teachingLayout.concept.top >= teachingLayout.scene.top &&
+        teachingLayout.concept.bottom <= teachingLayout.scene.bottom,
+      teachingLayout,
+    );
+    check(
+      "1280 progressive teaching has no document overflow",
+      teachingLayout.document.width <= 1280 && teachingLayout.document.height <= 720,
+      teachingLayout,
+    );
+    await captureViewport(page, screenshotPaths.decideAha1280);
+
+    await editor.fill(DRAFT_PROGRAM.split("\n").slice(0, 3).join("\n"));
+    await compileButton.click();
+    await advanceTime(page, 1000);
+    const acted = await readTextState(page, "accepted Act", check);
+    equal("Act becomes the third accepted command", acted.lesson.acceptedCommands[2], "act water tomatoes");
+    equal("Verify unlocks after Act", acted.lesson.currentPhase, "verify");
+    equal("Act rehearsal cannot change world hash", acted.world.worldHash, initialWorldHash);
+    equal("Act rehearsal cannot increment world revision", acted.world.revision, initialWorldRevision);
+    equal("Act rehearsal cannot issue a receipt", acted.receipt, null);
 
     await editor.fill(DRAFT_PROGRAM);
     await compileButton.click();
@@ -273,11 +423,18 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
       "observe,decide,act,verify",
     );
     equal("compile leaves world unchanged", compiledDraft.world.worldHash, initialWorldHash);
+    equal("all four lesson commands are accepted", compiledDraft.lesson.acceptedCommands.length, 4);
+    equal("complete lesson has no pending phase", compiledDraft.lesson.currentPhase, null);
+    equal("final compile cannot increment world revision", compiledDraft.world.revision, initialWorldRevision);
+    await page.waitForFunction(() => document.activeElement?.id === "run-button");
     equal(
       "four planned steps are visible",
       await page.locator('[data-testid="compiler-trace"] .trace-item').count(),
       4,
     );
+
+    await page.setViewportSize({ width: 1600, height: 900 });
+    await waitForPaint(page);
 
     await runButton.click();
     const runningDraft = await readTextState(page, "running water draft", check);
@@ -294,7 +451,7 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     check("execution trace advances before completion", movingDraft.trace.length > 0, {
       traceLength: movingDraft.trace.length,
     });
-    await advanceTime(page, 3500);
+    await advanceTime(page, 4300);
 
     const failed = await readTextState(page, "failed water draft", check);
     stateSummary.failure = summarizeMission(failed);
@@ -305,6 +462,11 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     equal("failed draft leaves world hash unchanged", failed.world.worldHash, initialWorldHash);
     equal("failure coach focuses line 3", failed.coach?.focusLine, 3);
     equal("failure coach recommends the allowlisted repair", failed.coach?.suggestion, "act clear blockage");
+    equal("failure returns the lesson to Act repair", failed.lesson.currentPhase, "act");
+    check(
+      "Bert explains that line 3 could not cross the debris",
+      failed.lesson.bertMessage?.text.includes("water can’t pass the debris"),
+    );
     check(
       "failure coach is visible",
       await page.getByTestId("coach-message").isVisible(),
@@ -317,12 +479,39 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     equal("repair compiles", compiledRepair.program.compile.ok, true);
     equal("repair changes only the action command", compiledRepair.program.plan[2]?.command, "act clear blockage");
     equal("repair compile still leaves world unchanged", compiledRepair.world.worldHash, initialWorldHash);
+    check("Bert recognizes that the repair targets the cause", compiledRepair.lesson.bertMessage?.text.includes("targets the cause"));
+
+    await editor.fill(DRAFT_PROGRAM);
+    const restoredFailure = await readTextState(page, "restored failed source", check);
+    equal("restoring the known-bad source returns to failure mode", restoredFailure.mode, "failure");
+    equal("editing a compiled repair clears its executable plan", restoredFailure.program.plan.length, 0);
+    equal("restored failed source returns verification to FAIL", restoredFailure.verification.status, "FAIL");
+    check("restored failed source restores Bert's failure explanation", restoredFailure.lesson.bertMessage?.text.includes("water can’t pass the debris"));
+    check("restored failed source disables Run", await runButton.isDisabled());
+
+    await editor.fill(REPAIRED_PROGRAM);
+    await compileButton.click();
+    const recompiledRepair = await readTextState(page, "recompiled repair", check);
+    equal("repair recompiles after the stale-plan guard", recompiledRepair.program.plan[2]?.command, "act clear blockage");
 
     await runButton.click();
     await advanceTime(page, 4500);
+    const grandPayoff = await readTextState(page, "grand payoff", check);
+    equal("grand payoff remains visible before the receipt", grandPayoff.mode, "running");
+    equal("grand payoff has already cleared the blockage", grandPayoff.world.blockage, "cleared");
+    equal("grand payoff visibly waters all three beds", grandPayoff.world.visibleTomatoBedsWatered, 3);
+    equal("grand payoff has completed all four trace entries", grandPayoff.trace.length, 4);
+    equal("grand payoff does not issue proof before the hold completes", grandPayoff.receipt, null);
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await waitForPaint(page);
+    await captureViewport(page, screenshotPaths.grandPayoff1280);
+    await page.setViewportSize({ width: 1600, height: 900 });
+    await waitForPaint(page);
+    await advanceTime(page, 800);
     const passed = await readTextState(page, "passing repair", check);
     stateSummary.success = summarizeMission(passed);
     equal("repair reaches PASS", passed.verification.status, "PASS");
+    equal("completed lesson has no pending authoring phase", passed.lesson.currentPhase, null);
     equal("repair clears the blockage", passed.world.blockage, "cleared");
     equal("repair releases East Channel water", passed.world.eastChannel, "flowing");
     equal("repair waters all tomato beds", passed.world.tomatoBeds.watered, 3);
@@ -357,6 +546,13 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     check(
       "learning takeaway tells the player they debugged an agent",
       (await page.getByTestId("learning-takeaway").textContent())?.includes("You just debugged an agent."),
+    );
+    equal("PASS unlocks only a Lesson 02 teaser", passed.nextLesson?.status, "TEASER");
+    check("Lesson 02 weather signal appears after proof", await page.getByTestId("lesson-alert").isVisible());
+    check(
+      "Lesson 02 teaser names a coherent planting weather window",
+      (await page.getByTestId("lesson-alert").textContent())?.includes("Rain reaches AgentVille soon") &&
+        (await page.getByTestId("lesson-alert").textContent())?.includes("Plant the east field"),
     );
     await page.waitForFunction(() => document.activeElement?.id === "receipt-panel");
     equal("keyboard focus moves to the mission debrief", await page.evaluate(() => document.activeElement?.id), "receipt-panel");
@@ -418,6 +614,7 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
         },
         tile: rect("#receipt-panel"),
         recap: rect('[data-testid="learning-recap"]'),
+        lessonAlert: rect('[data-testid="lesson-alert"]'),
         actions: rect(".receipt-actions"),
         tileOverflow: {
           horizontal: tile.scrollWidth > tile.clientWidth,
@@ -448,6 +645,12 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
       "explanation remains above the receipt actions",
       debriefLayout.recap.bottom <= debriefLayout.actions.top,
       { recap: debriefLayout.recap, actions: debriefLayout.actions },
+    );
+    check(
+      "Lesson 02 teaser stays between the recap and actions",
+      debriefLayout.recap.bottom <= debriefLayout.lessonAlert.top &&
+        debriefLayout.lessonAlert.bottom <= debriefLayout.actions.top,
+      debriefLayout,
     );
     check("all debrief actions remain hit-testable", debriefLayout.actionHitTests.every(Boolean), debriefLayout.actionHitTests);
     await captureViewport(page, screenshotPaths.debrief1280);
@@ -527,6 +730,11 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     equal("reset clears the program", reset.program.sourceLines.length, 0);
     equal("reset clears the receipt", reset.receipt, null);
     equal("reset clears the learning recap", reset.learningRecap, null);
+    equal("reset clears the Lesson 02 teaser state", reset.nextLesson, null);
+    equal("reset clears accepted lesson commands", reset.lesson.acceptedCommands.length, 0);
+    equal("reset returns the lesson to Observe", reset.lesson.currentPhase, "observe");
+    equal("reset hides discovered evidence", reset.lesson.evidenceLevel, 0);
+    equal("reset clears Bert's teaching bubble", reset.lesson.bertMessage, null);
     equal("reset returns verification to NOT_RUN", reset.verification.status, "NOT_RUN");
     check("reset hides the mission debrief", await page.getByTestId("receipt").isHidden());
     check(

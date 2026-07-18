@@ -2,7 +2,7 @@
 
 **A five-minute voxel lesson about building agents that prove their work.**
 
-AgentVille: Build Week Edition is a clean-room browser game for OpenAI Build Week's Education track. A player writes a tiny, safe agent program; compiles it into a visible plan; watches one farm agent named Bert execute it; discovers that valid syntax can still produce the wrong result; repairs one line; and receives a verification receipt derived from the changed farm. A final mission debrief translates the four commands into plain language and tells the player exactly what they accomplished.
+AgentVille: Build Week Edition is a clean-room browser game for OpenAI Build Week's Education track. A player teaches one farm agent named Bert a tiny, safe program one instruction at a time; sees Bert react to each idea; compiles the complete loop; discovers that valid syntax can still produce the wrong result; repairs one line; and receives a verification receipt derived from the changed farm. A final mission debrief translates the four commands into plain language and tells the player exactly what they accomplished.
 
 **Play:** [b33fydan.github.io/agentville-build-week](https://b33fydan.github.io/agentville-build-week/) · **Source:** [github.com/b33fydan/agentville-build-week](https://github.com/b33fydan/agentville-build-week)
 
@@ -11,9 +11,9 @@ AgentVille: Build Week Edition is a clean-room browser game for OpenAI Build Wee
 The whole lesson is one causal chain:
 
 ```text
-observe the blocked channel
+observe the irrigation
         ↓
-decide what the evidence requires
+decide whether the evidence shows a blockage
         ↓
 act on the cause, not the symptom
         ↓
@@ -33,7 +33,7 @@ Open [http://127.0.0.1:4173](http://127.0.0.1:4173). No account, API key, build 
 
 ## The mission
 
-The West Reservoir is full, but debris blocks the East Channel before water can reach three tomato beds. A small in-world **IRRIGATION** sign gives a first-time learner the missing noun for `observe ___` without revealing the blockage or its repair. The Workbench teaches exactly four phases:
+The opening shows three dry tomato beds and a small in-world **IRRIGATION** sign—but does not label the cause. The sign gives a first-time learner the missing noun for `observe ___` without revealing the blockage or its repair. The Workbench then checks exactly one new instruction at a time:
 
 ```agent
 observe irrigation
@@ -42,17 +42,19 @@ act water tomatoes
 verify tomatoes are watered
 ```
 
-This first draft is valid and safe, but it fails honestly: watering cannot pass the obstruction. The compiler trace connects the failed verification to line 3. The player repairs only the causal action:
+Each accepted prefix creates a small, non-authoritative rehearsal: Bert walks to the channel after Observe, names the evidence after Decide, and gets ready to test the chosen action. Those rewards never change the farm or create a plan. Only all four lines can pass the strict compiler and unlock **Run full program**.
+
+The guided first complete draft is valid and safe, but it fails honestly: watering cannot pass the obstruction. The compiler trace connects the failed verification to line 3. The player repairs only the causal action:
 
 ```agent
 act clear blockage
 ```
 
-Bert walks to the jam, clears it, water advances through the downstream channel, all three beds change to watered, and verification issues a receipt with before/after evidence. The closing debrief then explains the loop as **Look → Choose → Change → Check** and names the learner's work: they debugged an agent by using evidence to repair behavior.
+Bert replays all four instructions, clears the jam, releases water through the downstream channel, recovers all three beds, and verifies a receipt with before/after evidence. The closing debrief explains the loop as **Look → Choose → Change → Check**, names the learner's work as debugging an agent, and reveals a locked Lesson 02 weather signal: plant the east field before rain makes the soil muddy.
 
 ## Why this teaches agents
 
-Most coding lessons stop at “the program ran.” AgentVille separates five ideas a beginning builder can see:
+Most coding lessons stop at “the program ran.” AgentVille separates six ideas a beginning builder can see:
 
 1. **Syntax:** Is the program inside the safe language?
 2. **Plan:** What will each instruction ask the agent to do?
@@ -65,7 +67,7 @@ The failure is not a game-over screen. It is the lesson: an agent can follow a v
 
 ## Safe language boundary
 
-The Workbench is an allowlisted parser, not an embedded scripting engine. It accepts only four ordered lines and two possible actions for this bounded mission. It never calls `eval`, `Function`, a shell, the filesystem, or the network. Loops, comments, extra phases, JavaScript punctuation, browser globals, network primitives, and forged plans fail before world execution.
+The Workbench is an allowlisted parser, not an embedded scripting engine. A separate frozen prefix validator checks lesson lines without ever producing an executable plan. The full compiler accepts only four ordered lines and two possible actions for this bounded mission. Neither path calls `eval`, `Function`, a shell, the filesystem, or the network. Loops, comments, extra phases, JavaScript punctuation, browser globals, network primitives, and forged plans fail before world execution.
 
 The compiler creates an immutable plan. The deterministic mission simulator is the only code allowed to mutate farm state. Canvas animation reflects that state; it cannot award a PASS.
 
@@ -91,6 +93,9 @@ No code, assets, screenshots, or generated artifacts were copied from `/Volumes/
 real textarea
     │
     ▼
+prefix validator ── safe rehearsal only; no world authority
+    │
+    ▼ all four lines
 src/compiler.js ── immutable allowlisted plan
     │
     ▼
@@ -101,7 +106,7 @@ src/mission.js  ── deterministic before/after evidence + receipt
     └── src/world.js    ── procedural isometric farm presentation
 ```
 
-- `src/compiler.js` — strict four-line compiler and safety diagnostics
+- `src/compiler.js` — non-executable prefix checks plus the strict four-line compiler and safety diagnostics
 - `src/mission.js` — pure mission transitions and world-state receipt
 - `src/debrief.js` — immutable end-of-mission explanation derived from the receipt
 - `src/world.js` — one procedural isometric farm, irrigation landmark, water, crops, debris, and Bert
@@ -116,7 +121,7 @@ src/mission.js  ── deterministic before/after evidence + receipt
 
 ```bash
 npm test              # compiler, sandbox, state transitions, receipts
-npm run test:browser  # full typed draft → FAIL → repair → PASS flow
+npm run test:browser  # progressive teaching → full run → FAIL → repair → PASS
 npm run test:public   # same full flow against the live Pages URL
 npm run smoke         # unit tests + production build + browser flow
 npm run capture       # refresh the canonical submission screenshots
@@ -129,7 +134,7 @@ The app also exposes two deterministic automation seams:
 
 The browser smoke rejects console/page errors, external requests, state/DOM disagreement, missing session continuity, and a false PASS. Machine-readable results are written to `artifacts/evidence/latest-smoke.json` for local production and `artifacts/evidence/latest-public-smoke.json` for the deployed build.
 
-Current validation passes 26/26 Node tests, 122/122 browser assertions against local production `dist/`, and 122/122 against the public Pages deployment.
+The progressive release passes 28/28 Node tests and 214/214 local production-browser assertions. The currently deployed predecessor passed 122/122 public assertions; the evidence ledger records the new public count after deployment.
 
 ## Production build and deployment
 
@@ -154,7 +159,7 @@ The feedback page displays that ID, matches it against the locally preserved rec
 
 ## Scope
 
-This edition is intentionally one mission, one farm, one agent, one failure, and one proof. It does not include free play, multiple agents, procedural worlds, accounts, arbitrary scripting, or a live AI dependency. Coherence is the feature.
+This edition is intentionally one playable mission, one farm, one agent, one failure, and one proof. Lesson 02 is a polished teaser, not another playable feature. The build does not include free play, multiple agents, procedural worlds, accounts, arbitrary scripting, or a live AI dependency. Coherence is the feature.
 
 ## License
 

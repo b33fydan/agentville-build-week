@@ -473,6 +473,92 @@ button:disabled {
   width: 11px;
 }
 
+.bert-speech {
+  align-items: center;
+  background: var(--paper-hi);
+  border: 2px solid var(--ink);
+  box-shadow: 4px 4px 0 rgba(29, 43, 34, 0.28);
+  display: grid;
+  gap: 9px;
+  grid-template-columns: 32px minmax(0, 1fr);
+  max-width: 236px;
+  min-width: 190px;
+  padding: 8px 10px 8px 8px;
+  pointer-events: none;
+  position: absolute;
+  z-index: 7;
+}
+
+.bert-speech::after {
+  background: var(--paper-hi);
+  border-bottom: 2px solid var(--ink);
+  border-right: 2px solid var(--ink);
+  bottom: -8px;
+  content: "";
+  height: 13px;
+  left: 24px;
+  position: absolute;
+  transform: rotate(45deg);
+  width: 13px;
+}
+
+.bert-cue {
+  align-items: center;
+  background: var(--sun);
+  border: 1px solid var(--ink);
+  display: flex;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 900;
+  height: 31px;
+  justify-content: center;
+  min-width: 31px;
+}
+
+.bert-speech[data-tone="question"] .bert-cue,
+.bert-speech[data-tone="warning"] .bert-cue {
+  background: var(--warning);
+  color: white;
+}
+
+.bert-speech[data-tone="working"] .bert-cue {
+  background: var(--cyan);
+}
+
+.bert-speech p {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.28;
+  margin: 0;
+}
+
+.agent-boundary-note {
+  background: var(--sun);
+  border: 2px solid var(--ink);
+  bottom: 58px;
+  box-shadow: 4px 4px 0 var(--ink);
+  left: 12px;
+  max-width: min(330px, calc(100% - 24px));
+  padding: 9px 11px;
+  position: absolute;
+  transform: rotate(-0.35deg);
+  z-index: 6;
+}
+
+.agent-boundary-note strong {
+  display: block;
+  font-family: var(--display);
+  font-size: 16px;
+  line-height: 1.05;
+  margin: 2px 0 3px;
+}
+
+.agent-boundary-note > p:last-child {
+  font-size: 12px;
+  line-height: 1.3;
+  margin: 0;
+}
+
 .scene-caption {
   align-items: center;
   bottom: 10px;
@@ -736,7 +822,33 @@ button:disabled {
 .language-card li {
   border-left: 2px solid rgba(103, 217, 231, 0.45);
   min-width: 0;
-  padding-left: 5px;
+  padding: 3px 3px 3px 5px;
+  transition: background 140ms ease, opacity 140ms ease;
+}
+
+.language-card li.is-active {
+  background: rgba(244, 198, 79, 0.15);
+  border-left-color: var(--sun);
+  box-shadow: inset 0 0 0 1px rgba(244, 198, 79, 0.28);
+}
+
+.language-card li.is-complete {
+  background: rgba(47, 125, 74, 0.16);
+  border-left-color: #93d16b;
+}
+
+.language-card li.is-complete code::after {
+  color: #93d16b;
+  content: " ✓";
+}
+
+.language-card li.is-locked {
+  opacity: 0.42;
+}
+
+.language-card li.is-hinted span {
+  color: var(--paper-hi);
+  font-family: var(--mono);
 }
 
 .language-card code {
@@ -950,6 +1062,16 @@ button:disabled {
   background: var(--success);
   border-color: #93d16b;
   color: white;
+}
+
+.trace-item.is-learned .trace-index {
+  background: rgba(47, 125, 74, 0.72);
+  border-color: #93d16b;
+  color: white;
+}
+
+.trace-item.is-learned .trace-state {
+  color: #93d16b;
 }
 
 .trace-item.is-fail {
@@ -1266,6 +1388,54 @@ button:disabled {
   font-size: 12px;
   line-height: 1.35;
   margin: 0;
+}
+
+.lesson-alert {
+  align-items: center;
+  background:
+    repeating-linear-gradient(-45deg, rgba(182, 67, 50, 0.09) 0 7px, transparent 7px 14px),
+    #f6d99b;
+  border: 2px solid var(--danger);
+  display: grid;
+  gap: 11px;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  padding: 8px 10px;
+}
+
+.lesson-alert-mark {
+  align-items: center;
+  background: var(--danger);
+  border: 2px solid var(--ink);
+  color: white;
+  display: flex;
+  font-family: var(--mono);
+  font-size: 19px;
+  font-weight: 900;
+  height: 36px;
+  justify-content: center;
+  width: 36px;
+}
+
+.lesson-alert strong {
+  font-family: var(--display);
+  font-size: 16px;
+  line-height: 1;
+}
+
+.lesson-alert div > p:last-child {
+  color: var(--ink-soft);
+  font-size: 10px;
+  margin: 2px 0 0;
+}
+
+.lesson-alert > b {
+  background: var(--danger);
+  color: white;
+  font-family: var(--mono);
+  font-size: 8px;
+  padding: 7px 8px;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .receipt-footer {

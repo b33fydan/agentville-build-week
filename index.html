@@ -48,7 +48,7 @@
             id="farm-canvas"
             data-testid="farm-canvas"
             role="img"
-            aria-label="A compact isometric voxel farm. A small IRRIGATION sign marks the East Channel. Water from the west reservoir stops at debris before reaching three dry tomato beds. Bert waits beside the channel."
+            aria-label="A compact isometric voxel farm with three dry tomato beds. A small IRRIGATION sign marks the East Channel, and Bert waits nearby."
           ></canvas>
           <div class="scene-grain" aria-hidden="true"></div>
 
@@ -57,7 +57,7 @@
             <h2 id="world-title">The tomatoes are thirsty.</h2>
             <p id="world-objective">Inspect the channel, program Bert, and prove the water arrives.</p>
             <div class="world-facts" aria-label="World status">
-              <span id="fact-blockage"><i class="fact-icon warning"></i>Channel blocked</span>
+              <span id="fact-blockage"><i class="fact-icon warning"></i>Irrigation unchecked</span>
               <span id="fact-crops"><i class="fact-icon dry"></i>0 / 3 watered</span>
             </div>
           </article>
@@ -69,8 +69,19 @@
 
           <div class="bert-tag" id="bert-tag"><span aria-hidden="true"></span><b>Bert</b><small>farm agent</small></div>
 
+          <div class="bert-speech" id="bert-speech" data-testid="bert-speech" role="status" aria-live="polite" aria-atomic="true">
+            <span id="bert-cue" class="bert-cue" data-testid="bert-cue" aria-hidden="true">?</span>
+            <p id="bert-speech-copy">The tomatoes need water. What should I observe first?</p>
+          </div>
+
+          <aside class="agent-boundary-note" id="agent-boundary-note" data-testid="agent-boundary-note" role="note" hidden>
+            <p class="eyebrow">You set the boundaries</p>
+            <strong>You gave Bert a decision rule.</strong>
+            <p>Agents can choose from evidence, but people define their goal, tools, and limits.</p>
+          </aside>
+
           <div class="scene-caption">
-            <p><span id="caption-phase">WORLD STATE</span><b id="scene-caption">Blocked channel → dry tomatoes</b></p>
+            <p><span id="caption-phase">WORLD STATE</span><b id="scene-caption">Dry tomatoes · cause unknown</b></p>
             <button id="motion-toggle" class="icon-button" type="button" aria-pressed="false">Reduce motion</button>
           </div>
 
@@ -80,7 +91,7 @@
               <p class="eyebrow">Five-minute field lesson</p>
               <h2>Teach Bert to fix what he can see.</h2>
               <p>
-                Write four safe instructions. Your first plan will fail honestly. Use the evidence, repair one line, and earn a world-state receipt.
+                Teach Bert one safe instruction at a time. Then run the full loop, learn from one honest failure, and earn proof that the farm changed.
               </p>
               <button id="start-button" class="primary-button start-button" data-testid="start-mission" type="button">
                 <span>Start mission</span><kbd>Enter</kbd>
@@ -110,7 +121,7 @@
           <section class="language-card" aria-label="Safe language reference">
             <div class="language-heading">
               <span>FIELD LANGUAGE · 4 LINES</span>
-              <button id="hint-button" type="button" disabled>Show draft</button>
+              <button id="hint-button" type="button" disabled>Hint this line</button>
             </div>
             <ol id="language-reference">
               <li><code>observe</code><span>read world state</span></li>
@@ -136,10 +147,10 @@
                 autocapitalize="off"
                 spellcheck="false"
                 disabled
-                placeholder="Type your four-line agent program…"
+                placeholder="Line 1: observe …"
               ></textarea>
             </div>
-            <p id="editor-help" class="editor-help">One allowlisted instruction per line. No loops, scripts, or network.</p>
+            <p id="editor-help" class="editor-help">Tell Bert what to inspect. Begin with observe, then name something visible on the farm.</p>
           </section>
 
           <section class="trace-shell" aria-labelledby="trace-title">
@@ -154,10 +165,10 @@
 
           <div class="action-row">
             <button id="compile-button" class="secondary-button" data-testid="compile-program" type="button" disabled>
-              <span>Compile plan</span><kbd>⌘ ↵</kbd>
+              <span>Check line</span><kbd>⌘ ↵</kbd>
             </button>
             <button id="run-button" class="primary-button" data-testid="run-program" type="button" disabled>
-              <span>Run with Bert</span><i aria-hidden="true">→</i>
+              <span>Run full program</span><i aria-hidden="true">→</i>
             </button>
           </div>
 
@@ -231,6 +242,16 @@
             </li>
           </ol>
         </section>
+
+        <aside class="lesson-alert" data-testid="lesson-alert" aria-label="Lesson 2 preview">
+          <span class="lesson-alert-mark" aria-hidden="true">!</span>
+          <div>
+            <p class="eyebrow">New signal · Weather window</p>
+            <strong>Rain reaches AgentVille soon.</strong>
+            <p>Plant the east field before the soil turns muddy.</p>
+          </div>
+          <b>Lesson 02 · Respond to change</b>
+        </aside>
 
         <footer class="receipt-footer">
           <dl class="receipt-grid">
