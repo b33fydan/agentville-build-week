@@ -26,7 +26,7 @@
 
 | Criterion | Artifact or command | Status |
 | --- | --- | --- |
-| A1 | `npm run test:public` against [GitHub Pages](https://b33fydan.github.io/agentville-build-week/) | Last deployed baseline PASS — 122/122 public browser assertions; progressive release pending deployment proof |
+| A1 | `npm run test:public` against [GitHub Pages](https://b33fydan.github.io/agentville-build-week/) | PASS — progressive release 214/214 public browser assertions |
 | A2–A20 | `npm run smoke` | PASS — 28/28 Node tests + 214/214 production-dist browser assertions |
 | Hero frame | `artifacts/screenshots/agentville-build-week-hero.png` | Captured and inspected |
 | Irrigation clue at judging viewport | `artifacts/screenshots/agentville-build-week-irrigation-cue-1280.png` | Captured and inspected at 1280×720; sign readable, canvas visible, no page overflow |
@@ -40,10 +40,10 @@
 | Debrief at judging viewport | `artifacts/screenshots/agentville-build-week-debrief-1280.png` | Captured and inspected at 1280×720; no clipping or scroll |
 | Feedback continuity | `artifacts/screenshots/agentville-build-week-feedback.png` | Captured and inspected |
 | Local machine evidence | `artifacts/evidence/latest-smoke.json` | PASS against production `dist/`, 214/214; diagnostics empty |
-| Public mission smoke | `artifacts/evidence/latest-public-smoke.json` via `npm run test:public` | PASS — 122/122; console, page, request, response, and dialog diagnostics empty |
+| Public mission smoke | `artifacts/evidence/latest-public-smoke.json` via `npm run test:public` | PASS — 214/214; console, page, request, response, and dialog diagnostics empty |
 | Human evidence | `artifacts/evidence/playtest-YYYY-MM-DD-<tester>.json` | Pending genuine sessions |
 | Source evidence | [github.com/b33fydan/agentville-build-week](https://github.com/b33fydan/agentville-build-week) | PUBLIC repository; first deployed commit `cb57621` |
-| Deployment evidence | [b33fydan.github.io/agentville-build-week](https://b33fydan.github.io/agentville-build-week/) | PASS — HTTP 200; irrigation-clue release [Actions run 29621501693](https://github.com/b33fydan/agentville-build-week/actions/runs/29621501693) succeeded on 2026-07-17 |
+| Deployment evidence | [b33fydan.github.io/agentville-build-week](https://b33fydan.github.io/agentville-build-week/) | PASS — HTTP 200; progressive release [Actions run 29650610214](https://github.com/b33fydan/agentville-build-week/actions/runs/29650610214) succeeded on 2026-07-18 |
 
 ## Deployment snapshot
 
@@ -54,7 +54,8 @@
 - **Learner-debrief deployment:** Actions run `29618190795` at commit `8d2f0b5`
 - **Irrigation-clue deployment:** Actions run `29621501693` at commit `8c01c21`
 - **Latest predecessor proof deployment:** Actions run `29621632492` at commit `5290b08`
-- **Public verification:** HTTP 200 plus `npm run test:public` with 122/122 browser assertions
+- **Progressive lesson deployment:** Actions run `29650610214` at commit `1c6c9eb`
+- **Public verification:** HTTP 200 plus `npm run test:public` with 214/214 browser assertions and empty diagnostics
 - **Still pending:** three genuine playtests, demo video URL, and any separate Build Week `/feedback` ID
 
 ## `/feedback` continuity contract

@@ -134,7 +134,7 @@ The app also exposes two deterministic automation seams:
 
 The browser smoke rejects console/page errors, external requests, state/DOM disagreement, missing session continuity, and a false PASS. Machine-readable results are written to `artifacts/evidence/latest-smoke.json` for local production and `artifacts/evidence/latest-public-smoke.json` for the deployed build.
 
-The progressive release passes 28/28 Node tests and 214/214 local production-browser assertions. The currently deployed predecessor passed 122/122 public assertions; the evidence ledger records the new public count after deployment.
+The progressive release passes 28/28 Node tests, 214/214 local production-browser assertions, and 214/214 assertions against the public Pages deployment.
 
 ## Production build and deployment
 
@@ -145,7 +145,7 @@ node scripts/serve.mjs --root=dist --port=4173
 
 `dist/` is a static site. The canonical deployment is [GitHub Pages](https://b33fydan.github.io/agentville-build-week/), published from `main` by `.github/workflows/pages.yml`. Each push installs Chromium, runs `npm run smoke`, uploads `dist/`, and deploys only after validation passes. The first successful deployment was [Actions run 29554682024](https://github.com/b33fydan/agentville-build-week/actions/runs/29554682024) at commit `cb57621` on 2026-07-17.
 
-The live root and `/feedback/` route return HTTP 200, and `npm run test:public` completes the deployed mission with 122/122 browser assertions. The irrigation-clue release deployed successfully in [Actions run 29621501693](https://github.com/b33fydan/agentville-build-week/actions/runs/29621501693) at commit `8c01c21` on 2026-07-17. `vercel.json` and `netlify.toml` remain valid alternate-host declarations. No deployment path requires a server function or application secret.
+The live root and `/feedback/` route return HTTP 200. The progressive lesson deployed successfully in [Actions run 29650610214](https://github.com/b33fydan/agentville-build-week/actions/runs/29650610214) at commit `1c6c9eb` on 2026-07-18, then `npm run test:public` completed all 214 browser assertions with empty diagnostics. `vercel.json` and `netlify.toml` remain valid alternate-host declarations. No deployment path requires a server function or application secret.
 
 ## Submission evidence
 

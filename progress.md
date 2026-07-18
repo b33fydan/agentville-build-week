@@ -23,7 +23,9 @@ Original prompt: Build a clean-room hackathon project called AgentVille: Build W
 - Completed the progressive browser flow with 214 assertions: wrong Observe/help, current-line hint and accessibility parity, locked skipped phases, Bert's irrigation walk, staged evidence, Decide/lightbulb boundary note, Act rehearsal, strict full compile, stale-repair guards, honest FAIL, held grand payoff, PASS, Lesson 02 teaser, `/feedback`, and same-document reset. All browser/network diagnostics are empty.
 - Visually inspected the irrigation clue, Observe error, Observe Aha, Decide/lightbulb, failure, and 1280×720 debrief frames. Speech, concept note, Workbench controls, and weather bulletin stay contained with no document or receipt scrolling.
 - Updated acceptance, README, collaboration, Devpost, playtest, and source-manifest documentation for the new authority boundary and learner experience.
-- `COPYFILE_DISABLE=1 npm run smoke` passes the production `dist/` build with 28/28 Node tests and 214/214 browser assertions; all diagnostics are empty. Clean-tree hygiene, dated commit, deployment, and public smoke remain.
+- `COPYFILE_DISABLE=1 npm run smoke` passes the production `dist/` build with 28/28 Node tests and 214/214 browser assertions; all diagnostics are empty.
+- Committed the feature as dated commit `1c6c9eb` (`Teach Bert progressively`) and deployed it in GitHub Actions run `29650610214`.
+- Confirmed the live root returns HTTP 200 and serves the progressive runtime. A clean retry of `npm run test:public` passes 214/214 with zero console, page, external-request, request-failure, response, or dialog diagnostics; `/feedback` keeps the exact receipt session ID.
 
 ## 2026-07-16 — Playable loop
 

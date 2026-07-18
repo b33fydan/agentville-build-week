@@ -18,7 +18,7 @@ A first-time player can open the game in a desktop browser and complete one dete
 
 | ID | Pass condition | Evidence target |
 | --- | --- | --- |
-| A1 | The production build opens in Chromium with no install, account, or API key. | **PASS** — `npm run test:public`, 122/122 assertions at the live Pages URL |
+| A1 | The production build opens in Chromium with no install, account, or API key. | **PASS** — `npm run test:public`, 214/214 assertions at the live Pages URL |
 | A2 | **Start mission** loads the same compact farm and blocked East Channel on every reset. | Mission-state unit test + browser state hook |
 | A3 | The Workbench guides one player-authored instruction at a time in `observe`, `decide`, `act`, `verify` order, while still accepting a complete allowlisted four-line program. | Prefix/compiler tests + browser smoke |
 | A4 | Invalid syntax cannot mutate the farm and reports the offending line with a concrete repair suggestion. | Compiler sandbox tests + UI smoke |
@@ -44,10 +44,10 @@ A first-time player can open the game in a desktop browser and complete one dete
 | ID | Pass condition | Evidence target | Status |
 | --- | --- | --- | --- |
 | M1 | At least two of three first-time testers reach the receipt within five minutes without verbal coaching. | Dated playtest records in `artifacts/evidence/` | Pending genuine sessions |
-| M2 | The public deployment completes the same full mission in the declared judging browser. | [Live Pages URL](https://b33fydan.github.io/agentville-build-week/) + `npm run test:public` | Predecessor baseline **PASS** — 122/122 on 2026-07-17; progressive release pending deploy |
+| M2 | The public deployment completes the same full mission in the declared judging browser. | [Live Pages URL](https://b33fydan.github.io/agentville-build-week/) + `npm run test:public` | **PASS** — progressive release 214/214 on 2026-07-18 |
 | M3 | The demo video shows the authored draft, failure, repair, world change, receipt, and feedback session continuity. | Timestamped Devpost evidence index | Pending video |
 
-The progressive teaching release passes 28/28 Node tests and 214/214 production-dist browser assertions locally. The last deployed baseline passed 122/122 public assertions; the progressive public proof is recorded after deployment. M1 and M3 remain visibly incomplete until genuine human and video evidence exists.
+The progressive teaching release passes 28/28 Node tests, 214/214 production-dist browser assertions locally, and 214/214 against the public Pages deployment. M1 and M3 remain visibly incomplete until genuine human and video evidence exists.
 
 ## Non-goals for this build
 

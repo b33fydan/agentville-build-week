@@ -2,9 +2,9 @@
   "schema": "agentville.browser-smoke.v1",
   "status": "PASS",
   "invocation": "smoke",
-  "startedAt": "2026-07-17T23:47:11.338Z",
-  "finishedAt": "2026-07-17T23:47:25.907Z",
-  "durationMs": 14569,
+  "startedAt": "2026-07-18T15:48:37.249Z",
+  "finishedAt": "2026-07-18T15:49:02.477Z",
+  "durationMs": 25228,
   "target": "public",
   "baseUrl": "https://b33fydan.github.io/agentville-build-week/",
   "browser": {
@@ -145,14 +145,81 @@
       }
     },
     {
-      "name": "invalid program exposes render_game_to_text",
+      "name": "progressive lesson starts at Observe",
+      "passed": true,
+      "details": {
+        "actual": "observe",
+        "expected": "observe"
+      }
+    },
+    {
+      "name": "progressive lesson starts with no accepted commands",
+      "passed": true,
+      "details": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "initial blockage evidence is hidden",
+      "passed": true,
+      "details": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "Bert waits silently until the learner needs help",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "initial canvas description does not disclose debris",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "initial blockage callout is hidden",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "full-program run starts disabled",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "line hint reveals the irrigation noun",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "line hint is included in the accessible phase name",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "line hint does not reveal Decide, Act, or Verify commands",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "hint never writes source for the learner",
+      "passed": true,
+      "details": {
+        "actual": "",
+        "expected": ""
+      }
+    },
+    {
+      "name": "invalid Observe exposes render_game_to_text",
       "passed": true,
       "details": {
         "type": "string"
       }
     },
     {
-      "name": "unsafe syntax is rejected",
+      "name": "invalid Observe is rejected by the lesson checker",
       "passed": true,
       "details": {
         "actual": false,
@@ -160,31 +227,7 @@
       }
     },
     {
-      "name": "unsafe syntax points to line 3",
-      "passed": true,
-      "details": {
-        "actual": 3,
-        "expected": 3
-      }
-    },
-    {
-      "name": "unsafe syntax reports forbidden token",
-      "passed": true,
-      "details": {
-        "actual": "FORBIDDEN_TOKEN",
-        "expected": "FORBIDDEN_TOKEN"
-      }
-    },
-    {
-      "name": "invalid syntax cannot change world hash",
-      "passed": true,
-      "details": {
-        "actual": "east-channel-v1:B1:W0:C0",
-        "expected": "east-channel-v1:B1:W0:C0"
-      }
-    },
-    {
-      "name": "invalid syntax cannot increment world revision",
+      "name": "invalid Observe points to line 1",
       "passed": true,
       "details": {
         "actual": 1,
@@ -192,7 +235,15 @@
       }
     },
     {
-      "name": "invalid syntax cannot create a receipt",
+      "name": "invalid Observe reports exact syntax",
+      "passed": true,
+      "details": {
+        "actual": "SYNTAX",
+        "expected": "SYNTAX"
+      }
+    },
+    {
+      "name": "a partial lesson never reports a full compile",
       "passed": true,
       "details": {
         "actual": null,
@@ -200,9 +251,472 @@
       }
     },
     {
-      "name": "compiler error is visibly tied to line 3",
+      "name": "invalid Observe cannot change world hash",
+      "passed": true,
+      "details": {
+        "actual": "east-channel-v1:B1:W0:C0",
+        "expected": "east-channel-v1:B1:W0:C0"
+      }
+    },
+    {
+      "name": "invalid Observe cannot increment world revision",
+      "passed": true,
+      "details": {
+        "actual": 1,
+        "expected": 1
+      }
+    },
+    {
+      "name": "invalid Observe cannot create a plan",
+      "passed": true,
+      "details": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "invalid Observe cannot create a receipt",
+      "passed": true,
+      "details": {
+        "actual": null,
+        "expected": null
+      }
+    },
+    {
+      "name": "compiler error is visibly tied to line 1",
       "passed": true,
       "details": {}
+    },
+    {
+      "name": "Bert responds with a visible question",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "Bert asks what to inspect without disclosing the repair",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "invalid Observe returns focus to line 1",
+      "passed": true,
+      "details": {
+        "actual": "program-editor",
+        "expected": "program-editor"
+      }
+    },
+    {
+      "name": "unsafe Observe exposes render_game_to_text",
+      "passed": true,
+      "details": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "unsafe prefix reports a forbidden token",
+      "passed": true,
+      "details": {
+        "actual": "FORBIDDEN_TOKEN",
+        "expected": "FORBIDDEN_TOKEN"
+      }
+    },
+    {
+      "name": "unsafe prefix stays non-executable",
+      "passed": true,
+      "details": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "unsafe prefix keeps world revision stable",
+      "passed": true,
+      "details": {
+        "actual": 1,
+        "expected": 1
+      }
+    },
+    {
+      "name": "locked multi-line prefix exposes render_game_to_text",
+      "passed": true,
+      "details": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "two unchecked lines cannot skip the Observe rehearsal",
+      "passed": true,
+      "details": {
+        "actual": "LINE_LOCKED",
+        "expected": "LINE_LOCKED"
+      }
+    },
+    {
+      "name": "locked multi-line prefix accepts no commands",
+      "passed": true,
+      "details": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "locked multi-line prefix creates no plan",
+      "passed": true,
+      "details": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "locked multi-line prefix leaves world revision stable",
+      "passed": true,
+      "details": {
+        "actual": 1,
+        "expected": 1
+      }
+    },
+    {
+      "name": "Observe rehearsal exposes render_game_to_text",
+      "passed": true,
+      "details": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "accepted Observe enters a rehearsal",
+      "passed": true,
+      "details": {
+        "actual": "rehearsing",
+        "expected": "rehearsing"
+      }
+    },
+    {
+      "name": "Observe is the rehearsal phase",
+      "passed": true,
+      "details": {
+        "actual": "observe",
+        "expected": "observe"
+      }
+    },
+    {
+      "name": "Observe prefix does not compile a plan",
+      "passed": true,
+      "details": {
+        "actual": null,
+        "expected": null
+      }
+    },
+    {
+      "name": "Run remains disabled during Observe rehearsal",
+      "passed": true,
+      "details": {
+        "actual": true,
+        "expected": true
+      }
+    },
+    {
+      "name": "moving Observe rehearsal exposes render_game_to_text",
+      "passed": true,
+      "details": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "Bert walks toward irrigation during Observe",
+      "passed": true,
+      "details": {
+        "position": {
+          "x": 3.21,
+          "y": 4.96
+        },
+        "moving": true,
+        "action": "inspect"
+      }
+    },
+    {
+      "name": "Bert leaves his starting tile during Observe",
+      "passed": true,
+      "details": {
+        "before": {
+          "x": 2.2,
+          "y": 5.25
+        },
+        "after": {
+          "x": 3.21,
+          "y": 4.96
+        }
+      }
+    },
+    {
+      "name": "Observe rehearsal cannot change world hash",
+      "passed": true,
+      "details": {
+        "actual": "east-channel-v1:B1:W0:C0",
+        "expected": "east-channel-v1:B1:W0:C0"
+      }
+    },
+    {
+      "name": "Observe rehearsal cannot increment world revision",
+      "passed": true,
+      "details": {
+        "actual": 1,
+        "expected": 1
+      }
+    },
+    {
+      "name": "accepted Observe exposes render_game_to_text",
+      "passed": true,
+      "details": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "Observe becomes the first accepted command",
+      "passed": true,
+      "details": {
+        "actual": "observe irrigation",
+        "expected": "observe irrigation"
+      }
+    },
+    {
+      "name": "Decide unlocks after Observe",
+      "passed": true,
+      "details": {
+        "actual": "decide",
+        "expected": "decide"
+      }
+    },
+    {
+      "name": "Observe reveals stopped-flow evidence",
+      "passed": true,
+      "details": {
+        "actual": 1,
+        "expected": 1
+      }
+    },
+    {
+      "name": "Observe produces Bert's Aha response",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "accepted Observe leaves the authoritative world unchanged",
+      "passed": true,
+      "details": {
+        "actual": "east-channel-v1:B1:W0:C0",
+        "expected": "east-channel-v1:B1:W0:C0"
+      }
+    },
+    {
+      "name": "stopped-flow callout appears after Observe",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "accepted Decide exposes render_game_to_text",
+      "passed": true,
+      "details": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "Observe and Decide remain accepted in order",
+      "passed": true,
+      "details": {
+        "actual": "observe irrigation,decide if irrigation is blocked",
+        "expected": "observe irrigation,decide if irrigation is blocked"
+      }
+    },
+    {
+      "name": "Act unlocks after Decide",
+      "passed": true,
+      "details": {
+        "actual": "act",
+        "expected": "act"
+      }
+    },
+    {
+      "name": "Decide names the blockage evidence",
+      "passed": true,
+      "details": {
+        "actual": 2,
+        "expected": 2
+      }
+    },
+    {
+      "name": "decision teaching boundary becomes visible",
+      "passed": true,
+      "details": {
+        "actual": true,
+        "expected": true
+      }
+    },
+    {
+      "name": "lightbulb cue appears with Bert's decision",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "agent-boundary note is visible",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "agent-boundary note accurately names human limits",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "Decide rehearsal cannot change world hash",
+      "passed": true,
+      "details": {
+        "actual": "east-channel-v1:B1:W0:C0",
+        "expected": "east-channel-v1:B1:W0:C0"
+      }
+    },
+    {
+      "name": "Decide rehearsal cannot increment world revision",
+      "passed": true,
+      "details": {
+        "actual": 1,
+        "expected": 1
+      }
+    },
+    {
+      "name": "Bert teaching copy remains readable at 1280",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "1280 Bert bubble stays inside the farm",
+      "passed": true,
+      "details": {
+        "scene": {
+          "bottom": 710,
+          "left": 14,
+          "right": 874,
+          "top": 122
+        },
+        "bubble": {
+          "bottom": 404.28125,
+          "left": 246.984375,
+          "right": 482.984375,
+          "top": 338.203125
+        },
+        "concept": {
+          "bottom": 651.007080078125,
+          "left": 27.731292724609375,
+          "right": 358.2687072753906,
+          "top": 560.008544921875
+        },
+        "document": {
+          "height": 720,
+          "width": 1280
+        }
+      }
+    },
+    {
+      "name": "1280 agent-boundary note stays inside the farm",
+      "passed": true,
+      "details": {
+        "scene": {
+          "bottom": 710,
+          "left": 14,
+          "right": 874,
+          "top": 122
+        },
+        "bubble": {
+          "bottom": 404.28125,
+          "left": 246.984375,
+          "right": 482.984375,
+          "top": 338.203125
+        },
+        "concept": {
+          "bottom": 651.007080078125,
+          "left": 27.731292724609375,
+          "right": 358.2687072753906,
+          "top": 560.008544921875
+        },
+        "document": {
+          "height": 720,
+          "width": 1280
+        }
+      }
+    },
+    {
+      "name": "1280 progressive teaching has no document overflow",
+      "passed": true,
+      "details": {
+        "scene": {
+          "bottom": 710,
+          "left": 14,
+          "right": 874,
+          "top": 122
+        },
+        "bubble": {
+          "bottom": 404.28125,
+          "left": 246.984375,
+          "right": 482.984375,
+          "top": 338.203125
+        },
+        "concept": {
+          "bottom": 651.007080078125,
+          "left": 27.731292724609375,
+          "right": 358.2687072753906,
+          "top": 560.008544921875
+        },
+        "document": {
+          "height": 720,
+          "width": 1280
+        }
+      }
+    },
+    {
+      "name": "accepted Act exposes render_game_to_text",
+      "passed": true,
+      "details": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "Act becomes the third accepted command",
+      "passed": true,
+      "details": {
+        "actual": "act water tomatoes",
+        "expected": "act water tomatoes"
+      }
+    },
+    {
+      "name": "Verify unlocks after Act",
+      "passed": true,
+      "details": {
+        "actual": "verify",
+        "expected": "verify"
+      }
+    },
+    {
+      "name": "Act rehearsal cannot change world hash",
+      "passed": true,
+      "details": {
+        "actual": "east-channel-v1:B1:W0:C0",
+        "expected": "east-channel-v1:B1:W0:C0"
+      }
+    },
+    {
+      "name": "Act rehearsal cannot increment world revision",
+      "passed": true,
+      "details": {
+        "actual": 1,
+        "expected": 1
+      }
+    },
+    {
+      "name": "Act rehearsal cannot issue a receipt",
+      "passed": true,
+      "details": {
+        "actual": null,
+        "expected": null
+      }
     },
     {
       "name": "compiled water draft exposes render_game_to_text",
@@ -241,6 +755,30 @@
       "details": {
         "actual": "east-channel-v1:B1:W0:C0",
         "expected": "east-channel-v1:B1:W0:C0"
+      }
+    },
+    {
+      "name": "all four lesson commands are accepted",
+      "passed": true,
+      "details": {
+        "actual": 4,
+        "expected": 4
+      }
+    },
+    {
+      "name": "complete lesson has no pending phase",
+      "passed": true,
+      "details": {
+        "actual": null,
+        "expected": null
+      }
+    },
+    {
+      "name": "final compile cannot increment world revision",
+      "passed": true,
+      "details": {
+        "actual": 1,
+        "expected": 1
       }
     },
     {
@@ -370,6 +908,19 @@
       }
     },
     {
+      "name": "failure returns the lesson to Act repair",
+      "passed": true,
+      "details": {
+        "actual": "act",
+        "expected": "act"
+      }
+    },
+    {
+      "name": "Bert explains that line 3 could not cross the debris",
+      "passed": true,
+      "details": {}
+    },
+    {
       "name": "failure coach is visible",
       "passed": true,
       "details": {}
@@ -406,6 +957,114 @@
       }
     },
     {
+      "name": "Bert recognizes that the repair targets the cause",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "restored failed source exposes render_game_to_text",
+      "passed": true,
+      "details": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "restoring the known-bad source returns to failure mode",
+      "passed": true,
+      "details": {
+        "actual": "failure",
+        "expected": "failure"
+      }
+    },
+    {
+      "name": "editing a compiled repair clears its executable plan",
+      "passed": true,
+      "details": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "restored failed source returns verification to FAIL",
+      "passed": true,
+      "details": {
+        "actual": "FAIL",
+        "expected": "FAIL"
+      }
+    },
+    {
+      "name": "restored failed source restores Bert's failure explanation",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "restored failed source disables Run",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "recompiled repair exposes render_game_to_text",
+      "passed": true,
+      "details": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "repair recompiles after the stale-plan guard",
+      "passed": true,
+      "details": {
+        "actual": "act clear blockage",
+        "expected": "act clear blockage"
+      }
+    },
+    {
+      "name": "grand payoff exposes render_game_to_text",
+      "passed": true,
+      "details": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "grand payoff remains visible before the receipt",
+      "passed": true,
+      "details": {
+        "actual": "running",
+        "expected": "running"
+      }
+    },
+    {
+      "name": "grand payoff has already cleared the blockage",
+      "passed": true,
+      "details": {
+        "actual": "cleared",
+        "expected": "cleared"
+      }
+    },
+    {
+      "name": "grand payoff visibly waters all three beds",
+      "passed": true,
+      "details": {
+        "actual": 3,
+        "expected": 3
+      }
+    },
+    {
+      "name": "grand payoff has completed all four trace entries",
+      "passed": true,
+      "details": {
+        "actual": 4,
+        "expected": 4
+      }
+    },
+    {
+      "name": "grand payoff does not issue proof before the hold completes",
+      "passed": true,
+      "details": {
+        "actual": null,
+        "expected": null
+      }
+    },
+    {
       "name": "passing repair exposes render_game_to_text",
       "passed": true,
       "details": {
@@ -418,6 +1077,14 @@
       "details": {
         "actual": "PASS",
         "expected": "PASS"
+      }
+    },
+    {
+      "name": "completed lesson has no pending authoring phase",
+      "passed": true,
+      "details": {
+        "actual": null,
+        "expected": null
       }
     },
     {
@@ -609,6 +1276,24 @@
       "details": {}
     },
     {
+      "name": "PASS unlocks only a Lesson 02 teaser",
+      "passed": true,
+      "details": {
+        "actual": "TEASER",
+        "expected": "TEASER"
+      }
+    },
+    {
+      "name": "Lesson 02 weather signal appears after proof",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "Lesson 02 teaser names a coherent planting weather window",
+      "passed": true,
+      "details": {}
+    },
+    {
       "name": "keyboard focus moves to the mission debrief",
       "passed": true,
       "details": {
@@ -675,27 +1360,35 @@
           "width": 1280
         },
         "tile": {
-          "bottom": 539.1328125,
-          "height": 358.265625,
+          "bottom": 580.6328125,
+          "height": 441.265625,
           "left": 50,
           "right": 1230,
-          "top": 180.8671875,
+          "top": 139.3671875,
           "width": 1180
         },
         "recap": {
-          "bottom": 474.1328125,
+          "bottom": 432.6328125,
           "height": 178,
           "left": 65,
           "right": 1215,
-          "top": 296.1328125,
+          "top": 254.6328125,
+          "width": 1150
+        },
+        "lessonAlert": {
+          "bottom": 515.6328125,
+          "height": 74,
+          "left": 65,
+          "right": 1215,
+          "top": 441.6328125,
           "width": 1150
         },
         "actions": {
-          "bottom": 526.1328125,
+          "bottom": 567.6328125,
           "height": 34,
           "left": 923.515625,
           "right": 1215,
-          "top": 492.1328125,
+          "top": 533.6328125,
           "width": 291.484375
         },
         "tileOverflow": {
@@ -730,21 +1423,72 @@
       "passed": true,
       "details": {
         "recap": {
-          "bottom": 474.1328125,
+          "bottom": 432.6328125,
           "height": 178,
           "left": 65,
           "right": 1215,
-          "top": 296.1328125,
+          "top": 254.6328125,
           "width": 1150
         },
         "actions": {
-          "bottom": 526.1328125,
+          "bottom": 567.6328125,
           "height": 34,
           "left": 923.515625,
           "right": 1215,
-          "top": 492.1328125,
+          "top": 533.6328125,
           "width": 291.484375
         }
+      }
+    },
+    {
+      "name": "Lesson 02 teaser stays between the recap and actions",
+      "passed": true,
+      "details": {
+        "document": {
+          "height": 720,
+          "width": 1280
+        },
+        "tile": {
+          "bottom": 580.6328125,
+          "height": 441.265625,
+          "left": 50,
+          "right": 1230,
+          "top": 139.3671875,
+          "width": 1180
+        },
+        "recap": {
+          "bottom": 432.6328125,
+          "height": 178,
+          "left": 65,
+          "right": 1215,
+          "top": 254.6328125,
+          "width": 1150
+        },
+        "lessonAlert": {
+          "bottom": 515.6328125,
+          "height": 74,
+          "left": 65,
+          "right": 1215,
+          "top": 441.6328125,
+          "width": 1150
+        },
+        "actions": {
+          "bottom": 567.6328125,
+          "height": 34,
+          "left": 923.515625,
+          "right": 1215,
+          "top": 533.6328125,
+          "width": 291.484375
+        },
+        "tileOverflow": {
+          "horizontal": false,
+          "vertical": false
+        },
+        "actionHitTests": [
+          true,
+          true,
+          true
+        ]
       }
     },
     {
@@ -838,7 +1582,7 @@
       "name": "feedback export produces a local download",
       "passed": true,
       "details": {
-        "downloadedPath": "/var/folders/2x/zw6qlh_d6_x5r_p8cf1g3xww0000gn/T/playwright-artifacts-gxzHqN/dfec4444-2607-4658-8766-d1c70f52502d"
+        "downloadedPath": "/var/folders/2x/zw6qlh_d6_x5r_p8cf1g3xww0000gn/T/playwright-artifacts-Qjo1CI/6a7997ac-5a4c-42e8-9222-8d5d15df887c"
       }
     },
     {
@@ -938,6 +1682,46 @@
     },
     {
       "name": "reset clears the learning recap",
+      "passed": true,
+      "details": {
+        "actual": null,
+        "expected": null
+      }
+    },
+    {
+      "name": "reset clears the Lesson 02 teaser state",
+      "passed": true,
+      "details": {
+        "actual": null,
+        "expected": null
+      }
+    },
+    {
+      "name": "reset clears accepted lesson commands",
+      "passed": true,
+      "details": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "reset returns the lesson to Observe",
+      "passed": true,
+      "details": {
+        "actual": "observe",
+        "expected": "observe"
+      }
+    },
+    {
+      "name": "reset hides discovered evidence",
+      "passed": true,
+      "details": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "reset clears Bert's teaching bubble",
       "passed": true,
       "details": {
         "actual": null,
@@ -1113,6 +1897,10 @@
   "artifacts": {
     "hero": "artifacts/screenshots/agentville-build-week-hero.png",
     "irrigationCue1280": "artifacts/screenshots/agentville-build-week-irrigation-cue-1280.png",
+    "observeError1280": "artifacts/screenshots/agentville-build-week-observe-error-1280.png",
+    "observeSuccess1280": "artifacts/screenshots/agentville-build-week-observe-success-1280.png",
+    "decideAha1280": "artifacts/screenshots/agentville-build-week-decide-aha-1280.png",
+    "grandPayoff1280": "artifacts/screenshots/agentville-build-week-grand-payoff-1280.png",
     "compilerError": "artifacts/screenshots/agentville-build-week-compiler-error.png",
     "failure": "artifacts/screenshots/agentville-build-week-failure.png",
     "receipt": "artifacts/screenshots/agentville-build-week-receipt.png",

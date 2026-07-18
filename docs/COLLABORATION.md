@@ -49,6 +49,8 @@ This ID is preserved for Build Week `/feedback` and development-session traceabi
 
 **Skill influence:** The Codex web-game workflow required deterministic `advanceTime()` rehearsals and screenshot inspection; the frontend-design pass kept the new bubbles and warning bulletin inside the existing field-manual visual language instead of adding a competing interface system.
 
+Commit `1c6c9eb` deployed in [Actions run 29650610214](https://github.com/b33fydan/agentville-build-week/actions/runs/29650610214). The final production and public runs each passed 214/214 browser assertions with empty diagnostics; the Node suite passed 28/28.
+
 ## Clean-room declaration
 
 The build did not copy or adapt implementation code, art, screenshots, or generated artifacts from `/Volumes/beefybackup/AgentVille`. Source and visuals were authored within `/Volumes/beefybackup/agentville-build-week`; game art is procedural Canvas 2D plus CSS.
