@@ -63,6 +63,18 @@ The renderer now publishes presentation evidence derived from the same frame it 
 
 Commit `c8ab4db` deployed in [Actions run 29670780954](https://github.com/b33fydan/agentville-build-week/actions/runs/29670780954). The release passes 28/28 Node tests and 266/266 browser assertions both against production `dist/` and the public Pages origin, with empty browser/network diagnostics.
 
+## 2026-07-19 — Decide selects; Act executes
+
+**Human correction:** Once Observe establishes that irrigation is blocked, `decide if irrigation is blocked` is not a decision—it merely repeats a fact. The second phase should teach the learner to choose what Bert will do about the evidence.
+
+**Codex / GPT-5.6 contribution:** Rebuilt the safe-language contract around two bounded choices. The guided decision selects direct watering when the tomatoes are dry; the repaired decision selects blockage removal when the channel is blocked. The shared line 3, `act chosen repair`, never chooses again: it executes the compiler-bound line-2 response. Both `when` conditions are evaluated against authoritative world state. Only compiler-minted, deeply frozen plans can reach the simulator, and the receipt now records the decision command, selected response, Act command, executed response, and before/after evidence separately.
+
+The progressive lesson now lets Observe report stopped water, visible debris, and dry beds; gives immediate feedback when Decide selects a response; lets Verify own the honest failure; and returns the coach to line 2. The final debrief derives the repair from matching FAIL and PASS receipts and tells the learner, “You debugged an agent’s decision.” A learner who independently chooses the cause can also succeed directly without being forced through the guided failure.
+
+**Skill and review influence:** The web-game workflow required a fresh Playwright interaction loop, deterministic text-state proof, and direct screenshot inspection. Three independent read-only reviews checked the compiler/simulator authority boundary, novice-facing copy, and regression matrix. Their findings led to private plan minting, real condition evaluation, selected/executed-response receipt fields, simultaneous failed-Verify/Coach visibility, and stale-plan rewind coverage.
+
+The local decision-model release passes 34/34 Node tests and 302/302 production-dist browser assertions with empty diagnostics. The final hardening rejects caller-forged decision results, truthfully explains the already-satisfied no-action path for either decision, labels Act as `NO CHANGE` rather than `FAIL`, and proves the four-line editor plus failed Verify/Coach fit together at 1280×720. Observe, Decide, failure, grand-payoff, and debrief frames were regenerated and inspected at the judging viewport. Public deployment proof is recorded after publication.
+
 ## Clean-room declaration
 
 The build did not copy or adapt implementation code, art, screenshots, or generated artifacts from `/Volumes/beefybackup/AgentVille`. Source and visuals were authored within `/Volumes/beefybackup/agentville-build-week`; game art is procedural Canvas 2D plus CSS.

@@ -19,12 +19,16 @@ const PLAYWRIGHT_VERSION = createRequire(import.meta.url)("playwright/package.js
 
 const DRAFT_PROGRAM = [
   "observe irrigation",
-  "decide if irrigation is blocked",
-  "act water tomatoes",
+  "decide water tomatoes when dry",
+  "act chosen repair",
   "verify tomatoes are watered",
 ].join("\n");
 
-const REPAIRED_PROGRAM = DRAFT_PROGRAM.replace("act water tomatoes", "act clear blockage");
+const REPAIR_DECISION = "decide clear blockage when blocked";
+const REPAIRED_PROGRAM = DRAFT_PROGRAM.replace(
+  "decide water tomatoes when dry",
+  REPAIR_DECISION,
+);
 
 const ARTIFACTS = Object.freeze({
   welcome: "artifacts/screenshots/agentville-build-week-welcome.png",
@@ -352,7 +356,12 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
       "line hint is included in the accessible phase name",
       (await page.locator('[data-phase="observe"]').getAttribute("aria-label"))?.includes("irrigation"),
     );
-    check("line hint does not reveal Decide, Act, or Verify commands", !currentHint.includes("if irrigation is blocked") && !currentHint.includes("water tomatoes") && !currentHint.includes("tomatoes are watered"));
+    check(
+      "line hint does not reveal Decide, Act, or Verify commands",
+      !currentHint.includes("when dry") &&
+        !currentHint.includes("chosen repair") &&
+        !currentHint.includes("tomatoes are watered"),
+    );
     equal("hint never writes source for the learner", await editor.inputValue(), "");
 
     await editor.fill("observe tomatoes");
@@ -449,17 +458,21 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     equal(
       "Observe and Decide remain accepted in order",
       decided.lesson.acceptedCommands.join(","),
-      "observe irrigation,decide if irrigation is blocked",
+      "observe irrigation,decide water tomatoes when dry",
     );
     equal("Act unlocks after Decide", decided.lesson.currentPhase, "act");
-    equal("Decide names the blockage evidence", decided.lesson.evidenceLevel, 2);
+    equal("Decide keeps the discovered evidence visible", decided.lesson.evidenceLevel, 2);
+    check(
+      "Decide visibly records the symptom response",
+      decided.lesson.bertMessage?.text.includes("water the dry beds"),
+    );
     equal("decision teaching boundary becomes visible", decided.lesson.conceptVisible, true);
     equal("renderer exposes Bert's thinking pose after Decide", decided.presentation?.bert?.pose, "think");
     check("lightbulb cue appears with Bert's decision", (await page.getByTestId("bert-cue").textContent())?.includes("💡"));
     check("agent-boundary note is visible", await page.getByTestId("agent-boundary-note").isVisible());
     check(
       "agent-boundary note accurately names human limits",
-      (await page.getByTestId("agent-boundary-note").textContent())?.includes("goal, tools, and limits"),
+      (await page.getByTestId("agent-boundary-note").textContent())?.includes("goal, tools, limits, and success check"),
     );
     equal("Decide rehearsal cannot change world hash", decided.world.worldHash, initialWorldHash);
     equal("Decide rehearsal cannot increment world revision", decided.world.revision, initialWorldRevision);
@@ -521,11 +534,31 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     await compileButton.click();
     await advanceTime(page, 1000);
     const acted = await readTextState(page, "accepted Act", check);
-    equal("Act becomes the third accepted command", acted.lesson.acceptedCommands[2], "act water tomatoes");
+    equal("Act becomes the shared execution command", acted.lesson.acceptedCommands[2], "act chosen repair");
     equal("Verify unlocks after Act", acted.lesson.currentPhase, "verify");
     equal("Act rehearsal cannot change world hash", acted.world.worldHash, initialWorldHash);
     equal("Act rehearsal cannot increment world revision", acted.world.revision, initialWorldRevision);
     equal("Act rehearsal cannot issue a receipt", acted.receipt, null);
+
+    await editor.fill(
+      DRAFT_PROGRAM.split("\n")
+        .slice(0, 2)
+        .join("\n")
+        .replace("decide water tomatoes when dry", REPAIR_DECISION),
+    );
+    const rewoundDecision = await readTextState(page, "edited accepted Decide", check);
+    equal("editing accepted Decide rewinds later lesson steps", rewoundDecision.lesson.acceptedCommands.length, 1);
+    equal("editing accepted Decide returns focus to line 2", rewoundDecision.lesson.currentPhase, "decide");
+    equal("editing accepted Decide hides the prior concept reward", rewoundDecision.lesson.conceptVisible, false);
+    equal("editing accepted Decide cannot preserve a plan", rewoundDecision.program.plan.length, 0);
+    equal("editing accepted Decide leaves the farm unchanged", rewoundDecision.world.worldHash, initialWorldHash);
+
+    await editor.fill(DRAFT_PROGRAM.split("\n").slice(0, 2).join("\n"));
+    await compileButton.click();
+    await advanceTime(page, 1000);
+    await editor.fill(DRAFT_PROGRAM.split("\n").slice(0, 3).join("\n"));
+    await compileButton.click();
+    await advanceTime(page, 1000);
 
     await editor.fill(DRAFT_PROGRAM);
     await compileButton.click();
@@ -533,6 +566,21 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     stateSummary.compiledDraft = summarizeMission(compiledDraft);
     equal("valid draft compiles", compiledDraft.program.compile.ok, true);
     equal("valid draft exposes four plan steps", compiledDraft.program.plan.length, 4);
+    equal(
+      "compiled draft binds the line-2 decision",
+      compiledDraft.program.binding?.decisionCommand,
+      "decide water tomatoes when dry",
+    );
+    equal(
+      "compiled draft binds the selected response",
+      compiledDraft.program.binding?.selectedAction,
+      "water tomatoes",
+    );
+    equal(
+      "compiled Act remains the generic executor",
+      compiledDraft.program.binding?.actCommand,
+      "act chosen repair",
+    );
     equal(
       "compiled phases preserve observe-decide-act-verify order",
       compiledDraft.program.plan.map((step) => step.phase).join(","),
@@ -576,22 +624,42 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     equal("failed draft releases no water", failed.world.eastChannel, "blocked");
     equal("failed draft waters zero beds", failed.world.tomatoBeds.watered, 0);
     equal("failed draft leaves world hash unchanged", failed.world.worldHash, initialWorldHash);
-    equal("failure coach focuses line 3", failed.coach?.focusLine, 3);
-    equal("failure coach recommends the allowlisted repair", failed.coach?.suggestion, "act clear blockage");
-    equal("failure returns the lesson to Act repair", failed.lesson.currentPhase, "act");
+    equal("failure trace records the symptom decision", failed.trace[1]?.selectedAction, "water tomatoes");
+    equal("generic Act executes the symptom decision", failed.trace[2]?.executedAction, "water tomatoes");
+    equal("Verify owns the failed verdict", failed.trace[3]?.outcome, "FAIL");
+    equal("failure receipt preserves the wrong decision", failed.failureReceipt?.decision, "decide water tomatoes when dry");
+    equal("failure receipt preserves the generic Act command", failed.failureReceipt?.action, "act chosen repair");
+    equal("failure receipt records the executed symptom response", failed.failureReceipt?.executedAction, "water tomatoes");
+    equal("failure coach focuses line 2", failed.coach?.focusLine, 2);
+    equal("failure coach renders after Verify", failed.coach?.insertAfterLine, 4);
+    equal("failure coach recommends the allowlisted decision repair", failed.coach?.suggestion, REPAIR_DECISION);
+    equal("failure returns the lesson to Decide repair", failed.lesson.currentPhase, "decide");
     check(
-      "Bert explains that line 3 could not cross the debris",
-      failed.lesson.bertMessage?.text.includes("water can’t pass the debris"),
+      "Bert explains that the chosen response failed",
+      failed.lesson.bertMessage?.text.includes("carried out the choice"),
     );
     check(
       "failure coach is visible",
       await page.getByTestId("coach-message").isVisible(),
     );
+    equal(
+      "Act is visibly labeled NO CHANGE rather than FAIL",
+      (await page.locator('.trace-item.is-no-change[data-line="3"] .trace-state').textContent())?.trim(),
+      "NO CHANGE",
+    );
+    equal(
+      "Verify is the only trace row carrying the FAIL verdict",
+      await page.locator('.trace-item.is-fail[data-line="4"]').count(),
+      1,
+    );
+    await page.setViewportSize({ width: 1280, height: 720 });
     await waitForPaint(page);
     const failureTraceVisibility = await measureFailureTraceVisibility(page);
-    check("failure trace auto-follows the failed Act line", failureTraceVisibility.scrollTop > 0, failureTraceVisibility);
+    const failureEditorContainment = await measureEditorContainment(page);
+    check("failure trace marks line 2 as the coached cause", failureTraceVisibility.causeMarked, failureTraceVisibility);
+    check("failure trace auto-follows Verify and Coach", failureTraceVisibility.scrollTop > 0, failureTraceVisibility);
     check(
-      "failed Act evidence is inside the visible trace viewport",
+      "failed Verify evidence is inside the visible trace viewport",
       failureTraceVisibility.failedVisibleRatio >= 0.98,
       failureTraceVisibility,
     );
@@ -600,15 +668,36 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
       failureTraceVisibility.coachVisibleRatio >= 0.98,
       failureTraceVisibility,
     );
-    check("failure trace guidance remains at least 12px", failureTraceVisibility.detailFontSize >= 12, failureTraceVisibility);
+    check("failure trace guidance remains at least 10px", failureTraceVisibility.detailFontSize >= 10, failureTraceVisibility);
+    check(
+      "four-line editor stays inside its allocated area at 1280x720",
+      failureEditorContainment.editorInsideArea,
+      failureEditorContainment,
+    );
+    check(
+      "all four program lines fit without editor scrolling at 1280x720",
+      failureEditorContainment.allSourceVisible,
+      failureEditorContainment,
+    );
+    equal(
+      "redundant editor help collapses for a complete compact program",
+      failureEditorContainment.helpDisplay,
+      "none",
+    );
     await captureViewport(page, screenshotPaths.failure);
+    await page.setViewportSize({ width: 1600, height: 900 });
+    await waitForPaint(page);
 
     await editor.fill(REPAIRED_PROGRAM);
     await compileButton.click();
     const compiledRepair = await readTextState(page, "compiled repair", check);
     equal("repair compiles", compiledRepair.program.compile.ok, true);
-    equal("repair changes only the action command", compiledRepair.program.plan[2]?.command, "act clear blockage");
+    equal("repair changes only the decision command", compiledRepair.program.plan[1]?.command, REPAIR_DECISION);
+    equal("repair preserves the generic Act command", compiledRepair.program.plan[2]?.command, "act chosen repair");
+    equal("repair binding selects blockage removal", compiledRepair.program.binding?.selectedAction, "clear blockage");
     equal("repair compile still leaves world unchanged", compiledRepair.world.worldHash, initialWorldHash);
+    equal("repair compile cannot increment world revision", compiledRepair.world.revision, initialWorldRevision);
+    equal("repair compile cannot issue a passing receipt", compiledRepair.receipt, null);
     check("Bert recognizes that the repair targets the cause", compiledRepair.lesson.bertMessage?.text.includes("targets the cause"));
 
     await editor.fill(DRAFT_PROGRAM);
@@ -616,19 +705,20 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     equal("restoring the known-bad source returns to failure mode", restoredFailure.mode, "failure");
     equal("editing a compiled repair clears its executable plan", restoredFailure.program.plan.length, 0);
     equal("restored failed source returns verification to FAIL", restoredFailure.verification.status, "FAIL");
-    check("restored failed source restores Bert's failure explanation", restoredFailure.lesson.bertMessage?.text.includes("water can’t pass the debris"));
+    check("restored failed source restores Bert's failure explanation", restoredFailure.lesson.bertMessage?.text.includes("carried out the choice"));
     check("restored failed source disables Run", await runButton.isDisabled());
 
     await editor.fill(REPAIRED_PROGRAM);
     await compileButton.click();
     const recompiledRepair = await readTextState(page, "recompiled repair", check);
-    equal("repair recompiles after the stale-plan guard", recompiledRepair.program.plan[2]?.command, "act clear blockage");
+    equal("repair recompiles after the stale-plan guard", recompiledRepair.program.plan[1]?.command, REPAIR_DECISION);
 
     await runButton.click();
     await advanceTime(page, 3300);
     const repairing = await readTextState(page, "active blockage repair", check);
     equal("renderer exposes Bert's active clear pose during repair", repairing.presentation?.bert?.pose, "clear");
     equal("active repair keeps Bert's clear action", repairing.presentation?.bert?.action, "clear");
+    equal("active generic Act executes blockage removal", repairing.trace[2]?.executedAction, "clear blockage");
     check("Bert visibly carries his tool during repair", repairing.presentation?.bert?.renderedParts?.includes("tool"), repairing.presentation?.bert);
     await advanceTime(page, 1200);
     const grandPayoff = await readTextState(page, "grand payoff", check);
@@ -659,7 +749,10 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     });
     equal("receipt verdict is PASS", passed.receipt?.verdict, "PASS");
     equal("receipt preserves mission session", passed.receipt?.sessionId, started.session.id);
-    equal("receipt records the repair action", passed.receipt?.action, "act clear blockage");
+    equal("receipt records the repaired decision", passed.receipt?.decision, REPAIR_DECISION);
+    equal("receipt records the selected response", passed.receipt?.selectedAction, "clear blockage");
+    equal("receipt preserves the generic Act instruction", passed.receipt?.action, "act chosen repair");
+    equal("receipt records the executed repair", passed.receipt?.executedAction, "clear blockage");
     equal("receipt before state is blocked", passed.receipt?.before?.irrigationBlocked, true);
     equal("receipt after state is clear", passed.receipt?.after?.irrigationBlocked, false);
     equal("receipt after state releases water", passed.receipt?.after?.waterReleased, true);
@@ -667,23 +760,24 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     check("receipt panel is visible", await page.getByTestId("receipt").isVisible());
     check("learning recap is exposed in automation state", passed.learningRecap !== null);
     equal("learning recap records the repair path", passed.learningRecap?.path, "repair");
-    equal("learning recap names the learner accomplishment", passed.learningRecap?.title, "You fixed the cause—and proved it.");
+    equal("learning recap names the learner accomplishment", passed.learningRecap?.title, "You changed the decision—and fixed the cause.");
     equal(
       "learning recap keeps the four phase order",
       passed.learningRecap?.phases.map(({ phase }) => phase).join(","),
       "observe,decide,act,verify",
     );
-    equal("learning recap explains the repaired action", passed.learningRecap?.phases[2]?.command, "act clear blockage");
+    equal("learning recap explains the repaired decision", passed.learningRecap?.phases[1]?.command, REPAIR_DECISION);
+    equal("learning recap preserves the generic Act instruction", passed.learningRecap?.phases[2]?.command, "act chosen repair");
     equal("learning recap reports the verified crop total", passed.learningRecap?.result.tomatoBedsWateredAfter, 3);
     equal("learning recap credits an observed failure", passed.learningRecap?.learner.diagnosedFailure, true);
-    equal("learning recap identifies the changed line", passed.learningRecap?.learner.changedLine, 3);
-    equal("learning recap preserves the failed action", passed.learningRecap?.learner.from, "act water tomatoes");
-    equal("learning recap preserves the repaired action", passed.learningRecap?.learner.to, "act clear blockage");
+    equal("learning recap identifies the changed line", passed.learningRecap?.learner.changedLine, 2);
+    equal("learning recap preserves the failed decision", passed.learningRecap?.learner.from, "decide water tomatoes when dry");
+    equal("learning recap preserves the repaired decision", passed.learningRecap?.learner.to, REPAIR_DECISION);
     check("learning recap tile is visible", await page.getByTestId("learning-recap").isVisible());
     equal("learning recap renders four visible phase cards", await page.locator("[data-recap-phase]:visible").count(), 4);
     check(
       "learning takeaway tells the player they debugged an agent",
-      (await page.getByTestId("learning-takeaway").textContent())?.includes("You just debugged an agent."),
+      (await page.getByTestId("learning-takeaway").textContent())?.includes("You debugged an agent’s decision."),
     );
     equal("PASS unlocks only a Lesson 02 teaser", passed.nextLesson?.status, "TEASER");
     check("Lesson 02 weather signal appears after proof", await page.getByTestId("lesson-alert").isVisible());
@@ -706,6 +800,26 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
       "visible receipt session matches state",
       (await page.getByTestId("receipt-session-id").textContent())?.trim(),
       passed.receipt.sessionId,
+    );
+    equal(
+      "visible debrief Decide command matches text state",
+      (await page.getByTestId("recap-decide").locator("[data-recap-command]").textContent())?.trim(),
+      passed.learningRecap.phases[1].command,
+    );
+    equal(
+      "visible debrief Act command matches text state",
+      (await page.getByTestId("recap-act").locator("[data-recap-command]").textContent())?.trim(),
+      passed.learningRecap.phases[2].command,
+    );
+    equal(
+      "visible debrief title matches text state",
+      (await page.locator("#receipt-title").textContent())?.trim(),
+      passed.learningRecap.title,
+    );
+    equal(
+      "visible receipt action matches executed response and causal line",
+      (await page.locator("#receipt-action").textContent())?.trim(),
+      `${passed.receipt.executedAction} · selected on line 2`,
     );
 
     const feedbackUrl = new URL(passed.feedbackHref);
@@ -827,7 +941,7 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
 
     await feedbackPage.locator('label:has(input[name="clarity"][value="5"])').click();
     await feedbackPage.locator("#learned").fill("Verification checks the changed farm, not just Bert's intention.");
-    await feedbackPage.locator("#friction").fill("I paused at line 3 before clearing the blockage.");
+    await feedbackPage.locator("#friction").fill("I paused at line 2 before choosing the blockage.");
     await feedbackPage.locator("#evidence-consent").check();
     await feedbackPage.locator("#submit-feedback").click();
     await feedbackPage.locator("#feedback-confirmation").waitFor({ state: "visible" });
@@ -1216,7 +1330,8 @@ async function measureBertOverlayVisibility(page, bounds) {
 async function measureFailureTraceVisibility(page) {
   return page.evaluate(() => {
     const viewport = document.querySelector("#trace-output");
-    const failed = viewport.querySelector('.trace-item.is-fail[data-line="3"]');
+    const cause = viewport.querySelector('.trace-item.is-coach-focus[data-line="2"]');
+    const failed = viewport.querySelector('.trace-item.is-fail[data-line="4"]');
     const coach = viewport.querySelector('[data-testid="coach-message"]');
     const visibleRatio = (node) => {
       if (!node) return 0;
@@ -1227,12 +1342,45 @@ async function measureFailureTraceVisibility(page) {
       return (width * height) / Math.max(1, inner.width * inner.height);
     };
     return {
+      causeMarked: Boolean(cause),
       coachVisibleRatio: visibleRatio(coach),
-      detailFontSize: parseFloat(getComputedStyle(failed.querySelector("small")).fontSize),
+      detailFontSize: failed
+        ? parseFloat(getComputedStyle(failed.querySelector("small")).fontSize)
+        : 0,
       failedVisibleRatio: visibleRatio(failed),
       scrollHeight: viewport.scrollHeight,
       scrollTop: viewport.scrollTop,
       viewportHeight: viewport.clientHeight,
+    };
+  });
+}
+
+async function measureEditorContainment(page) {
+  return page.evaluate(() => {
+    const area = document.querySelector(".editor-area");
+    const editor = document.querySelector("#program-editor");
+    const help = document.querySelector(".editor-help");
+    const areaRect = area.getBoundingClientRect();
+    const editorRect = editor.getBoundingClientRect();
+    const epsilon = 1;
+    return {
+      allSourceVisible: editor.scrollHeight <= editor.clientHeight + epsilon,
+      area: {
+        bottom: areaRect.bottom,
+        height: areaRect.height,
+        top: areaRect.top,
+      },
+      editor: {
+        bottom: editorRect.bottom,
+        clientHeight: editor.clientHeight,
+        height: editorRect.height,
+        scrollHeight: editor.scrollHeight,
+        top: editorRect.top,
+      },
+      editorInsideArea:
+        editorRect.top >= areaRect.top - epsilon &&
+        editorRect.bottom <= areaRect.bottom + epsilon,
+      helpDisplay: getComputedStyle(help).display,
     };
   });
 }

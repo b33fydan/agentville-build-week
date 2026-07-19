@@ -10,13 +10,14 @@ import { FarmRenderer, IRRIGATION_SIGN } from "./world.js";
 
 const DRAFT_PROGRAM = [
   "observe irrigation",
-  "decide if irrigation is blocked",
-  "act water tomatoes",
+  "decide water tomatoes when dry",
+  "act chosen repair",
   "verify tomatoes are watered",
 ].join("\n");
 const DRAFT_LINES = Object.freeze(DRAFT_PROGRAM.split("\n"));
 
-const REPAIR_ACTION = "act clear blockage";
+const REPAIR_DECISION = "decide clear blockage when blocked";
+const CLEAR_BLOCKAGE_ACTION = "clear blockage";
 const BERT_START = Object.freeze({ x: 2.2, y: 5.25 });
 const OBSERVE_DESTINATION = Object.freeze({ x: 4.25, y: 3.45 });
 const MISSION_DURATION_MS = 5 * 60 * 1000;
@@ -108,6 +109,7 @@ const state = {
   attemptCount: 0,
   failureSeen: false,
   failedSource: null,
+  failedReceipt: null,
   coach: null,
   verification: { status: "NOT_RUN", message: "Mission not started." },
   receipt: null,
@@ -178,6 +180,7 @@ function beginMission({ replay = false } = {}) {
   state.attemptCount = 0;
   state.failureSeen = false;
   state.failedSource = null;
+  state.failedReceipt = null;
   state.coach = null;
   state.verification = { status: "NOT_RUN", message: "Teach Bert what to observe first." };
   state.receipt = null;
@@ -208,12 +211,13 @@ function beginMission({ replay = false } = {}) {
 
 function revealDraft() {
   const phaseIndex = lessonFocusIndex();
-  state.lesson.hintedPhases[phaseIndex] = true;
+  if (state.failureSeen) state.lesson.repairHinted = true;
+  else state.lesson.hintedPhases[phaseIndex] = true;
   state.domDirty = true;
   render();
   announce(
     state.failureSeen
-      ? `Repair hint revealed: ${REPAIR_ACTION}.`
+      ? `Repair hint revealed: ${REPAIR_DECISION}.`
       : `Hint revealed for line ${phaseIndex + 1}.`,
   );
 }
@@ -342,7 +346,7 @@ function compileFullProgram() {
       ? {
           cue: "?",
           tone: "question",
-          text: "That repair is not ready yet. Which action changes the cause?",
+          text: "That repair is not ready yet. Which decision targets the cause?",
         }
       : {
           cue: "?",
@@ -360,12 +364,19 @@ function compileFullProgram() {
     state.lesson.status = "ready";
     state.lesson.evidenceLevel = 2;
     state.lesson.conceptVisible = !state.failureSeen;
+    const selectedAction = result.plan.binding.selectedAction;
     state.lesson.bertMessage = state.failureSeen
-      ? {
-          cue: "✓",
-          tone: "idea",
-          text: "That repair targets the cause. Let’s run the full loop again.",
-        }
+      ? selectedAction === CLEAR_BLOCKAGE_ACTION
+        ? {
+            cue: "✓",
+            tone: "idea",
+            text: "That decision targets the cause. Line 3 will carry it out.",
+          }
+        : {
+            cue: "?",
+            tone: "question",
+            text: "That still chooses direct watering. Will it remove the blockage?",
+          }
       : {
           cue: "✓",
           tone: "idea",
@@ -373,7 +384,7 @@ function compileFullProgram() {
         };
     state.mode = state.failureSeen ? "repair-ready" : "compiled";
     state.stage = state.failureSeen ? "repair" : "program";
-    state.visual.route = routeForAction(result.plan.steps[2].command, BERT_START);
+    state.visual.route = routeForAction(selectedAction, BERT_START);
     state.visual.routeVisible = true;
     state.verification = { status: "READY", message: "Four safe phases compiled. World state has not changed yet." };
     announce("Compile succeeded. Four safe phases are ready to run as one complete agent loop.");
@@ -395,8 +406,14 @@ function startLessonRehearsal(step) {
         ]
       : [{ x: state.visual.bert.x, y: state.visual.bert.y }];
   state.lesson.status = "rehearsing";
-  state.lesson.rehearsal = { elapsedMs: 0, durationMs, phase: step.phase, route };
-  state.lesson.bertMessage = rehearsalStartMessage(step.phase);
+  state.lesson.rehearsal = {
+    elapsedMs: 0,
+    durationMs,
+    phase: step.phase,
+    command: step.command,
+    route,
+  };
+  state.lesson.bertMessage = rehearsalStartMessage(step);
   state.verification = {
     status: "NOT_RUN",
     message: `Line ${step.line} is safe teaching input. The farm has not changed.`,
@@ -411,11 +428,11 @@ function startLessonRehearsal(step) {
 
 function runCurrentProgram() {
   if (!state.compiledPlan || state.mode === "running") return;
-  const action = state.compiledPlan.steps[2].command;
   const result = runMission(state.compiledPlan, {
     sessionId: state.sessionId,
     state: state.missionState,
   });
+  const action = result.trace[2].executedAction;
 
   state.attemptCount += 1;
   state.mode = "running";
@@ -478,16 +495,17 @@ function updateLessonRehearsal(deltaMs) {
     state.visual.bert.action = rehearsal.phase === "decide" ? "think" : "inspect";
   }
 
-  if (rehearsal.elapsedMs >= rehearsal.durationMs) finishLessonRehearsal(rehearsal.phase);
+  if (rehearsal.elapsedMs >= rehearsal.durationMs) finishLessonRehearsal(rehearsal);
 }
 
-function finishLessonRehearsal(phase) {
+function finishLessonRehearsal(rehearsal) {
+  const { phase, command } = rehearsal;
   const phaseIndex = PHASES.indexOf(phase);
   state.lesson.rehearsal = null;
   state.lesson.status = "prompt";
   state.lesson.evidenceLevel = phaseIndex === 0 ? 1 : phaseIndex >= 1 ? 2 : state.lesson.evidenceLevel;
   state.lesson.conceptVisible = phaseIndex >= 1;
-  state.lesson.bertMessage = rehearsalCompleteMessage(phase);
+  state.lesson.bertMessage = rehearsalCompleteMessage(phase, command);
   state.visual.bert.moving = false;
   state.visual.bert.action = phase === "observe" ? "inspect" : phase === "decide" ? "think" : "idle";
   state.visual.routeVisible = false;
@@ -519,7 +537,7 @@ function updateExecution(deltaMs) {
 
   if (execution.elapsedMs < EXECUTION_MARKS[0]) state.visual.bert.action = "inspect";
   else if (execution.elapsedMs < EXECUTION_MARKS[2]) state.visual.bert.action = "think";
-  else state.visual.bert.action = execution.action === REPAIR_ACTION ? "clear" : "water";
+  else state.visual.bert.action = execution.action === CLEAR_BLOCKAGE_ACTION ? "clear" : "water";
 
   while (
     execution.completedSteps < EXECUTION_MARKS.length &&
@@ -533,7 +551,7 @@ function updateExecution(deltaMs) {
       execution.action,
     );
 
-    if (completedIndex === 2 && execution.action === REPAIR_ACTION) {
+    if (completedIndex === 2 && execution.action === CLEAR_BLOCKAGE_ACTION) {
       state.missionState = execution.result.state;
       state.worldRevision += 1;
       execution.visualCropCount = 0;
@@ -542,7 +560,7 @@ function updateExecution(deltaMs) {
     state.domDirty = true;
   }
 
-  if (execution.action === REPAIR_ACTION && execution.elapsedMs >= EXECUTION_MARKS[2]) {
+  if (execution.action === CLEAR_BLOCKAGE_ACTION && execution.elapsedMs >= EXECUTION_MARKS[2]) {
     const waterTravel = clamp((execution.elapsedMs - EXECUTION_MARKS[2]) / 900, 0, 1);
     const nextCropCount = Math.min(3, Math.floor(waterTravel * 4));
     if (nextCropCount !== execution.visualCropCount) {
@@ -571,6 +589,7 @@ function finishExecution() {
     state.stage = "failure";
     state.failureSeen = true;
     state.failedSource = state.source;
+    state.failedReceipt = result.receipt;
     state.lesson.status = "repair";
     state.lesson.conceptVisible = false;
     state.lesson.bertMessage = repairFailureMessage();
@@ -581,12 +600,13 @@ function finishExecution() {
     };
     state.coach = {
       source: "Codex-authored deterministic coach",
-      focusLine: 3,
-      message: "Bert observed the blockage, but line 3 tried to water through it.",
-      suggestion: REPAIR_ACTION,
+      focusLine: 2,
+      insertAfterLine: 4,
+      message: "Line 2 treated the symptom. Choose the cause:",
+      suggestion: REPAIR_DECISION,
     };
     elements.editor.disabled = false;
-    announce("Verification failed. The blockage is still present. Repair line 3 by clearing the blockage first.");
+    announce("Verification failed. The blockage is still present. Repair line 2 by choosing the cause.");
   } else {
     state.mode = "proof";
     state.stage = "proof";
@@ -605,6 +625,7 @@ function finishExecution() {
     state.coach = {
       source: "Codex-authored deterministic coach",
       focusLine: 4,
+      insertAfterLine: 4,
       message: "Your program did more than run: verification inspected the changed farm.",
       suggestion: "Keep the receipt as evidence of cause and effect.",
     };
@@ -626,6 +647,9 @@ function render() {
     state.domDirty = false;
     elements.app.dataset.mode = state.mode;
     elements.app.dataset.ready = String(state.ready);
+    elements.app.dataset.programLines = String(
+      Math.min(programLines(elements.editor.value).length, PHASES.length),
+    );
     renderStageRail();
     renderClock();
     renderWorldStatus(visualWorld);
@@ -688,9 +712,9 @@ function renderWorldStatus(visualWorld) {
   const showBlockageEvidence = blocked && evidenceLevel >= 1;
   elements.blockageCallout.hidden = !showBlockageEvidence;
   if (showBlockageEvidence) {
-    elements.blockageCallout.querySelector("b").textContent = evidenceLevel >= 2 ? "Debris jam" : "Flow stopped";
+    elements.blockageCallout.querySelector("b").textContent = evidenceLevel >= 2 ? "Debris jam" : "Debris spotted";
     elements.blockageCallout.querySelector("small").textContent =
-      evidenceLevel >= 2 ? "Water stops here" : "Something is in the channel";
+      "Water stops here";
   }
   elements.canvas.setAttribute(
     "aria-label",
@@ -708,12 +732,14 @@ function renderWorldStatus(visualWorld) {
         ? ["OBSERVE", "Dry tomatoes · find the farm system"]
         : evidenceLevel === 1
           ? ["OBSERVED", "Water stops before the tomato beds"]
-          : ["DECIDED", "The irrigation is blocked"],
+          : state.lesson.acceptedSteps[1]?.command === REPAIR_DECISION
+            ? ["DECIDED", "Clear the blockage selected"]
+            : ["DECIDED", "Direct watering selected"],
     compiled: ["PLAN VISIBLE", "Cyan route preview · world unchanged"],
     running: ["EXECUTING", `Bert is running phase ${Math.min((state.execution?.completedSteps ?? 0) + 1, 4)} of 4`],
-    failure: ["VERIFY · FAIL", "No water released · repair line 3"],
-    repair: ["REPAIR", "Change the action, keep the evidence"],
-    "repair-ready": ["PLAN REPAIRED", "Clear blockage → release water → verify"],
+    failure: ["VERIFY · FAIL", "No water released · repair line 2"],
+    repair: ["REPAIR", "Change the decision, keep the evidence"],
+    "repair-ready": ["PLAN REPAIRED", "New choice → chosen repair → verify"],
     proof: ["VERIFY · PASS", "Channel clear → 3 / 3 tomato beds watered"],
   }[state.mode] ?? ["WORLD STATE", "Dry tomatoes · cause unknown"];
   elements.captionPhase.textContent = copy[0];
@@ -726,9 +752,9 @@ function renderWorldStatus(visualWorld) {
   } else if (evidenceLevel === 0) {
     elements.worldObjective.textContent = "Use the farm’s labels to tell Bert what to inspect first.";
   } else if (evidenceLevel === 1) {
-    elements.worldObjective.textContent = "Bert found stopped water. Turn that evidence into a decision.";
+    elements.worldObjective.textContent = "Bert found stopped water, debris, and dry beds. Choose which problem to address.";
   } else {
-    elements.worldObjective.textContent = "Teach Bert what to do, then define how success will be checked.";
+    elements.worldObjective.textContent = "Bert has chosen a response. Tell him to carry it out, then check the farm.";
   }
 }
 
@@ -736,8 +762,8 @@ function renderLesson() {
   const phaseIndex = lessonFocusIndex();
   const progressiveLessons = [
     ["Line 1 · Observe", "Tell Bert what to inspect.", "Begin with observe, then name something visible on the farm."],
-    ["Line 2 · Decide", "Turn evidence into a condition.", "Tell Bert what question to answer about the irrigation."],
-    ["Line 3 · Act", "Choose one safe action.", "A safe instruction can still produce the wrong result in the world."],
+    ["Line 2 · Decide", "Choose what Bert should address.", "Water the dry beds, or clear what stopped the water? Both choices are safe; the farm will test the result."],
+    ["Line 3 · Act", "Tell Bert to carry it out.", "Act does not choose again. It executes the response selected on line 2."],
     ["Line 4 · Verify", "Define what success looks like.", "Tell Bert what fact must be true after he acts."],
   ];
   const lessons = {
@@ -752,9 +778,9 @@ function renderLesson() {
         : progressiveLessons[phaseIndex],
     compiled: ["Plan · Ready", "Read the plan before it runs.", "Compilation proves the language is safe. Verification will prove whether it works."],
     running: ["Execution · Live", "Watch cause become effect.", "The trace and Bert advance together; the farm remains the source of truth."],
-    failure: ["Step 3 · Diagnose", "The syntax passed. The world did not.", "Bert followed line 3, but water could not cross the debris. Repair that action."],
-    repair: ["Step 4 · Repair", "Change one causal instruction.", `Use ${REPAIR_ACTION} on line 3. Keep observe, decide, and verify unchanged.`],
-    "repair-ready": ["Repair · Ready", "The new plan addresses the cause.", "Run it again and let verification inspect the resulting farm."],
+    failure: ["Step 3 · Diagnose", "The plan was safe. The result was not.", "Bert carried out line 2’s choice, but verification found 0 of 3 beds watered."],
+    repair: ["Step 4 · Repair", "Change the choice, not the evidence.", `Use ${REPAIR_DECISION} on line 2. Keep Observe, Act, and Verify unchanged.`],
+    "repair-ready": ["Repair · Ready", "The new decision addresses the cause.", "Run it again: line 3 will carry out the choice, and Verify will inspect the farm."],
     proof: ["Step 5 · Proof", "World change verified.", "Your receipt records what Bert observed, changed, and proved."],
   };
   const [step, title, copy] = lessons[state.mode] ?? lessons.authoring;
@@ -779,10 +805,16 @@ function renderLanguageReference() {
       const item = document.createElement("li");
       const code = document.createElement("code");
       const description = document.createElement("span");
+      const repairingDecision =
+        state.failureSeen && ["failure", "repair"].includes(state.mode) && index === 1;
       const isComplete =
-        index < state.lesson.acceptedSteps.length && !(state.failureSeen && index === 2);
+        index < state.lesson.acceptedSteps.length && !repairingDecision;
       const isActive = hasActivePhase && index === activeIndex;
-      const isHinted = state.lesson.hintedPhases[index] && isActive;
+      const isHinted =
+        isActive &&
+        (state.failureSeen
+          ? state.lesson.repairHinted
+          : state.lesson.hintedPhases[index]);
       const descriptionText = isHinted
         ? hintLineForPhase(index).slice(phase.length + 1)
         : isComplete
@@ -808,15 +840,15 @@ function renderLanguageReference() {
   const promptIndex = lessonFocusIndex();
   const help = [
     "Tell Bert what to inspect. Begin with observe, then name something visible on the farm.",
-    "Turn the stopped flow into a yes-or-no decision about the irrigation.",
-    "Choose a safe action. Compilation checks safety; the farm will check effectiveness.",
+    "Start with decide. Choose direct watering for the dry beds or blockage removal for the stopped flow.",
+    "Use Act to carry out the response selected on line 2; it does not choose again.",
     "Define the world fact that will prove the tomatoes were helped.",
   ];
   elements.editorHelp.textContent = state.failureSeen
-    ? "Repair only line 3. Keep the evidence and success check unchanged."
+    ? "Repair only line 2. Keep Observe, Act, and Verify unchanged."
     : help[promptIndex];
   elements.editor.placeholder = state.failureSeen
-    ? "Repair line 3: act …"
+    ? "Repair line 2: decide …"
     : `Line ${promptIndex + 1}: ${PHASES[promptIndex]} …`;
 
   const compileLabel = elements.compileButton.querySelector("span");
@@ -920,11 +952,16 @@ function renderTrace() {
   } else if (state.lastTrace.length > 0) {
     for (const entry of state.lastTrace) {
       const item = createTraceItem(entry, outcomeClass(entry.outcome), entry.message);
+      if (state.coach && entry.line === state.coach.focusLine) {
+        item.classList.add("is-coach-focus");
+      }
       elements.traceOutput.append(item);
       eventCount += 1;
-      if (state.coach && entry.line === state.coach.focusLine) {
-        followTarget = item;
-        appendCoach();
+      if (
+        state.coach &&
+        entry.line === (state.coach.insertAfterLine ?? state.coach.focusLine)
+      ) {
+        followTarget = appendCoach() ?? item;
       }
     }
   } else if (state.compiledPlan) {
@@ -980,7 +1017,7 @@ function createTraceItem(entry, status, message) {
   title.textContent = `${entry.phase.toUpperCase()} · ${entry.label}`;
   detail.textContent = message;
   stateLabel.className = "trace-state";
-  stateLabel.textContent = status;
+  stateLabel.textContent = status === "no-change" ? "NO CHANGE" : status;
   body.append(title, detail);
   item.append(index, body, stateLabel);
   return item;
@@ -1008,7 +1045,11 @@ function revealTraceTarget(target) {
   const outputBounds = elements.traceOutput.getBoundingClientRect();
   const targetBounds = target.getBoundingClientRect();
   const targetTop = targetBounds.top - outputBounds.top + elements.traceOutput.scrollTop;
-  elements.traceOutput.scrollTop = Math.max(0, targetTop - 6);
+  const targetBottom = targetTop + targetBounds.height;
+  elements.traceOutput.scrollTop = Math.max(
+    0,
+    targetBottom - elements.traceOutput.clientHeight + 6,
+  );
 }
 
 function createErrorTrace(error) {
@@ -1048,18 +1089,25 @@ function renderControls() {
     sameAcceptedPrefix;
   elements.runButton.disabled = state.mode === "running" || !state.compiledPlan || state.compiledEditorSource !== elements.editor.value;
   const hintIndex = lessonFocusIndex();
-  elements.hintButton.textContent = state.lesson.hintedPhases[hintIndex]
-    ? "Hint shown"
-    : state.failureSeen
-      ? "Hint repair"
-      : "Hint this line";
+  const hintShown = state.failureSeen
+    ? state.lesson.repairHinted
+    : state.lesson.hintedPhases[hintIndex];
+  elements.hintButton.textContent = ["repair-ready", "running", "proof"].includes(
+    state.mode,
+  )
+    ? "Decision set"
+    : hintShown
+      ? "Hint shown"
+      : state.failureSeen
+        ? "Hint repair"
+        : "Hint this line";
   elements.hintButton.disabled =
     state.mode === "welcome" ||
     state.mode === "running" ||
     state.lesson.status === "rehearsing" ||
     state.mode === "compiled" ||
     state.mode === "repair-ready" ||
-    state.lesson.hintedPhases[hintIndex];
+    hintShown;
 }
 
 function renderReceipt() {
@@ -1070,7 +1118,9 @@ function renderReceipt() {
   }
 
   for (const target of elements.debriefBackgroundTargets) target.inert = true;
-  const recap = createLearningRecap(state.receipt, { failureSeen: state.failureSeen });
+  const recap = createLearningRecap(state.receipt, {
+    failedReceipt: state.failedReceipt,
+  });
   elements.receiptTitle.textContent = recap.title;
   elements.receiptSummary.textContent = recap.summary;
   elements.recapIntro.textContent = recap.intro;
@@ -1084,7 +1134,7 @@ function renderReceipt() {
 
   elements.receiptSession.textContent = state.receipt.sessionId;
   elements.receiptObserved.textContent = "East Channel blocked · 3 beds dry";
-  elements.receiptAction.textContent = state.receipt.action;
+  elements.receiptAction.textContent = `${state.receipt.executedAction} · selected on line 2`;
   elements.receiptProof.textContent = "blocked true → false · watered 0 → 3";
   elements.feedbackLink.href = `./feedback/?session_id=${encodeURIComponent(state.receipt.sessionId)}`;
   elements.receiptPanel.hidden = false;
@@ -1098,7 +1148,7 @@ function visualWorldState() {
   return {
     blocked: snapshot.irrigationBlocked,
     blockageRevealed,
-    cropsWatered: state.execution?.action === REPAIR_ACTION ? state.execution.visualCropCount : state.visual.cropsWatered || snapshot.tomatoBedsWatered,
+    cropsWatered: state.execution?.action === CLEAR_BLOCKAGE_ACTION ? state.execution.visualCropCount : state.visual.cropsWatered || snapshot.tomatoBedsWatered,
     routeVisible: state.visual.routeVisible,
     route: state.visual.route,
     bert: state.visual.bert,
@@ -1197,7 +1247,7 @@ function positionWorldLabels() {
 
 function routeForAction(action, start) {
   const origin = { x: start.x, y: start.y };
-  if (action === REPAIR_ACTION) {
+  if (action === CLEAR_BLOCKAGE_ACTION) {
     return [origin, { x: 4.9, y: 5 }, { x: 5, y: 4.15 }, { x: 4.15, y: 3.15 }];
   }
   return [origin, { x: 3.4, y: 5.05 }, { x: 4.8, y: 5.02 }, { x: 5.6, y: 4.55 }, { x: 6.15, y: 4.22 }];
@@ -1223,7 +1273,8 @@ function overlapArea(a, b) {
 
 function outcomeClass(outcome) {
   if (outcome === "PASS" || outcome === "WORLD_CHANGED") return "pass";
-  if (outcome === "FAIL" || outcome === "NO_CHANGE") return "fail";
+  if (outcome === "FAIL") return "fail";
+  if (outcome === "NO_CHANGE") return "no-change";
   return "complete";
 }
 
@@ -1245,7 +1296,7 @@ function toggleMotion() {
 
 async function copyReceiptEvidence() {
   if (!state.receipt) return;
-  const payload = `${JSON.stringify({ schema: "agentville.receipt.v1", ...state.receipt }, null, 2)}\n`;
+  const payload = `${JSON.stringify({ schema: "agentville.receipt.v2", ...state.receipt }, null, 2)}\n`;
   try {
     await navigator.clipboard.writeText(payload);
     elements.copyReceipt.textContent = "Receipt copied";
@@ -1284,7 +1335,9 @@ function snapshotForAutomation() {
   const plan = state.compiledPlan?.steps.map(({ line, phase, command, label }) => ({ line, phase, command, label })) ?? [];
   const compileError = state.compileResult?.ok === false ? state.compileResult.errors[0] : null;
   const visibleWorld = visualWorldState();
-  const learningRecap = createLearningRecap(state.receipt, { failureSeen: state.failureSeen });
+  const learningRecap = createLearningRecap(state.receipt, {
+    failedReceipt: state.failedReceipt,
+  });
   return {
     schemaVersion: 1,
     ready: state.ready,
@@ -1317,6 +1370,9 @@ function snapshotForAutomation() {
             : null,
       },
       plan,
+      binding: state.compiledPlan
+        ? { ...state.compiledPlan.binding }
+        : null,
     },
     lesson: {
       status: state.lesson.status,
@@ -1324,16 +1380,18 @@ function snapshotForAutomation() {
         state.lesson.rehearsal
           ? state.lesson.rehearsal.phase
           : ["failure", "repair"].includes(state.mode)
-            ? "act"
+            ? "decide"
             : state.lesson.acceptedSteps.length >= PHASES.length
               ? null
               : PHASES[state.lesson.acceptedSteps.length],
       acceptedCommands: state.lesson.acceptedSteps.map((step) => step.command),
       evidenceLevel: state.lesson.evidenceLevel,
       conceptVisible: state.lesson.conceptVisible,
+      repairHinted: state.lesson.repairHinted,
       rehearsal: state.lesson.rehearsal
         ? {
             phase: state.lesson.rehearsal.phase,
+            command: state.lesson.rehearsal.command,
             elapsedMs: Math.round(state.lesson.rehearsal.elapsedMs),
             durationMs: state.lesson.rehearsal.durationMs,
           }
@@ -1364,10 +1422,35 @@ function snapshotForAutomation() {
       ],
     },
     presentation: renderer.presentationSnapshot(),
-    trace: state.lastTrace.map(({ line, phase, command, outcome, message }) => ({ line, phase, command, outcome, message })),
+    trace: state.lastTrace.map(
+      ({
+        line,
+        phase,
+        command,
+        outcome,
+        message,
+        condition,
+        conditionMet,
+        selectedAction,
+        executedAction,
+      }) => ({
+        line,
+        phase,
+        command,
+        outcome,
+        message,
+        ...(condition !== undefined ? { condition } : {}),
+        ...(conditionMet !== undefined ? { conditionMet } : {}),
+        ...(selectedAction !== undefined ? { selectedAction } : {}),
+        ...(executedAction !== undefined ? { executedAction } : {}),
+      }),
+    ),
     verification: { ...state.verification },
     coach: state.coach ? { ...state.coach } : null,
     receipt: state.receipt ? structuredClone(state.receipt) : null,
+    failureReceipt: state.failedReceipt
+      ? structuredClone(state.failedReceipt)
+      : null,
     learningRecap: learningRecap ? structuredClone(learningRecap) : null,
     nextLesson:
       state.receipt?.verdict === "PASS"
@@ -1420,6 +1503,7 @@ function createInitialLessonState() {
     evidenceLevel: 0,
     conceptVisible: false,
     hintedPhases: [false, false, false, false],
+    repairHinted: false,
     bertMessage: null,
   };
 }
@@ -1434,7 +1518,7 @@ function programLines(source) {
 }
 
 function lessonFocusIndex() {
-  if (state.failureSeen) return 2;
+  if (state.failureSeen) return 1;
   const error =
     state.compileResult?.ok === false
       ? state.compileResult.errors[0]
@@ -1463,7 +1547,7 @@ function repairFailureMessage() {
   return {
     cue: "!",
     tone: "warning",
-    text: "I followed line 3—but water can’t pass the debris. Which action changes the cause?",
+    text: "I carried out the choice, but the beds are still dry. Which decision fixes what stopped the water?",
   };
 }
 
@@ -1471,8 +1555,8 @@ function questionAfterError(error) {
   const phase = PHASES[Math.min(Math.max((error?.line ?? 1) - 1, 0), PHASES.length - 1)];
   const questions = {
     observe: "Hmm… the tomatoes need water. What farm system should I inspect first?",
-    decide: "Water should be flowing, but it isn’t. What should I conclude from that evidence?",
-    act: "The irrigation is blocked. What safe action should I try?",
+    decide: "I found stopped water and dry beds. Which response should I choose?",
+    act: "My response is chosen. What tells me to carry it out?",
     verify: "How will we prove the tomatoes were actually helped?",
   };
   return questions[phase];
@@ -1484,12 +1568,12 @@ function promptForPhase(index) {
     {
       cue: "?",
       tone: "question",
-      text: "Water should be flowing, but it isn’t. What should I conclude from that evidence?",
+      text: "Water is stopped and the beds are dry. Which response should I choose?",
     },
     {
       cue: "💡",
       tone: "idea",
-      text: "Decision: the irrigation is blocked. What safe action should I try?",
+      text: "My response is chosen. What tells me to carry it out?",
     },
     {
       cue: "?",
@@ -1500,32 +1584,35 @@ function promptForPhase(index) {
   return prompts[index] ?? null;
 }
 
-function rehearsalStartMessage(phase) {
+function rehearsalStartMessage(step) {
   const messages = {
     observe: { cue: "…", tone: "working", text: "I’m checking the irrigation system…" },
-    decide: { cue: "…", tone: "working", text: "I’m comparing the stopped flow with the tomato beds…" },
-    act: { cue: "→", tone: "working", text: "I’m reading the action you chose…" },
+    decide: { cue: "…", tone: "working", text: "I’m comparing the two safe responses…" },
+    act: { cue: "→", tone: "working", text: "I’m preparing to act on the decision…" },
     verify: { cue: "✓", tone: "working", text: "I’m preparing the success check…" },
   };
-  return messages[phase];
+  return messages[step.phase];
 }
 
-function rehearsalCompleteMessage(phase) {
+function rehearsalCompleteMessage(phase, command) {
   const messages = {
     observe: {
       cue: "!",
       tone: "idea",
-      text: "Aha! This irrigation channel feeds the tomatoes—but water stops before the beds.",
+      text: "Aha! Water enters the irrigation channel, then stops at visible debris before the beds.",
     },
     decide: {
       cue: "💡",
       tone: "idea",
-      text: "Decision: the irrigation is blocked. What action should I try?",
+      text:
+        command === REPAIR_DECISION
+          ? "Decision made: I’ll clear the blockage when it is blocked."
+          : "Decision made: I’ll water the dry beds. The farm will show whether that works.",
     },
     act: {
       cue: "✓",
       tone: "idea",
-      text: "Safe action ready. Now tell me how we’ll prove it worked.",
+      text: "Action ready. Line 3 will carry out line 2’s choice when the full program runs.",
     },
     verify: {
       cue: "✓",
@@ -1539,22 +1626,29 @@ function rehearsalCompleteMessage(phase) {
 function executionMessage(phaseIndex, action) {
   const messages = [
     { cue: "01", tone: "working", text: "Observe: I’m inspecting the irrigation." },
-    { cue: "02", tone: "idea", text: "Decide: the evidence says the irrigation is blocked." },
+    {
+      cue: "02",
+      tone: "idea",
+      text:
+        action === CLEAR_BLOCKAGE_ACTION
+          ? "Decide: I selected blockage removal."
+          : "Decide: I selected direct watering for the dry beds.",
+    },
     {
       cue: "03",
-      tone: action === REPAIR_ACTION ? "idea" : "working",
+      tone: action === CLEAR_BLOCKAGE_ACTION ? "idea" : "working",
       text:
-        action === REPAIR_ACTION
-          ? "Act: I’m clearing the blockage—the cause."
-          : "Act: I’m trying line 3 and watering the tomatoes.",
+        action === CLEAR_BLOCKAGE_ACTION
+          ? "Act: I’m carrying out the choice and clearing the debris."
+          : "Act: I’m carrying out the choice and watering directly.",
     },
-    { cue: "04", tone: "working", text: "Verify: I’m checking all three tomato beds." },
+    { cue: "04", tone: "working", text: "Verify: I’m checking the actual farm state." },
   ];
   return messages[phaseIndex];
 }
 
 function hintLineForPhase(index) {
-  if (state.failureSeen && index === 2) return REPAIR_ACTION;
+  if (state.failureSeen && index === 1) return REPAIR_DECISION;
   return DRAFT_LINES[index];
 }
 

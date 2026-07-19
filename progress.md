@@ -88,3 +88,17 @@ Original prompt: Build a clean-room hackathon project called AgentVille: Build W
 - Captured and visually inspected the clue at 1600×900 and 1280×720, plus a focused canvas frame through the reusable web-game client.
 - Deployed commit `8c01c21` in GitHub Actions run `29621501693`; Pages reported the same SHA.
 - `npm run test:public` then passed 122/122 against the live URL with empty browser and network diagnostics, and the updated public evidence was preserved.
+
+## 2026-07-19 — Decision semantics refinement
+
+- Reframed line 2 as a real bounded choice: the guided draft selects direct watering for dry tomatoes, while the repair selects blockage removal when irrigation is blocked.
+- Reframed line 3 as the shared `act chosen repair` executor so Act carries out the response chosen by Decide instead of choosing again.
+- Bumped the safe-plan version, added a compiler-minted immutable decision binding, evaluated each `when` condition against authoritative world state, and made the simulator branch only on the frozen Decide result.
+- Expanded the receipt to distinguish the decision command, selected action, generic Act instruction, and executed action.
+- Moved the truthful learner recap to a line-2 repair derived from matching FAIL and PASS receipts rather than a boolean alone.
+- Reworked the progressive prompts, Bert speech, trace, failure coach, repair focus, receipt, concept note, and final debrief around the line-2 decision while retaining the full four-line payoff.
+- Expanded the browser proof to cover accepted-Decision rewind, compiled binding parity, guided symptom execution, failed Verify, matching failure receipt, repaired binding, unchanged Act, authoritative executed action, and line-2 debrief history.
+- Closed final independent-review findings by requiring the exact compiler-minted plan plus a privately minted Decide result at the step API, adding a truthful already-satisfied/no-action recap, and tightening repair-history evidence.
+- `COPYFILE_DISABLE=1 npm run smoke` passes 34/34 Node tests and 302/302 production-dist browser assertions with empty console, page, network, response, dialog, and runner diagnostics.
+- Refreshed and visually inspected Observe, Decide, failure, grand-payoff, and debrief frames at the judging viewport; the 1280×720 failure frame contains all four code lines, Act as `NO CHANGE`, failed Verify, and the Coach simultaneously, while the debrief explains all four phases.
+- Updated the README, acceptance contract, playtest protocol, clean-room manifest, collaboration record, and Devpost submission/evidence drafts. Public decision-model deployment proof remains the final release step.

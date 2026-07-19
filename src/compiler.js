@@ -1,6 +1,7 @@
 const PLAN_KIND = "agentville-safe-plan";
+const MINTED_PLANS = new WeakSet();
 
-export const PLAN_VERSION = 1;
+export const PLAN_VERSION = 2;
 
 export const PHASES = Object.freeze([
   "observe",
@@ -9,19 +10,31 @@ export const PHASES = Object.freeze([
   "verify",
 ]);
 
+export const DECISION_BINDINGS = deepFreeze({
+  "decide water tomatoes when dry": {
+    condition: "tomatoes dry",
+    selectedAction: "water tomatoes",
+  },
+  "decide clear blockage when blocked": {
+    condition: "irrigation blocked",
+    selectedAction: "clear blockage",
+  },
+});
+
 export const ALLOWED_COMMANDS = deepFreeze({
   observe: ["observe irrigation"],
-  decide: ["decide if irrigation is blocked"],
-  act: ["act water tomatoes", "act clear blockage"],
+  decide: Object.keys(DECISION_BINDINGS),
+  act: ["act chosen repair"],
   verify: ["verify tomatoes are watered"],
 });
 
 const LABELS = Object.freeze({
   "observe irrigation": "Observe the East Channel irrigation",
-  "decide if irrigation is blocked":
-    "Decide whether the irrigation is blocked",
-  "act water tomatoes": "Ask Bert to water the tomato beds",
-  "act clear blockage": "Ask Bert to clear the irrigation blockage",
+  "decide water tomatoes when dry":
+    "Choose direct watering for dry tomatoes",
+  "decide clear blockage when blocked":
+    "Choose blockage removal when flow is blocked",
+  "act chosen repair": "Carry out the response chosen on line 2",
   "verify tomatoes are watered":
     "Verify that all tomato beds are watered",
 });
@@ -154,11 +167,18 @@ function validateLine(lineText, index) {
   }
 
   if (!ALLOWED_COMMANDS[expectedPhase].includes(lineText)) {
-    const code = expectedPhase === "act" ? "ACTION_NOT_ALLOWED" : "SYNTAX";
+    const code =
+      expectedPhase === "decide"
+        ? "DECISION_NOT_ALLOWED"
+        : expectedPhase === "act"
+          ? "ACTION_NOT_ALLOWED"
+          : "SYNTAX";
     const message =
-      expectedPhase === "act"
-        ? `“${lineText}” is not an allowlisted action.`
-        : `Line ${lineNumber} does not match the ${expectedPhase} instruction.`;
+      expectedPhase === "decide"
+        ? `“${lineText}” is not an allowlisted decision.`
+        : expectedPhase === "act"
+          ? `“${lineText}” is not the allowlisted execution instruction.`
+          : `Line ${lineNumber} does not match the ${expectedPhase} instruction.`;
 
     return issue(
       lineNumber,
@@ -174,12 +194,27 @@ function validateLine(lineText, index) {
 function buildPlan(source, lines) {
   const steps = buildSteps(lines);
 
-  return deepFreeze({
+  const plan = deepFreeze({
     kind: PLAN_KIND,
     version: PLAN_VERSION,
     source,
     steps,
+    binding: buildDecisionBinding(lines),
   });
+  MINTED_PLANS.add(plan);
+  return plan;
+}
+
+function buildDecisionBinding(lines) {
+  const decision = DECISION_BINDINGS[lines[1]];
+  return {
+    decisionLine: 2,
+    decisionCommand: lines[1],
+    condition: decision?.condition,
+    selectedAction: decision?.selectedAction,
+    actLine: 3,
+    actCommand: lines[2],
+  };
 }
 
 function buildSteps(lines) {
@@ -333,22 +368,44 @@ export function isSafePlan(plan) {
   if (
     !plan ||
     typeof plan !== "object" ||
+    !MINTED_PLANS.has(plan) ||
     plan.kind !== PLAN_KIND ||
     plan.version !== PLAN_VERSION ||
+    typeof plan.source !== "string" ||
     !Array.isArray(plan.steps) ||
-    plan.steps.length !== PHASES.length
+    plan.steps.length !== PHASES.length ||
+    !plan.binding ||
+    typeof plan.binding !== "object"
   ) {
     return false;
   }
 
-  return plan.steps.every((step, index) => {
+  const normalizedSource = normalizeSource(plan.source);
+  if (normalizedSource !== plan.source) return false;
+  const sourceLines = normalizedSource.split("\n");
+  if (sourceLines.length !== PHASES.length) return false;
+
+  const stepsAreSafe = plan.steps.every((step, index) => {
     const phase = PHASES[index];
     return (
       step &&
       step.line === index + 1 &&
       step.phase === phase &&
+      step.command === sourceLines[index] &&
       ALLOWED_COMMANDS[phase].includes(step.command) &&
       step.label === LABELS[step.command]
     );
   });
+
+  if (!stepsAreSafe) return false;
+
+  const expectedBinding = buildDecisionBinding(sourceLines);
+  return (
+    plan.binding.decisionLine === expectedBinding.decisionLine &&
+    plan.binding.decisionCommand === expectedBinding.decisionCommand &&
+    plan.binding.condition === expectedBinding.condition &&
+    plan.binding.selectedAction === expectedBinding.selectedAction &&
+    plan.binding.actLine === expectedBinding.actLine &&
+    plan.binding.actCommand === expectedBinding.actCommand
+  );
 }

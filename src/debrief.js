@@ -1,39 +1,83 @@
+import { DECISION_BINDINGS } from "./compiler.js";
+
 const COMMANDS = Object.freeze({
   observe: "observe irrigation",
-  decide: "decide if irrigation is blocked",
+  symptomDecision: "decide water tomatoes when dry",
+  causeDecision: "decide clear blockage when blocked",
+  act: "act chosen repair",
   verify: "verify tomatoes are watered",
 });
 
-export function createLearningRecap(receipt, { failureSeen = false } = {}) {
+export function createLearningRecap(receipt, { failedReceipt = null } = {}) {
   if (!receipt || receipt.verdict !== "PASS") return null;
 
   const dryBeds = receipt.before.tomatoBedsDry;
   const wateredBeds = receipt.after.tomatoBedsWatered;
   const totalBeds = receipt.after.tomatoBedsTotal;
-  const repairedAfterFailure = Boolean(failureSeen);
+  const decisionCondition = DECISION_BINDINGS[receipt.decision]?.condition;
+  const alreadySatisfied = Boolean(
+    receipt.selectedAction === null &&
+      receipt.executedAction === null &&
+      receipt.before.irrigationBlocked === false &&
+      receipt.before.waterReleased === true &&
+      receipt.before.tomatoBedsWatered === totalBeds &&
+      snapshotsMatch(receipt.before, receipt.after),
+  );
+  const repairedAfterFailure = Boolean(
+    !alreadySatisfied &&
+    failedReceipt?.verdict === "FAIL" &&
+      failedReceipt.mission === receipt.mission &&
+      failedReceipt.sessionId === receipt.sessionId &&
+      failedReceipt.decision === COMMANDS.symptomDecision &&
+      failedReceipt.selectedAction === "water tomatoes" &&
+      failedReceipt.action === COMMANDS.act &&
+      failedReceipt.executedAction === "water tomatoes" &&
+      receipt.decision === COMMANDS.causeDecision &&
+      receipt.selectedAction === "clear blockage" &&
+      receipt.action === COMMANDS.act &&
+      receipt.executedAction === "clear blockage" &&
+      snapshotsMatch(failedReceipt.after, receipt.before),
+  );
+  const path = repairedAfterFailure
+    ? "repair"
+    : alreadySatisfied
+      ? "already-satisfied"
+      : "direct";
 
   return deepFreeze({
-    path: repairedAfterFailure ? "repair" : "direct",
-    title: "You fixed the cause—and proved it.",
+    path,
+    title: repairedAfterFailure
+      ? "You changed the decision—and fixed the cause."
+      : alreadySatisfied
+        ? "The goal was already satisfied."
+        : "You chose the cause—and proved it.",
     summary: repairedAfterFailure
-      ? "You used the failed result as a clue and changed line 3 from “water tomatoes” to “clear blockage.”"
-      : "You chose “clear blockage” on line 3, so Bert fixed the cause before checking the result.",
-    intro: "Each line had one job. Together, they turned evidence into a checked result.",
+      ? "Your first decision treated the dry beds. You repaired line 2 to clear the blockage, Bert carried out the new choice, and verification proved the farm changed."
+      : alreadySatisfied
+        ? `The channel was already clear and all ${totalBeds} beds were watered. The condition was false, so Bert correctly took no action before Verify confirmed the result.`
+        : `You chose to clear the blockage when it was blocked. Bert carried out that decision, and verification proved all ${totalBeds} beds were watered.`,
+    intro: "The lines form a loop: read evidence, choose a response, carry it out, then check the world.",
     phases: [
       {
         phase: "observe",
         command: COMMANDS.observe,
-        explanation: `Found a blocked channel and ${dryBeds} dry beds.`,
+        explanation: alreadySatisfied
+          ? `Reported clear irrigation and all ${totalBeds} beds already watered.`
+          : `Reported stopped water, visible debris, and ${dryBeds} dry beds.`,
       },
       {
         phase: "decide",
-        command: COMMANDS.decide,
-        explanation: "Named the blockage as the first problem.",
+        command: receipt.decision,
+        explanation: alreadySatisfied
+          ? `Checked “${decisionCondition ?? "the decision condition"}”; it was false, so no response was selected.`
+          : "Chose the cause—the blockage—over the dry-bed symptom.",
       },
       {
         phase: "act",
-        command: receipt.action,
-        explanation: "Cleared the debris, so water could flow.",
+        command: COMMANDS.act,
+        explanation: alreadySatisfied
+          ? "No response was selected, so Bert correctly left the farm unchanged."
+          : `Carried out that choice by ${receipt.executedAction === "clear blockage" ? "clearing debris; water flowed" : receipt.executedAction}.`,
       },
       {
         phase: "verify",
@@ -43,19 +87,24 @@ export function createLearningRecap(receipt, { failureSeen = false } = {}) {
     ],
     takeaway: repairedAfterFailure
       ? {
-          title: "You just debugged an agent.",
-          explanation: "You read the evidence, repaired one line, reran the plan, and checked the result. That’s an agent loop: look, choose, do, check.",
+          title: "You debugged an agent’s decision.",
+          explanation: "You kept the evidence, action step, and success check. You changed Bert’s response, reran the loop, and verified the result.",
         }
-      : {
-          title: "You built a working agent loop.",
-          explanation: "You turned what Bert observed into the right action, then checked the result. That’s an agent loop: look, choose, do, check.",
-        },
+      : alreadySatisfied
+        ? {
+            title: "You verified before changing anything.",
+            explanation: "A safe agent can discover that its condition is false, skip the action, and still prove the goal is already met.",
+          }
+        : {
+            title: "You built a working agent loop.",
+            explanation: "You turned Bert’s observation into a bounded choice, carried it out, and checked the result: look, choose, do, check.",
+          },
     learner: {
       diagnosedFailure: repairedAfterFailure,
-      changedLine: 3,
-      from: repairedAfterFailure ? "act water tomatoes" : null,
-      to: receipt.action,
-      preservedPhases: ["observe", "decide", "verify"],
+      changedLine: repairedAfterFailure ? 2 : null,
+      from: repairedAfterFailure ? failedReceipt.decision : null,
+      to: receipt.decision,
+      preservedPhases: ["observe", "act", "verify"],
     },
     result: {
       blockageBefore: receipt.before.irrigationBlocked,
@@ -66,6 +115,18 @@ export function createLearningRecap(receipt, { failureSeen = false } = {}) {
       tomatoBedsTotal: totalBeds,
     },
   });
+}
+
+function snapshotsMatch(left, right) {
+  return Boolean(
+    left &&
+      right &&
+      left.irrigationBlocked === right.irrigationBlocked &&
+      left.waterReleased === right.waterReleased &&
+      left.tomatoBedsWatered === right.tomatoBedsWatered &&
+      left.tomatoBedsDry === right.tomatoBedsDry &&
+      left.tomatoBedsTotal === right.tomatoBedsTotal,
+  );
 }
 
 function deepFreeze(value) {

@@ -1,6 +1,6 @@
 # Clean-room Source and Asset Manifest
 
-**Audited:** 2026-07-18
+**Audited:** 2026-07-19
 
 ## Shipped runtime
 
@@ -8,9 +8,9 @@
 | --- | --- | --- |
 | `index.html` | One-screen mission and accessible Agent Workbench | Authored clean-room for this repository |
 | `src/app.js` | Progressive Bert lesson state, execution timeline, receipt, teaser, automation hooks | Authored clean-room for this repository |
-| `src/compiler.js` | Non-executable prefix validator and four-line allowlisted compiler | Authored clean-room for this repository |
-| `src/mission.js` | Deterministic East Channel world transitions and proof | Authored clean-room for this repository |
-| `src/debrief.js` | Receipt-derived plain-language learning recap | Authored clean-room for this repository |
+| `src/compiler.js` | Non-executable prefix validator plus four-line allowlisted compiler with privately minted immutable Decide→Act binding | Authored clean-room for this repository |
+| `src/mission.js` | Deterministic East Channel transitions, evaluated decision conditions, selected-response execution, and proof | Authored clean-room for this repository |
+| `src/debrief.js` | Receipt-derived learning recap that compares matching FAIL and PASS evidence | Authored clean-room for this repository |
 | `src/world.js` | Layered procedural Canvas 2D farm, presentation evidence, humanoid Bert, water, crops, and props | Authored clean-room for this repository |
 | `src/styles.css` | Voxel Field Rig material system and responsive game layout | Authored clean-room for this repository |
 | `feedback/` | Local session-preserving feedback form and evidence export | Authored clean-room for this repository |

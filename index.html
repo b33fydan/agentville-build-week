@@ -37,7 +37,7 @@
           <li data-stage="inspect"><span>1</span><b>Inspect</b><small>See the world</small></li>
           <li data-stage="program"><span>2</span><b>Program</b><small>Write the loop</small></li>
           <li data-stage="failure"><span>3</span><b>Diagnose</b><small>Read the failure</small></li>
-          <li data-stage="repair"><span>4</span><b>Repair</b><small>Change the action</small></li>
+          <li data-stage="repair"><span>4</span><b>Repair</b><small>Change the decision</small></li>
           <li data-stage="proof"><span>5</span><b>Prove</b><small>Verify the farm</small></li>
         </ol>
       </nav>
@@ -76,8 +76,8 @@
 
           <aside class="agent-boundary-note" id="agent-boundary-note" data-testid="agent-boundary-note" role="note" hidden>
             <p class="eyebrow">You set the boundaries</p>
-            <strong>You gave Bert a decision rule.</strong>
-            <p>Agents can choose from evidence, but people define their goal, tools, and limits.</p>
+            <strong>You programmed Bert’s choice.</strong>
+            <p>Agents use evidence to decide what to do. People still define their goal, tools, limits, and success check.</p>
           </aside>
 
           <div class="scene-caption">
@@ -190,12 +190,12 @@
           <div class="receipt-heading">
             <p class="eyebrow">Mission complete · What you learned</p>
             <h2 id="receipt-title">You fixed the cause—and proved it.</h2>
-            <p id="receipt-summary">You used the failed result as a clue and changed line 3 from “water tomatoes” to “clear blockage.”</p>
+            <p id="receipt-summary">You repaired line 2 so Bert would fix the blockage instead of treating the dry-bed symptom.</p>
           </div>
           <aside class="debrief-takeaway" data-testid="learning-takeaway">
             <p class="eyebrow">What you did</p>
-            <strong id="recap-takeaway-title">You just debugged an agent.</strong>
-            <p id="recap-takeaway-copy">You read the evidence, repaired one line, reran the plan, and checked the result. That’s an agent loop: look, choose, do, check.</p>
+            <strong id="recap-takeaway-title">You debugged an agent’s decision.</strong>
+            <p id="recap-takeaway-copy">You kept the evidence, action step, and success check. You changed Bert’s response, reran the loop, and verified the result.</p>
           </aside>
         </header>
 
@@ -205,7 +205,7 @@
               <p class="eyebrow">The four-line loop</p>
               <h3 id="recap-title">Why your program worked</h3>
             </div>
-            <p id="recap-intro">Each line had one job. Together, they turned evidence into a checked result.</p>
+            <p id="recap-intro">The lines form a loop: read evidence, choose a response, carry it out, then check the world.</p>
           </div>
           <ol class="recap-phases">
             <li data-recap-phase="observe" data-testid="recap-observe">
@@ -213,23 +213,23 @@
               <div>
                 <strong>Observe <small>Look</small></strong>
                 <code data-recap-command>observe irrigation</code>
-                <p data-recap-copy>Found a blocked channel and 3 dry beds.</p>
+                <p data-recap-copy>Reported stopped water, visible debris, and 3 dry beds.</p>
               </div>
             </li>
             <li data-recap-phase="decide" data-testid="recap-decide">
               <span class="recap-number">02</span>
               <div>
                 <strong>Decide <small>Choose</small></strong>
-                <code data-recap-command>decide if irrigation is blocked</code>
-                <p data-recap-copy>Named the blockage as the first problem.</p>
+                <code data-recap-command>decide clear blockage when blocked</code>
+                <p data-recap-copy>Chose the blockage over the dry-bed symptom.</p>
               </div>
             </li>
             <li data-recap-phase="act" data-testid="recap-act">
               <span class="recap-number">03</span>
               <div>
                 <strong>Act <small>Change</small></strong>
-                <code data-recap-command>act clear blockage</code>
-                <p data-recap-copy>Cleared the debris, so water could flow.</p>
+                <code data-recap-command>act chosen repair</code>
+                <p data-recap-copy>Carried out that choice by clearing debris.</p>
               </div>
             </li>
             <li data-recap-phase="verify" data-testid="recap-verify">
@@ -257,7 +257,7 @@
           <dl class="receipt-grid">
             <div><dt>Session</dt><dd id="receipt-session" data-testid="receipt-session-id">—</dd></div>
             <div><dt>Observed</dt><dd id="receipt-observed">—</dd></div>
-            <div><dt>Action</dt><dd id="receipt-action">—</dd></div>
+            <div><dt>Decision → action</dt><dd id="receipt-action">—</dd></div>
             <div><dt>Proof</dt><dd id="receipt-proof">—</dd></div>
           </dl>
           <div class="receipt-actions">

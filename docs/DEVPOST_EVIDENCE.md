@@ -31,29 +31,29 @@
 
 | Criterion | Artifact or command | Status |
 | --- | --- | --- |
-| A1 | `npm run test:public` against [GitHub Pages](https://b33fydan.github.io/agentville-build-week/) | PASS — Voxel Field Rig 266/266 public browser assertions |
-| A2–A23 | `npm run smoke` Voxel Field Rig release | PASS — 28/28 Node tests + 266/266 production-dist browser assertions |
+| A1 | Production Chromium smoke plus `npm run test:public` against [GitHub Pages](https://b33fydan.github.io/agentville-build-week/) | PASS — decision-model release 302/302 locally; deployed Voxel Field Rig predecessor 266/266 publicly |
+| A2–A23 | `npm run smoke` decision-model release | PASS — 34/34 Node tests + 302/302 production-dist browser assertions |
 | Welcome frame | `artifacts/screenshots/agentville-build-week-welcome.png` | Captured and inspected; composited edge luminance/color proof confirms the layered farm remains visible before Start |
 | Hero frame | `artifacts/screenshots/agentville-build-week-hero.png` | Captured and inspected; larger layered farm, block-built HUD, humanoid Bert |
 | Irrigation clue at judging viewport | `artifacts/screenshots/agentville-build-week-irrigation-cue-1280.png` | Captured and inspected at 1280×720; sign readable, canvas visible, no page overflow |
 | Observe error at judging viewport | `artifacts/screenshots/agentville-build-week-observe-error-1280.png` | Captured and inspected at 1280×720; Bert question visible, no repair disclosed |
-| Observe reward at judging viewport | `artifacts/screenshots/agentville-build-week-observe-success-1280.png` | Captured and inspected at 1280×720; stopped-flow evidence and Aha response visible |
+| Observe reward at judging viewport | `artifacts/screenshots/agentville-build-week-observe-success-1280.png` | Captured and inspected at 1280×720; stopped water, visible debris, and Aha response visible |
 | Humanoid Bert detail | `artifacts/screenshots/agentville-build-week-bert-detail.png` | Captured and inspected as a 2× nearest-neighbor crop; face, torso, paired limbs, hands, boots, overalls, hat, and wrench readable |
 | Humanoid Bert in lesson | `artifacts/screenshots/agentville-build-week-bert-teaching.png` | Captured from the composited page; Bert, speech, and stopped-flow evidence are adjacent with zero measured overlay coverage of his geometry-derived bounds |
-| Decide reward at judging viewport | `artifacts/screenshots/agentville-build-week-decide-aha-1280.png` | Captured and inspected at 1280×720; lightbulb, agent-boundary note, and controls contained |
+| Decide reward at judging viewport | `artifacts/screenshots/agentville-build-week-decide-aha-1280.png` | Captured and inspected at 1280×720; bounded response, lightbulb, agent-boundary note, and controls contained |
 | Grand repaired payoff | `artifacts/screenshots/agentville-build-week-grand-payoff-1280.png` | Captured and inspected at 1280×720 before the receipt; channel clear, 3/3 beds watered, Verify visible |
 | Compiler error | `artifacts/screenshots/agentville-build-week-compiler-error.png` | Captured and inspected |
-| Failure frame | `artifacts/screenshots/agentville-build-week-failure.png` | Captured and inspected; failed Act line and Codex Coach are fully inside the visible trace viewport |
+| Failure frame | `artifacts/screenshots/agentville-build-week-failure.png` | Captured and inspected at 1280×720; Act is labeled `NO CHANGE`, failed Verify and Codex Coach are fully visible together, line 2 is marked as the cause, and all four editor lines fit without overlap or scroll |
 | Receipt frame | `artifacts/screenshots/agentville-build-week-receipt.png` | Captured and inspected |
-| Debrief at judging viewport | `artifacts/screenshots/agentville-build-week-debrief-1280.png` | Captured and inspected at 1280×720; no clipping or scroll |
+| Debrief at judging viewport | `artifacts/screenshots/agentville-build-week-debrief-1280.png` | Captured and inspected at 1280×720; line-2 decision repair, unchanged generic Act, and all four explanations are readable without clipping or scroll |
 | Feedback continuity | `artifacts/screenshots/agentville-build-week-feedback.png` | Captured and inspected |
 | Mobile Workbench | `artifacts/screenshots/agentville-build-week-mobile-390.png` | Captured and inspected at 390×844; two-column language slots, 44px actions, no horizontal overflow |
 | Mobile feedback | `artifacts/screenshots/agentville-build-week-feedback-mobile-390.png` | Captured and inspected at 390×844; rating captions remain visible and rating/consent targets meet 44px |
-| Local machine evidence | `artifacts/evidence/latest-smoke.json` | PASS against production `dist/`, 266/266; diagnostics empty |
+| Local machine evidence | `artifacts/evidence/latest-smoke.json` | PASS against production `dist/`, 302/302; diagnostics empty |
 | Public mission smoke | `artifacts/evidence/latest-public-smoke.json` via `npm run test:public` | PASS — 266/266; console, page, request, response, and dialog diagnostics empty |
 | Human evidence | `artifacts/evidence/playtest-YYYY-MM-DD-<tester>.json` | Pending genuine sessions |
 | Source evidence | [github.com/b33fydan/agentville-build-week](https://github.com/b33fydan/agentville-build-week) | PUBLIC repository; first deployed commit `cb57621` |
-| Deployment evidence | [b33fydan.github.io/agentville-build-week](https://b33fydan.github.io/agentville-build-week/) | PASS — HTTP 200; Voxel Field Rig [Actions run 29670780954](https://github.com/b33fydan/agentville-build-week/actions/runs/29670780954) succeeded at `c8ab4db` on 2026-07-18 |
+| Deployment evidence | [b33fydan.github.io/agentville-build-week](https://b33fydan.github.io/agentville-build-week/) | PASS for current predecessor — HTTP 200; Voxel Field Rig [Actions run 29670780954](https://github.com/b33fydan/agentville-build-week/actions/runs/29670780954) succeeded at `c8ab4db` on 2026-07-18; decision-model release pending publication |
 
 ## Deployment snapshot
 
@@ -66,7 +66,8 @@
 - **Latest predecessor proof deployment:** Actions run `29621632492` at commit `5290b08`
 - **Progressive lesson deployment:** Actions run `29650610214` at commit `1c6c9eb`
 - **Voxel Field Rig deployment:** Actions run `29670780954` at commit `c8ab4db`
-- **Public verification:** HTTP 200 plus `npm run test:public` with 266/266 browser assertions and empty diagnostics
+- **Decision-model local verification:** 34/34 Node tests plus 302/302 production-dist browser assertions and empty diagnostics
+- **Public verification:** current predecessor HTTP 200 plus `npm run test:public` with 266/266 browser assertions and empty diagnostics; decision-model release pending publication
 - **Still pending:** three genuine playtests, demo video URL, and any separate Build Week `/feedback` ID
 
 ## `/feedback` continuity contract

@@ -1,10 +1,16 @@
-import { ALLOWED_COMMANDS, PHASES, isSafePlan } from "./compiler.js";
+import {
+  ALLOWED_COMMANDS,
+  DECISION_BINDINGS,
+  PHASES,
+  isSafePlan,
+} from "./compiler.js";
 
 export const MISSION_ID = "repair-east-channel";
 export const MISSION_NAME = "Repair the East Channel";
 export const TOMATO_BED_COUNT = 3;
 
 const CHANNEL_NAME = "East Channel";
+const MINTED_DECISIONS = new WeakSet();
 
 function deepFreeze(value) {
   if (value && typeof value === "object" && !Object.isFrozen(value)) {
@@ -94,7 +100,7 @@ export function snapshotMissionState(state) {
 
 function describeObservation(snapshot) {
   if (snapshot.irrigationBlocked) {
-    return `${CHANNEL_NAME} irrigation is blocked; ${snapshot.tomatoBedsDry} tomato beds are dry.`;
+    return `${CHANNEL_NAME} water stops at visible debris; ${snapshot.tomatoBedsDry} tomato beds are dry.`;
   }
 
   if (snapshot.tomatoBedsDry > 0) {
@@ -104,10 +110,63 @@ function describeObservation(snapshot) {
   return `${CHANNEL_NAME} irrigation is clear; all ${TOMATO_BED_COUNT} tomato beds are watered.`;
 }
 
-function describeDecision(snapshot) {
-  return snapshot.irrigationBlocked
-    ? "The blockage must be cleared before the tomatoes can be watered."
-    : "The irrigation is clear, so water can reach the tomatoes.";
+function conditionMatches(snapshot, condition) {
+  if (condition === "tomatoes dry") return snapshot.tomatoBedsDry > 0;
+  if (condition === "irrigation blocked") return snapshot.irrigationBlocked;
+  throw new TypeError("Compiled decision condition is not allowlisted.");
+}
+
+function resolveDecision(step, binding, snapshot) {
+  const canonical = DECISION_BINDINGS[step.command];
+  if (
+    !canonical ||
+    !binding ||
+    binding.decisionLine !== step.line ||
+    binding.decisionCommand !== step.command ||
+    binding.condition !== canonical.condition ||
+    binding.selectedAction !== canonical.selectedAction ||
+    binding.actLine !== 3 ||
+    binding.actCommand !== "act chosen repair"
+  ) {
+    throw new TypeError("Mission decision does not match its compiled binding.");
+  }
+
+  const conditionMet = conditionMatches(snapshot, binding.condition);
+  const decision = deepFreeze({
+    command: step.command,
+    condition: binding.condition,
+    conditionMet,
+    selectedAction: conditionMet ? binding.selectedAction : null,
+  });
+  MINTED_DECISIONS.add(decision);
+  return decision;
+}
+
+function assertDecisionResult(decision, binding) {
+  const canonical = DECISION_BINDINGS[decision?.command];
+  if (
+    !MINTED_DECISIONS.has(decision) ||
+    !canonical ||
+    !binding ||
+    binding.decisionCommand !== decision.command ||
+    binding.condition !== canonical.condition ||
+    binding.selectedAction !== canonical.selectedAction ||
+    binding.actCommand !== "act chosen repair" ||
+    decision.condition !== canonical.condition ||
+    typeof decision.conditionMet !== "boolean" ||
+    decision.selectedAction !==
+      (decision.conditionMet ? canonical.selectedAction : null)
+  ) {
+    throw new TypeError("Act requires the allowlisted result selected by Decide.");
+  }
+}
+
+function assertCompiledStep(plan, step) {
+  if (!isSafePlan(plan) || plan.steps[step.line - 1] !== step) {
+    throw new TypeError(
+      "Mission steps require their compiler-minted plan and exact bound position.",
+    );
+  }
 }
 
 function verifySnapshot(snapshot) {
@@ -133,14 +192,16 @@ function assertAllowedStep(step) {
   }
 }
 
-function nextStateForAction(state, command) {
-  if (command === "act water tomatoes") {
+function nextStateForAction(state, selectedAction) {
+  if (selectedAction === null) return state;
+
+  if (selectedAction === "water tomatoes") {
     // Water cannot pass a blockage. Keeping this as a no-op is the teaching
     // moment: valid syntax does not guarantee the intended world outcome.
     return state;
   }
 
-  if (command === "act clear blockage") {
+  if (selectedAction === "clear blockage") {
     return deepFreeze({
       missionId: MISSION_ID,
       mission: MISSION_NAME,
@@ -156,7 +217,7 @@ function nextStateForAction(state, command) {
   throw new TypeError("Mission action is not allowlisted.");
 }
 
-function evidenceForStep(step, before, after) {
+function evidenceForStep(step, before, after, decision) {
   if (step.phase === "observe") {
     return {
       outcome: before.irrigationBlocked ? "BLOCKED" : "CLEAR",
@@ -165,27 +226,51 @@ function evidenceForStep(step, before, after) {
   }
 
   if (step.phase === "decide") {
+    if (!decision.conditionMet) {
+      return {
+        outcome: "CONDITION_NOT_MET",
+        message: `Decision condition not met: ${decision.condition}. No response was selected.`,
+        condition: decision.condition,
+        conditionMet: false,
+        selectedAction: null,
+      };
+    }
+
+    const choseCause = decision.selectedAction === "clear blockage";
     return {
-      outcome: before.irrigationBlocked
-        ? "CLEAR_BLOCKAGE_REQUIRED"
-        : "IRRIGATION_READY",
-      message: describeDecision(before),
+      outcome: choseCause ? "CAUSE_SELECTED" : "SYMPTOM_SELECTED",
+      message: choseCause
+        ? "Selected response: clear the blocked channel before watering."
+        : "Selected response: water the dry tomato beds directly.",
+      condition: decision.condition,
+      conditionMet: true,
+      selectedAction: decision.selectedAction,
     };
   }
 
-  if (step.command === "act water tomatoes") {
+  if (step.phase === "act" && decision.selectedAction === null) {
+    return {
+      outcome: "NO_ACTION_SELECTED",
+      message: "Bert had no selected response to carry out.",
+      executedAction: null,
+    };
+  }
+
+  if (step.phase === "act" && decision.selectedAction === "water tomatoes") {
     return {
       outcome: before.irrigationBlocked ? "NO_CHANGE" : "ACTION_NOT_NEEDED",
       message: before.irrigationBlocked
-        ? "Bert tried to water the tomatoes, but blocked irrigation released no water."
+        ? "Bert carried out direct watering, but blocked irrigation released no water."
         : "Bert checked the tomatoes after irrigation was already clear.",
+      executedAction: decision.selectedAction,
     };
   }
 
-  if (step.command === "act clear blockage") {
+  if (step.phase === "act" && decision.selectedAction === "clear blockage") {
     return {
       outcome: "WORLD_CHANGED",
       message: `Bert cleared the blockage; water reached all ${TOMATO_BED_COUNT} tomato beds.`,
+      executedAction: decision.selectedAction,
     };
   }
 
@@ -202,26 +287,38 @@ function evidenceForStep(step, before, after) {
 /**
  * Apply one allowlisted mission step without mutating the supplied state.
  */
-export function applyMissionStep(state, step) {
+export function applyMissionStep(
+  state,
+  step,
+  { plan = null, decision = null } = {},
+) {
   assertAllowedStep(step);
+  assertCompiledStep(plan, step);
   const safeState = normalizeMissionState(state);
   const before = snapshotMissionState(safeState);
+  const activeDecision =
+    step.phase === "decide"
+      ? resolveDecision(step, plan.binding, before)
+      : decision;
+  if (step.phase === "act") {
+    assertDecisionResult(activeDecision, plan.binding);
+  }
   const nextState =
     step.phase === "act"
-      ? nextStateForAction(safeState, step.command)
+      ? nextStateForAction(safeState, activeDecision.selectedAction)
       : safeState;
   const after = snapshotMissionState(nextState);
-  const detail = evidenceForStep(step, before, after);
+  const detail = evidenceForStep(step, before, after, activeDecision);
 
   return deepFreeze({
     state: nextState,
+    decision: activeDecision,
     evidence: {
       line: step.line,
       phase: step.phase,
       command: step.command,
       label: step.label,
-      outcome: detail.outcome,
-      message: detail.message,
+      ...detail,
       before,
       after,
     },
@@ -263,10 +360,15 @@ export function runMission(
   const before = snapshotMissionState(initialState);
   const trace = [];
   let currentState = initialState;
+  let decision = null;
 
   for (const step of plan.steps) {
-    const transition = applyMissionStep(currentState, step);
+    const transition = applyMissionStep(currentState, step, {
+      plan,
+      decision,
+    });
     currentState = transition.state;
+    decision = transition.decision;
     trace.push(transition.evidence);
   }
 
@@ -278,8 +380,10 @@ export function runMission(
     before,
     after,
     observation: trace[0].message,
-    decision: trace[1].message,
+    decision: plan.steps[1].command,
+    selectedAction: trace[1].selectedAction,
     action: plan.steps[2].command,
+    executedAction: trace[2].executedAction,
     verdict,
   });
 

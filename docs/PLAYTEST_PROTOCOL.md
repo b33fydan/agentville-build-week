@@ -1,6 +1,6 @@
 # Five-minute Playtest Protocol
 
-**Version:** 2026-07-18 progressive lesson + Voxel Field Rig
+**Version:** 2026-07-19 Decide-selects / Act-executes lesson
 
 **Purpose:** Collect honest Education-track evidence for manual acceptance M1 without coaching the solution.
 
@@ -18,7 +18,7 @@
 1. Ask: “Please finish this lesson. Think aloud if you are comfortable.”
 2. Observe whether the player notices the **IRRIGATION** sign and dry tomato beds before the UI names the obstruction.
 3. Before Bert speaks, record whether the tester identifies him as a person/farmhand rather than an object, robot block, or UI marker; do not supply the answer.
-4. Record whether they enter `observe irrigation` before using **Hint this line**, whether Bert's walk/Aha helps them form Decide, and whether the lightbulb note clarifies what the learner controls.
+4. Record whether they enter `observe irrigation` before using **Hint this line**, whether Bert's walk/Aha helps them form Decide, and whether they understand that Decide chooses a response while Act carries it out.
 5. Record whether they understand that each accepted line is a rehearsal and that only **Run full program** can change the farm.
 6. After the first run, record whether they read verification before editing.
 7. Stop the timer when the PASS receipt becomes visible or at five minutes.
@@ -31,9 +31,9 @@
 Repeat the same clean-browser setup with a different first-time tester. Focus observation on the failure-to-repair handoff:
 
 1. Does the tester distinguish a compiler success from a mission success?
-2. Can they identify line 3 without verbal help?
-3. Do they replace the action rather than rewriting all four lines?
-4. Can they explain why clearing the blockage is causally different from watering the tomatoes?
+2. Can they identify line 2 as the decision that caused the failed result without verbal help?
+3. Do they replace only the decision while preserving Observe, Act, and Verify?
+4. Can they explain why choosing blockage removal addresses the cause while choosing direct watering addresses only the symptom?
 5. Record time to FAIL and time from FAIL to repaired compile.
 
 ## Run 3 — Proof and transfer
@@ -67,6 +67,8 @@ Save one consented record as `artifacts/evidence/playtest-YYYY-MM-DD-<tester-cod
   "authoredObserveBeforeDraftHint": false,
   "usedDraftHint": false,
   "understoodRehearsalVsExecution": false,
+  "understoodDecideVsAct": false,
+  "repairedDecisionLineOnly": false,
   "explainedHumanAgentBoundary": false,
   "wantedLessonTwo": false,
   "visualConfusions": [],
