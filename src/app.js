@@ -778,7 +778,7 @@ function renderLesson() {
         : progressiveLessons[phaseIndex],
     compiled: ["Plan · Ready", "Read the plan before it runs.", "Compilation proves the language is safe. Verification will prove whether it works."],
     running: ["Execution · Live", "Watch cause become effect.", "The trace and Bert advance together; the farm remains the source of truth."],
-    failure: ["Step 3 · Diagnose", "The plan was safe. The result was not.", "Bert carried out line 2’s choice, but verification found 0 of 3 beds watered."],
+    failure: ["Step 3 · Diagnose", "Safe plan. Wrong result.", "Bert executed line 2’s choice; Verify found 0 of 3 beds watered."],
     repair: ["Step 4 · Repair", "Change the choice, not the evidence.", `Use ${REPAIR_DECISION} on line 2. Keep Observe, Act, and Verify unchanged.`],
     "repair-ready": ["Repair · Ready", "The new decision addresses the cause.", "Run it again: line 3 will carry out the choice, and Verify will inspect the farm."],
     proof: ["Step 5 · Proof", "World change verified.", "Your receipt records what Bert observed, changed, and proved."],

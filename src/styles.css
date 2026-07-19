@@ -2803,7 +2803,7 @@ body {
   }
 
   .app-shell[data-mode="failure"] .workbench {
-    grid-template-rows: auto auto auto minmax(132px, 0.9fr) minmax(132px, 0.9fr) auto auto;
+    grid-template-rows: auto auto auto minmax(132px, 0.9fr) minmax(150px, 1fr) auto auto;
   }
 
   .app-shell[data-mode="failure"] .language-card {
@@ -2849,6 +2849,14 @@ body {
 
   .app-shell[data-mode="failure"] .coach-note {
     padding: 4px 6px;
+  }
+
+  .app-shell[data-mode="failure"] .coach-note > div {
+    min-width: 0;
+  }
+
+  .app-shell[data-mode="failure"] .coach-note code {
+    white-space: nowrap;
   }
 }
 

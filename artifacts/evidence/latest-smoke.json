@@ -2,11 +2,11 @@
   "schema": "agentville.browser-smoke.v1",
   "status": "PASS",
   "invocation": "smoke",
-  "startedAt": "2026-07-19T14:05:55.992Z",
-  "finishedAt": "2026-07-19T14:06:27.888Z",
-  "durationMs": 31896,
+  "startedAt": "2026-07-19T14:12:36.565Z",
+  "finishedAt": "2026-07-19T14:13:08.445Z",
+  "durationMs": 31880,
   "target": "dist",
-  "baseUrl": "http://127.0.0.1:56539",
+  "baseUrl": "http://127.0.0.1:56827",
   "browser": {
     "engine": "chromium",
     "headless": true,
@@ -1560,8 +1560,8 @@
         "detailFontSize": 10,
         "failedVisibleRatio": 1,
         "scrollHeight": 200,
-        "scrollTop": 93,
-        "viewportHeight": 107
+        "scrollTop": 76,
+        "viewportHeight": 124
       }
     },
     {
@@ -1573,8 +1573,8 @@
         "detailFontSize": 10,
         "failedVisibleRatio": 1,
         "scrollHeight": 200,
-        "scrollTop": 93,
-        "viewportHeight": 107
+        "scrollTop": 76,
+        "viewportHeight": 124
       }
     },
     {
@@ -1586,8 +1586,8 @@
         "detailFontSize": 10,
         "failedVisibleRatio": 1,
         "scrollHeight": 200,
-        "scrollTop": 93,
-        "viewportHeight": 107
+        "scrollTop": 76,
+        "viewportHeight": 124
       }
     },
     {
@@ -1599,8 +1599,8 @@
         "detailFontSize": 10,
         "failedVisibleRatio": 1,
         "scrollHeight": 200,
-        "scrollTop": 93,
-        "viewportHeight": 107
+        "scrollTop": 76,
+        "viewportHeight": 124
       }
     },
     {
@@ -1612,8 +1612,8 @@
         "detailFontSize": 10,
         "failedVisibleRatio": 1,
         "scrollHeight": 200,
-        "scrollTop": 93,
-        "viewportHeight": 107
+        "scrollTop": 76,
+        "viewportHeight": 124
       }
     },
     {
@@ -1622,16 +1622,16 @@
       "details": {
         "allSourceVisible": true,
         "area": {
-          "bottom": 481.75,
-          "height": 107.25,
-          "top": 374.5
+          "bottom": 465.15625,
+          "height": 107.65625,
+          "top": 357.5
         },
         "editor": {
-          "bottom": 481.75,
-          "clientHeight": 107,
-          "height": 107.25,
-          "scrollHeight": 107,
-          "top": 374.5
+          "bottom": 465.15625,
+          "clientHeight": 108,
+          "height": 107.65625,
+          "scrollHeight": 108,
+          "top": 357.5
         },
         "editorInsideArea": true,
         "helpDisplay": "none"
@@ -1643,16 +1643,16 @@
       "details": {
         "allSourceVisible": true,
         "area": {
-          "bottom": 481.75,
-          "height": 107.25,
-          "top": 374.5
+          "bottom": 465.15625,
+          "height": 107.65625,
+          "top": 357.5
         },
         "editor": {
-          "bottom": 481.75,
-          "clientHeight": 107,
-          "height": 107.25,
-          "scrollHeight": 107,
-          "top": 374.5
+          "bottom": 465.15625,
+          "clientHeight": 108,
+          "height": 107.65625,
+          "scrollHeight": 108,
+          "top": 357.5
         },
         "editorInsideArea": true,
         "helpDisplay": "none"
@@ -2252,8 +2252,8 @@
       "name": "feedback link stays on the game origin",
       "passed": true,
       "details": {
-        "actual": "http://127.0.0.1:56539",
-        "expected": "http://127.0.0.1:56539"
+        "actual": "http://127.0.0.1:56827",
+        "expected": "http://127.0.0.1:56827"
       }
     },
     {
@@ -2276,8 +2276,8 @@
       "name": "visible Give feedback href matches state",
       "passed": true,
       "details": {
-        "actual": "http://127.0.0.1:56539/feedback/?session_id=AVBW-TEST-0001",
-        "expected": "http://127.0.0.1:56539/feedback/?session_id=AVBW-TEST-0001"
+        "actual": "http://127.0.0.1:56827/feedback/?session_id=AVBW-TEST-0001",
+        "expected": "http://127.0.0.1:56827/feedback/?session_id=AVBW-TEST-0001"
       }
     },
     {
@@ -2644,7 +2644,7 @@
       "name": "feedback export produces a local download",
       "passed": true,
       "details": {
-        "downloadedPath": "/var/folders/2x/zw6qlh_d6_x5r_p8cf1g3xww0000gn/T/playwright-artifacts-GzkG9U/bb6ec851-61f7-43c8-813e-7635920656c3"
+        "downloadedPath": "/var/folders/2x/zw6qlh_d6_x5r_p8cf1g3xww0000gn/T/playwright-artifacts-2hGsbF/8c3a416c-181d-4aa4-bdc3-d9436e719e3b"
       }
     },
     {
@@ -3236,7 +3236,7 @@
     "server": {
       "root": "/Volumes/beefybackup/agentville-build-week/dist",
       "stderr": "",
-      "stdout": "AgentVille running at http://127.0.0.1:56539"
+      "stdout": "AgentVille running at http://127.0.0.1:56827"
     }
   }
 }
