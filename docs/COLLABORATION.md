@@ -61,7 +61,7 @@ The renderer now publishes presentation evidence derived from the same frame it 
 
 **Skill influence:** The web-game workflow exposed and fixed a welcome-only canvas resize bug, required a fresh generic-client state capture, and preserved deterministic state hooks. The frontend-design workflow supplied the cohesive Voxel Field Rig art direction and material hierarchy instead of treating the request as a palette swap. Three independent Codex review lanes audited world art, UI hierarchy, and proof coverage; their final findings led to collision-aware teaching overlays, a visible failure/coach trace, larger learner text and controls, untruncated receipt evidence, accessible mobile feedback targets, a high-contrast feedback return control, an explicit clear-pose sample, and composited rather than raw-canvas welcome proof.
 
-The visual candidate passes 28/28 Node tests and 266/266 local production-dist browser assertions with empty browser/network diagnostics. Deployment and exact public proof are recorded separately after Pages publishes this candidate.
+Commit `c8ab4db` deployed in [Actions run 29670780954](https://github.com/b33fydan/agentville-build-week/actions/runs/29670780954). The release passes 28/28 Node tests and 266/266 browser assertions both against production `dist/` and the public Pages origin, with empty browser/network diagnostics.
 
 ## Clean-room declaration
 

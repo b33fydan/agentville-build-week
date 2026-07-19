@@ -14,7 +14,7 @@ Original prompt: Build a clean-room hackathon project called AgentVille: Build W
 - Run the three genuine first-time sessions in `docs/PLAYTEST_PROTOCOL.md`.
 - Record the demo video and any separate event `/feedback` ID in the evidence ledger.
 
-## 2026-07-18 — Voxel Field Rig refinement (in progress)
+## 2026-07-18 — Voxel Field Rig refinement
 
 - Reframed the complete visual surface as an original **Voxel Field Rig**: a bright hand-built farm diorama mounted inside an angular spruce-and-metal game console.
 - Rebuilt the farm renderer with a stepped voxel sky, square sun and clouds, layered stone/soil foundations, stone-lined channel, fuller shed and reservoir, pump, bridge, crates, hay, rocks, flowers, richer trees, detailed crop beds, and a larger composition.
@@ -26,7 +26,8 @@ Original prompt: Build a clean-room hackathon project called AgentVille: Build W
 - Added raw 2× detail and composited teaching captures for Bert; visually inspected welcome, hero, Observe, Decide, failure, grand payoff, debrief, feedback, mobile, and both Bert evidence frames.
 - Closed three independent final-review findings by moving teaching overlays away from Bert, auto-following the failed Act line and Codex Coach, raising learner-critical text/targets, wrapping receipt evidence, strengthening desktop/mobile feedback and replay controls, and replacing hard-coded presentation claims with drawn evidence.
 - `COPYFILE_DISABLE=1 npm run smoke` passes the production `dist/` artifact with 28/28 Node tests, 266/266 browser assertions, and empty diagnostics.
-- TODO: commit the validated visual candidate, deploy it, and rerun the 266-assertion flow against the public Pages build.
+- Committed the visual release as `c8ab4db` (`Refine the Voxel Field Rig`) and deployed it in [Actions run 29670780954](https://github.com/b33fydan/agentville-build-week/actions/runs/29670780954).
+- Confirmed the live root and `/feedback/` return HTTP 200, serve the humanoid renderer and Voxel Field Rig styles, and pass 266/266 public browser assertions with empty diagnostics and exact receipt-session continuity.
 
 ## 2026-07-18 — Progressive teaching pass (in progress)
 

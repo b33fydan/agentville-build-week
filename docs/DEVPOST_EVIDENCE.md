@@ -31,8 +31,8 @@
 
 | Criterion | Artifact or command | Status |
 | --- | --- | --- |
-| A1 | `npm run test:public` against [GitHub Pages](https://b33fydan.github.io/agentville-build-week/) | PASS — progressive release 214/214 public browser assertions |
-| A2–A23 | `npm run smoke` visual candidate | PASS — 28/28 Node tests + 266/266 production-dist browser assertions |
+| A1 | `npm run test:public` against [GitHub Pages](https://b33fydan.github.io/agentville-build-week/) | PASS — Voxel Field Rig 266/266 public browser assertions |
+| A2–A23 | `npm run smoke` Voxel Field Rig release | PASS — 28/28 Node tests + 266/266 production-dist browser assertions |
 | Welcome frame | `artifacts/screenshots/agentville-build-week-welcome.png` | Captured and inspected; composited edge luminance/color proof confirms the layered farm remains visible before Start |
 | Hero frame | `artifacts/screenshots/agentville-build-week-hero.png` | Captured and inspected; larger layered farm, block-built HUD, humanoid Bert |
 | Irrigation clue at judging viewport | `artifacts/screenshots/agentville-build-week-irrigation-cue-1280.png` | Captured and inspected at 1280×720; sign readable, canvas visible, no page overflow |
@@ -50,10 +50,10 @@
 | Mobile Workbench | `artifacts/screenshots/agentville-build-week-mobile-390.png` | Captured and inspected at 390×844; two-column language slots, 44px actions, no horizontal overflow |
 | Mobile feedback | `artifacts/screenshots/agentville-build-week-feedback-mobile-390.png` | Captured and inspected at 390×844; rating captions remain visible and rating/consent targets meet 44px |
 | Local machine evidence | `artifacts/evidence/latest-smoke.json` | PASS against production `dist/`, 266/266; diagnostics empty |
-| Public mission smoke | `artifacts/evidence/latest-public-smoke.json` via `npm run test:public` | PASS — 214/214; console, page, request, response, and dialog diagnostics empty |
+| Public mission smoke | `artifacts/evidence/latest-public-smoke.json` via `npm run test:public` | PASS — 266/266; console, page, request, response, and dialog diagnostics empty |
 | Human evidence | `artifacts/evidence/playtest-YYYY-MM-DD-<tester>.json` | Pending genuine sessions |
 | Source evidence | [github.com/b33fydan/agentville-build-week](https://github.com/b33fydan/agentville-build-week) | PUBLIC repository; first deployed commit `cb57621` |
-| Deployment evidence | [b33fydan.github.io/agentville-build-week](https://b33fydan.github.io/agentville-build-week/) | PASS — HTTP 200; progressive release [Actions run 29650610214](https://github.com/b33fydan/agentville-build-week/actions/runs/29650610214) succeeded on 2026-07-18 |
+| Deployment evidence | [b33fydan.github.io/agentville-build-week](https://b33fydan.github.io/agentville-build-week/) | PASS — HTTP 200; Voxel Field Rig [Actions run 29670780954](https://github.com/b33fydan/agentville-build-week/actions/runs/29670780954) succeeded at `c8ab4db` on 2026-07-18 |
 
 ## Deployment snapshot
 
@@ -65,7 +65,8 @@
 - **Irrigation-clue deployment:** Actions run `29621501693` at commit `8c01c21`
 - **Latest predecessor proof deployment:** Actions run `29621632492` at commit `5290b08`
 - **Progressive lesson deployment:** Actions run `29650610214` at commit `1c6c9eb`
-- **Public verification:** HTTP 200 plus `npm run test:public` with 214/214 browser assertions and empty diagnostics
+- **Voxel Field Rig deployment:** Actions run `29670780954` at commit `c8ab4db`
+- **Public verification:** HTTP 200 plus `npm run test:public` with 266/266 browser assertions and empty diagnostics
 - **Still pending:** three genuine playtests, demo video URL, and any separate Build Week `/feedback` ID
 
 ## `/feedback` continuity contract

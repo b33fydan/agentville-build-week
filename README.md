@@ -142,7 +142,7 @@ The app also exposes two deterministic automation seams:
 
 The browser smoke rejects console/page errors, external requests, state/DOM disagreement, missing session continuity, and a false PASS. Machine-readable results are written to `artifacts/evidence/latest-smoke.json` for local production and `artifacts/evidence/latest-public-smoke.json` for the deployed build.
 
-The Voxel Field Rig candidate passes 28/28 Node tests and 266/266 local production-dist browser assertions. The last deployed progressive release remains separately proven at 214/214 public assertions until this visual candidate is published and rerun against Pages.
+The deployed Voxel Field Rig passes 28/28 Node tests, 266/266 local production-dist browser assertions, and the same 266/266 mission flow against GitHub Pages. Both browser reports have empty console, page, network, response, and dialog diagnostics.
 
 ## Production build and deployment
 
@@ -153,7 +153,7 @@ node scripts/serve.mjs --root=dist --port=4173
 
 `dist/` is a static site. The canonical deployment is [GitHub Pages](https://b33fydan.github.io/agentville-build-week/), published from `main` by `.github/workflows/pages.yml`. Each push installs Chromium, runs `npm run smoke`, uploads `dist/`, and deploys only after validation passes. The first successful deployment was [Actions run 29554682024](https://github.com/b33fydan/agentville-build-week/actions/runs/29554682024) at commit `cb57621` on 2026-07-17.
 
-The live root and `/feedback/` route return HTTP 200. The progressive lesson deployed successfully in [Actions run 29650610214](https://github.com/b33fydan/agentville-build-week/actions/runs/29650610214) at commit `1c6c9eb` on 2026-07-18, then `npm run test:public` completed all 214 browser assertions with empty diagnostics. `vercel.json` and `netlify.toml` remain valid alternate-host declarations. No deployment path requires a server function or application secret.
+The live root and `/feedback/` route return HTTP 200. The Voxel Field Rig deployed successfully in [Actions run 29670780954](https://github.com/b33fydan/agentville-build-week/actions/runs/29670780954) at commit `c8ab4db` on 2026-07-18, then `npm run test:public` completed all 266 browser assertions with empty diagnostics. `vercel.json` and `netlify.toml` remain valid alternate-host declarations. No deployment path requires a server function or application secret.
 
 ## Submission evidence
 
