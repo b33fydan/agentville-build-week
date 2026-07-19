@@ -27,10 +27,13 @@ const DRAFT_PROGRAM = [
 const REPAIRED_PROGRAM = DRAFT_PROGRAM.replace("act water tomatoes", "act clear blockage");
 
 const ARTIFACTS = Object.freeze({
+  welcome: "artifacts/screenshots/agentville-build-week-welcome.png",
   hero: "artifacts/screenshots/agentville-build-week-hero.png",
   irrigationCue1280: "artifacts/screenshots/agentville-build-week-irrigation-cue-1280.png",
   observeError1280: "artifacts/screenshots/agentville-build-week-observe-error-1280.png",
   observeSuccess1280: "artifacts/screenshots/agentville-build-week-observe-success-1280.png",
+  bertDetail: "artifacts/screenshots/agentville-build-week-bert-detail.png",
+  bertTeaching: "artifacts/screenshots/agentville-build-week-bert-teaching.png",
   decideAha1280: "artifacts/screenshots/agentville-build-week-decide-aha-1280.png",
   grandPayoff1280: "artifacts/screenshots/agentville-build-week-grand-payoff-1280.png",
   compilerError: "artifacts/screenshots/agentville-build-week-compiler-error.png",
@@ -38,6 +41,8 @@ const ARTIFACTS = Object.freeze({
   receipt: "artifacts/screenshots/agentville-build-week-receipt.png",
   debrief1280: "artifacts/screenshots/agentville-build-week-debrief-1280.png",
   feedback: "artifacts/screenshots/agentville-build-week-feedback.png",
+  feedbackMobile390: "artifacts/screenshots/agentville-build-week-feedback-mobile-390.png",
+  mobile390: "artifacts/screenshots/agentville-build-week-mobile-390.png",
   debug: "artifacts/screenshots/agentville-build-week-smoke-error.png",
   report: "artifacts/evidence/latest-smoke.json",
 });
@@ -192,6 +197,14 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     equal("app reports ready", welcome.ready, true);
     equal("deterministic seed is active", welcome.seed, "east-channel-v1");
     equal("mission starts at welcome", welcome.mode, "welcome");
+    const welcomeCanvas = await measureCanvasPresentation(page);
+    check("welcome renders the farm before Start is clicked", welcomeCanvas.nonDarkRatio >= 0.7, welcomeCanvas);
+    check("welcome farm preview has rich color variation", welcomeCanvas.uniqueColorBuckets >= 24, welcomeCanvas);
+    const welcomeComposite = await measureCompositedScene(page);
+    check("welcome overlay keeps the composited farm visibly lit", welcomeComposite.edgeAverageLuminance >= 45, welcomeComposite);
+    check("welcome overlay keeps farm color variation outside the start card", welcomeComposite.edgeColorBuckets >= 20, welcomeComposite);
+    check("welcome scrim stays translucent enough to see the diorama", welcomeComposite.overlayAlpha <= 0.35, welcomeComposite);
+    await captureViewport(page, screenshotPaths.welcome);
 
     await page.getByTestId("start-mission").click();
     await waitForMode(page, "authoring");
@@ -201,6 +214,54 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     equal("start restores blocked irrigation", started.world.blockage, "debris-present");
     equal("start keeps channel stopped", started.world.eastChannel, "blocked");
     equal("start restores three dry beds", started.world.tomatoBeds.watered, 0);
+    equal("farm renderer reports the layered voxel style", started.presentation?.style, "layered-voxel-farm");
+    equal("farm renderer reports two terrain elevation layers", started.presentation?.farm?.elevationLayers, 2);
+    check("refined farm renders at least 240 voxel forms", started.presentation?.farm?.voxelCount >= 240, started.presentation?.farm);
+    check("refined farm includes at least 24 authored props", started.presentation?.farm?.propCount >= 24, started.presentation?.farm);
+    check(
+      "refined farm exposes the approved agricultural prop families",
+      ["bridge", "crate", "crop", "flowers", "hay", "pump", "reservoir", "shed", "sign", "tree"].every((family) =>
+        started.presentation?.farm?.propFamilies?.includes(family),
+      ),
+      started.presentation?.farm,
+    );
+    const startedCanvas = await page.getByTestId("farm-canvas").evaluate((node) => ({ height: node.clientHeight, width: node.clientWidth }));
+    const farmBounds = started.presentation?.farm?.screenBounds;
+    check(
+      "renderer-derived farm bounds stay inside the canvas",
+      farmBounds?.left >= 0 && farmBounds?.top >= 0 && farmBounds?.right <= startedCanvas.width && farmBounds?.bottom <= startedCanvas.height,
+      { canvas: startedCanvas, farmBounds },
+    );
+    check(
+      "voxel farm occupies a substantial part of the scene",
+      farmBounds?.width >= startedCanvas.width * 0.6 && farmBounds?.height >= startedCanvas.height * 0.45,
+      { canvas: startedCanvas, farmBounds },
+    );
+    equal("Bert renderer reports a humanoid farmhand silhouette", started.presentation?.bert?.silhouette, "humanoid-farmhand");
+    check(
+      "Bert actually renders a head, face, torso, paired arms, hands, legs, and boots",
+      [
+        "head",
+        "face",
+        "torso",
+        "left-arm",
+        "right-arm",
+        "left-hand",
+        "right-hand",
+        "left-leg",
+        "right-leg",
+        "left-boot",
+        "right-boot",
+      ].every((part) => started.presentation?.bert?.renderedParts?.includes(part)),
+      started.presentation?.bert,
+    );
+    check(
+      "Bert's projected silhouette is large enough to read at normal zoom",
+      started.presentation?.bert?.screenBounds?.right - started.presentation?.bert?.screenBounds?.left >= 46 &&
+        started.presentation?.bert?.screenBounds?.bottom - started.presentation?.bert?.screenBounds?.top >= 72,
+      started.presentation?.bert?.screenBounds,
+    );
+    equal("Bert begins in an idle visual pose", started.presentation?.bert?.pose, "idle");
     const irrigationSign = started.world.landmarks?.find(({ id }) => id === "irrigation-sign");
     equal("farm exposes the irrigation sign", irrigationSign?.label, "IRRIGATION");
     equal("irrigation sign points to the East Channel", irrigationSign?.pointsTo, "East Channel");
@@ -221,6 +282,18 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
         height: document.documentElement.scrollHeight,
         width: document.documentElement.scrollWidth,
       },
+      rig: {
+        actionHeight: document.querySelector("#compile-button").getBoundingClientRect().height,
+        editorFontSize: parseFloat(getComputedStyle(document.querySelector("#program-editor")).fontSize),
+        editorHelpFontSize: parseFloat(getComputedStyle(document.querySelector("#editor-help")).fontSize),
+        hintHeight: document.querySelector("#hint-button").getBoundingClientRect().height,
+        languageDescriptionFontSize: parseFloat(getComputedStyle(document.querySelector("#language-reference li span")).fontSize),
+        motionHeight: document.querySelector("#motion-toggle").getBoundingClientRect().height,
+        promptFontSize: parseFloat(getComputedStyle(document.querySelector("#lesson-copy")).fontSize),
+        sceneRadius: parseFloat(getComputedStyle(document.querySelector(".scene-card")).borderTopLeftRadius),
+        sceneBorder: parseFloat(getComputedStyle(document.querySelector(".scene-card")).borderTopWidth),
+        workbenchBorder: parseFloat(getComputedStyle(document.querySelector(".workbench")).borderTopWidth),
+      },
     }));
     check(
       "1280 irrigation clue keeps a visible farm canvas",
@@ -231,6 +304,29 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
       "1280 authoring view has no document overflow",
       authoringLayout.document.width <= 1280 && authoringLayout.document.height <= 720,
       authoringLayout,
+    );
+    check("Voxel Field Rig uses square scene geometry", authoringLayout.rig.sceneRadius <= 1, authoringLayout.rig);
+    check(
+      "Voxel Field Rig mounts both main panels in substantial frames",
+      authoringLayout.rig.sceneBorder >= 4 && authoringLayout.rig.workbenchBorder >= 4,
+      authoringLayout.rig,
+    );
+    check("Workbench code remains at least 13px", authoringLayout.rig.editorFontSize >= 13, authoringLayout.rig);
+    check("Workbench actions remain at least 44px tall", authoringLayout.rig.actionHeight >= 44, authoringLayout.rig);
+    check(
+      "learner-facing hint and motion controls remain at least 44px tall",
+      authoringLayout.rig.hintHeight >= 44 && authoringLayout.rig.motionHeight >= 44,
+      authoringLayout.rig,
+    );
+    check(
+      "lesson prompt and editor guidance remain at least 12px",
+      authoringLayout.rig.promptFontSize >= 12 && authoringLayout.rig.editorHelpFontSize >= 12,
+      authoringLayout.rig,
+    );
+    check(
+      "safe-language descriptions remain at least 10px",
+      authoringLayout.rig.languageDescriptionFontSize >= 10,
+      authoringLayout.rig,
     );
     await captureViewport(page, screenshotPaths.irrigationCue1280);
     await page.setViewportSize({ width: 1600, height: 900 });
@@ -304,7 +400,9 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     equal("locked multi-line prefix creates no plan", lockedPrefix.program.plan.length, 0);
     equal("locked multi-line prefix leaves world revision stable", lockedPrefix.world.revision, initialWorldRevision);
 
+    await waitForPaint(page);
     await editor.fill("observe irrigation");
+    await page.waitForFunction(() => document.querySelector("#program-editor")?.value === "observe irrigation");
     await compileButton.click();
     const observing = await readTextState(page, "Observe rehearsal", check);
     equal("accepted Observe enters a rehearsal", observing.lesson.status, "rehearsing");
@@ -314,6 +412,7 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     await advanceTime(page, 700);
     const observingMidway = await readTextState(page, "moving Observe rehearsal", check);
     check("Bert walks toward irrigation during Observe", observingMidway.crew.bert.moving, observingMidway.crew.bert);
+    equal("renderer exposes Bert's walking pose during Observe", observingMidway.presentation?.bert?.pose, "walk");
     check(
       "Bert leaves his starting tile during Observe",
       observingMidway.crew.bert.position.x !== started.crew.bert.position.x ||
@@ -328,10 +427,20 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     equal("Decide unlocks after Observe", observed.lesson.currentPhase, "decide");
     equal("Observe reveals stopped-flow evidence", observed.lesson.evidenceLevel, 1);
     check("Observe produces Bert's Aha response", observed.lesson.bertMessage?.text.startsWith("Aha!"));
+    equal("renderer exposes Bert's inspect pose after Observe", observed.presentation?.bert?.pose, "inspect");
     equal("accepted Observe leaves the authoritative world unchanged", observed.world.worldHash, initialWorldHash);
     check("stopped-flow callout appears after Observe", await page.locator("#blockage-callout").isVisible());
     await page.waitForFunction(() => document.activeElement?.id === "program-editor");
+    await waitForPaint(page);
+    const observeBertVisibility = await measureBertOverlayVisibility(page, observed.presentation?.bert?.screenBounds);
+    check(
+      "Observe teaching overlays leave Bert's humanoid silhouette unobscured",
+      observeBertVisibility.visibleRatio >= 0.9,
+      observeBertVisibility,
+    );
     await captureViewport(page, screenshotPaths.observeSuccess1280);
+    await captureBertDetail(page, screenshotPaths.bertDetail, observed.presentation?.bert?.screenBounds);
+    await captureBertTeachingComposite(page, screenshotPaths.bertTeaching, observed.presentation?.bert?.screenBounds);
 
     await editor.fill(DRAFT_PROGRAM.split("\n").slice(0, 2).join("\n"));
     await compileButton.click();
@@ -345,6 +454,7 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     equal("Act unlocks after Decide", decided.lesson.currentPhase, "act");
     equal("Decide names the blockage evidence", decided.lesson.evidenceLevel, 2);
     equal("decision teaching boundary becomes visible", decided.lesson.conceptVisible, true);
+    equal("renderer exposes Bert's thinking pose after Decide", decided.presentation?.bert?.pose, "think");
     check("lightbulb cue appears with Bert's decision", (await page.getByTestId("bert-cue").textContent())?.includes("💡"));
     check("agent-boundary note is visible", await page.getByTestId("agent-boundary-note").isVisible());
     check(
@@ -398,6 +508,12 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
       "1280 progressive teaching has no document overflow",
       teachingLayout.document.width <= 1280 && teachingLayout.document.height <= 720,
       teachingLayout,
+    );
+    const decideBertVisibility = await measureBertOverlayVisibility(page, decided.presentation?.bert?.screenBounds);
+    check(
+      "Decide teaching overlays leave Bert's humanoid silhouette unobscured",
+      decideBertVisibility.visibleRatio >= 0.9,
+      decideBertVisibility,
     );
     await captureViewport(page, screenshotPaths.decideAha1280);
 
@@ -471,6 +587,20 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
       "failure coach is visible",
       await page.getByTestId("coach-message").isVisible(),
     );
+    await waitForPaint(page);
+    const failureTraceVisibility = await measureFailureTraceVisibility(page);
+    check("failure trace auto-follows the failed Act line", failureTraceVisibility.scrollTop > 0, failureTraceVisibility);
+    check(
+      "failed Act evidence is inside the visible trace viewport",
+      failureTraceVisibility.failedVisibleRatio >= 0.98,
+      failureTraceVisibility,
+    );
+    check(
+      "Codex Coach repair guidance is inside the visible trace viewport",
+      failureTraceVisibility.coachVisibleRatio >= 0.98,
+      failureTraceVisibility,
+    );
+    check("failure trace guidance remains at least 12px", failureTraceVisibility.detailFontSize >= 12, failureTraceVisibility);
     await captureViewport(page, screenshotPaths.failure);
 
     await editor.fill(REPAIRED_PROGRAM);
@@ -495,13 +625,20 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     equal("repair recompiles after the stale-plan guard", recompiledRepair.program.plan[2]?.command, "act clear blockage");
 
     await runButton.click();
-    await advanceTime(page, 4500);
+    await advanceTime(page, 3300);
+    const repairing = await readTextState(page, "active blockage repair", check);
+    equal("renderer exposes Bert's active clear pose during repair", repairing.presentation?.bert?.pose, "clear");
+    equal("active repair keeps Bert's clear action", repairing.presentation?.bert?.action, "clear");
+    check("Bert visibly carries his tool during repair", repairing.presentation?.bert?.renderedParts?.includes("tool"), repairing.presentation?.bert);
+    await advanceTime(page, 1200);
     const grandPayoff = await readTextState(page, "grand payoff", check);
     equal("grand payoff remains visible before the receipt", grandPayoff.mode, "running");
     equal("grand payoff has already cleared the blockage", grandPayoff.world.blockage, "cleared");
     equal("grand payoff visibly waters all three beds", grandPayoff.world.visibleTomatoBedsWatered, 3);
     equal("grand payoff has completed all four trace entries", grandPayoff.trace.length, 4);
     equal("grand payoff does not issue proof before the hold completes", grandPayoff.receipt, null);
+    equal("grand payoff keeps Bert's repair action active", grandPayoff.presentation?.bert?.action, "clear");
+    equal("grand payoff celebrates the verified visible result", grandPayoff.presentation?.bert?.pose, "verify");
     await page.setViewportSize({ width: 1280, height: 720 });
     await waitForPaint(page);
     await captureViewport(page, screenshotPaths.grandPayoff1280);
@@ -515,6 +652,7 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     equal("repair clears the blockage", passed.world.blockage, "cleared");
     equal("repair releases East Channel water", passed.world.eastChannel, "flowing");
     equal("repair waters all tomato beds", passed.world.tomatoBeds.watered, 3);
+    equal("PASS settles Bert into a verify pose", passed.presentation?.bert?.pose, "verify");
     check("repair changes authoritative world hash", passed.world.worldHash !== initialWorldHash, {
       before: initialWorldHash,
       after: passed.world.worldHash,
@@ -620,7 +758,15 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
           horizontal: tile.scrollWidth > tile.clientWidth,
           vertical: tile.scrollHeight > tile.clientHeight,
         },
+        actionHeights: ["#copy-receipt", "#feedback-link", "#reset-button"].map((selector) => rect(selector).height),
         actionHitTests: ["#copy-receipt", "#feedback-link", "#reset-button"].map(hitTest),
+        receiptValues: [...document.querySelectorAll(".receipt-grid dd")].map((node) => ({
+          clientHeight: node.clientHeight,
+          clientWidth: node.clientWidth,
+          scrollHeight: node.scrollHeight,
+          scrollWidth: node.scrollWidth,
+          text: node.textContent.trim(),
+        })),
       };
     });
     check(
@@ -653,6 +799,14 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
       debriefLayout,
     );
     check("all debrief actions remain hit-testable", debriefLayout.actionHitTests.every(Boolean), debriefLayout.actionHitTests);
+    check("all debrief actions remain at least 44px tall", debriefLayout.actionHeights.every((height) => height >= 44), debriefLayout.actionHeights);
+    check(
+      "receipt evidence values wrap without clipping",
+      debriefLayout.receiptValues.every(
+        (value) => value.scrollWidth <= value.clientWidth && value.scrollHeight <= value.clientHeight,
+      ),
+      debriefLayout.receiptValues,
+    );
     await captureViewport(page, screenshotPaths.debrief1280);
 
     feedbackPage = await context.newPage();
@@ -667,6 +821,9 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
       (await feedbackPage.getByTestId("feedback-session-id").textContent())?.trim(),
       passed.receipt.sessionId,
     );
+    const feedbackBackLink = await measureControlContrast(feedbackPage, ".back-link");
+    check("feedback return control remains at least 44px tall", feedbackBackLink.height >= 44, feedbackBackLink);
+    check("feedback return control has readable contrast", feedbackBackLink.contrastRatio >= 4.5, feedbackBackLink);
 
     await feedbackPage.locator('label:has(input[name="clarity"][value="5"])').click();
     await feedbackPage.locator("#learned").fill("Verification checks the changed farm, not just Bert's intention.");
@@ -700,6 +857,38 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     };
     await feedbackPage.evaluate(() => window.scrollTo(0, 0));
     await captureViewport(feedbackPage, screenshotPaths.feedback, { preserveScroll: true });
+
+    await feedbackPage.setViewportSize({ width: 390, height: 844 });
+    await waitForPaint(feedbackPage);
+    const mobileFeedback = await feedbackPage.evaluate(() => {
+      const labels = [...document.querySelectorAll(".rating-row label")];
+      const captions = [...document.querySelectorAll(".rating-row small")];
+      const consent = document.querySelector(".consent-row");
+      return {
+        captionDisplays: captions.map((node) => getComputedStyle(node).display),
+        captionFontSizes: captions.map((node) => parseFloat(getComputedStyle(node).fontSize)),
+        consentFontSize: parseFloat(getComputedStyle(consent).fontSize),
+        consentHeight: consent.getBoundingClientRect().height,
+        documentWidth: document.documentElement.scrollWidth,
+        labelHeights: labels.map((node) => node.getBoundingClientRect().height),
+        viewportWidth: window.innerWidth,
+      };
+    });
+    check("390px feedback has no horizontal document overflow", mobileFeedback.documentWidth <= mobileFeedback.viewportWidth, mobileFeedback);
+    check("mobile feedback rating targets remain at least 44px tall", mobileFeedback.labelHeights.every((height) => height >= 44), mobileFeedback);
+    check(
+      "mobile rating captions remain visible and readable",
+      mobileFeedback.captionDisplays.every((display) => display !== "none") &&
+        mobileFeedback.captionFontSizes.every((fontSize) => fontSize >= 9),
+      mobileFeedback,
+    );
+    check(
+      "mobile feedback consent remains a readable 44px target",
+      mobileFeedback.consentHeight >= 44 && mobileFeedback.consentFontSize >= 12,
+      mobileFeedback,
+    );
+    await feedbackPage.locator(".rating-row").scrollIntoViewIfNeeded();
+    await captureViewport(feedbackPage, screenshotPaths.feedbackMobile390, { preserveScroll: true });
     await feedbackPage.close();
     feedbackPage = null;
 
@@ -743,6 +932,43 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     );
     await page.waitForFunction(() => document.activeElement?.id === "program-editor");
     equal("reset returns focus to the program editor", await page.evaluate(() => document.activeElement?.id), "program-editor");
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await waitForPaint(page);
+    const mobileLayout = await page.evaluate(() => {
+      const rect = (selector) => document.querySelector(selector).getBoundingClientRect();
+      const languageItems = [...document.querySelectorAll("#language-reference li")].map((node) => node.getBoundingClientRect());
+      const stageLabel = document.querySelector('.stage-rail [data-stage="program"] b');
+      return {
+        documentWidth: document.documentElement.scrollWidth,
+        viewportWidth: window.innerWidth,
+        stageLabelDisplay: getComputedStyle(stageLabel).display,
+        stageLabelFontSize: parseFloat(getComputedStyle(stageLabel).fontSize),
+        stageLabelText: stageLabel.textContent.trim(),
+        actionHeights: [rect("#compile-button").height, rect("#run-button").height],
+        languageTops: languageItems.map((bounds) => Math.round(bounds.top)),
+        workbench: { left: rect(".workbench").left, right: rect(".workbench").right },
+      };
+    });
+    check("390px layout has no horizontal document overflow", mobileLayout.documentWidth <= mobileLayout.viewportWidth, mobileLayout);
+    check(
+      "mobile mission rail retains its stage label",
+      mobileLayout.stageLabelDisplay !== "none" && mobileLayout.stageLabelText === "Program" && mobileLayout.stageLabelFontSize >= 9,
+      mobileLayout,
+    );
+    check("mobile action blocks remain at least 44px tall", mobileLayout.actionHeights.every((height) => height >= 44), mobileLayout);
+    check(
+      "mobile safe-language slots form two rows",
+      mobileLayout.languageTops[0] === mobileLayout.languageTops[1] && mobileLayout.languageTops[2] > mobileLayout.languageTops[0],
+      mobileLayout,
+    );
+    check(
+      "mobile Workbench remains inside the viewport",
+      mobileLayout.workbench.left >= 0 && mobileLayout.workbench.right <= mobileLayout.viewportWidth,
+      mobileLayout,
+    );
+    await page.evaluate(() => document.querySelector(".workbench").scrollIntoView({ block: "start" }));
+    await captureViewport(page, screenshotPaths.mobile390, { preserveScroll: true });
 
     equal("browser emitted no console errors", diagnostics.consoleErrors.length, 0);
     equal("browser emitted no uncaught page errors", diagnostics.pageErrors.length, 0);
@@ -895,6 +1121,213 @@ async function captureViewport(page, path, { preserveScroll = false } = {}) {
   throw new Error(
     `Screenshot compositor remained incomplete after 4 attempts (${(lastBlackRatio * 100).toFixed(1)}% black pixels): ${path}`,
   );
+}
+
+async function captureBertDetail(page, path, bounds) {
+  if (!bounds) throw new Error("Bert detail capture requires renderer bounds.");
+  const dataUrl = await page.evaluate((bertBounds) => {
+    const source = document.querySelector("#farm-canvas");
+    const sourceRect = source.getBoundingClientRect();
+    const scaleX = source.width / sourceRect.width;
+    const scaleY = source.height / sourceRect.height;
+    const padding = 22;
+    const left = Math.max(0, bertBounds.left - padding);
+    const top = Math.max(0, bertBounds.top - padding);
+    const right = Math.min(sourceRect.width, bertBounds.right + padding);
+    const bottom = Math.min(sourceRect.height, bertBounds.bottom + padding);
+    const width = Math.max(1, right - left);
+    const height = Math.max(1, bottom - top);
+    const output = document.createElement("canvas");
+    output.width = Math.round(width * 2);
+    output.height = Math.round(height * 2);
+    const context = output.getContext("2d", { alpha: false });
+    context.imageSmoothingEnabled = false;
+    context.drawImage(
+      source,
+      left * scaleX,
+      top * scaleY,
+      width * scaleX,
+      height * scaleY,
+      0,
+      0,
+      output.width,
+      output.height,
+    );
+    return output.toDataURL("image/png");
+  }, bounds);
+  await writeFile(path, Buffer.from(dataUrl.split(",")[1], "base64"));
+}
+
+async function captureBertTeachingComposite(page, path, bounds) {
+  if (!bounds) throw new Error("Bert teaching capture requires renderer bounds.");
+  await waitForPaint(page);
+  const clip = await page.evaluate((bertBounds) => {
+    const canvas = document.querySelector("#farm-canvas").getBoundingClientRect();
+    const bert = {
+      left: canvas.left + bertBounds.left,
+      top: canvas.top + bertBounds.top,
+      right: canvas.left + bertBounds.right,
+      bottom: canvas.top + bertBounds.bottom,
+    };
+    const visibleOverlays = ["#bert-speech", "#blockage-callout", "#agent-boundary-note"]
+      .map((selector) => document.querySelector(selector))
+      .filter((node) => node && !node.hidden)
+      .map((node) => node.getBoundingClientRect());
+    const left = Math.max(0, Math.min(bert.left, ...visibleOverlays.map((rect) => rect.left)) - 18);
+    const top = Math.max(0, Math.min(bert.top, ...visibleOverlays.map((rect) => rect.top)) - 18);
+    const right = Math.min(window.innerWidth, Math.max(bert.right, ...visibleOverlays.map((rect) => rect.right)) + 18);
+    const bottom = Math.min(window.innerHeight, Math.max(bert.bottom, ...visibleOverlays.map((rect) => rect.bottom)) + 18);
+    return { x: left, y: top, width: Math.max(1, right - left), height: Math.max(1, bottom - top) };
+  }, bounds);
+  const buffer = await page.screenshot({ caret: "hide", clip, type: "png" });
+  await writeFile(path, buffer);
+}
+
+async function measureBertOverlayVisibility(page, bounds) {
+  if (!bounds) throw new Error("Bert overlay measurement requires renderer bounds.");
+  return page.evaluate((bertBounds) => {
+    const canvas = document.querySelector("#farm-canvas").getBoundingClientRect();
+    const bert = {
+      left: canvas.left + bertBounds.left,
+      top: canvas.top + bertBounds.top,
+      right: canvas.left + bertBounds.right,
+      bottom: canvas.top + bertBounds.bottom,
+    };
+    const area = Math.max(1, (bert.right - bert.left) * (bert.bottom - bert.top));
+    const overlays = ["#bert-speech", "#blockage-callout", "#agent-boundary-note"]
+      .map((selector) => ({ selector, node: document.querySelector(selector) }))
+      .filter(({ node }) => node && !node.hidden)
+      .map(({ selector, node }) => {
+        const rect = node.getBoundingClientRect();
+        const width = Math.max(0, Math.min(bert.right, rect.right) - Math.max(bert.left, rect.left));
+        const height = Math.max(0, Math.min(bert.bottom, rect.bottom) - Math.max(bert.top, rect.top));
+        return { selector, overlapArea: width * height };
+      });
+    const coveredArea = overlays.reduce((total, overlay) => total + overlay.overlapArea, 0);
+    return {
+      bert,
+      coveredArea,
+      overlays,
+      visibleRatio: 1 - Math.min(1, coveredArea / area),
+    };
+  }, bounds);
+}
+
+async function measureFailureTraceVisibility(page) {
+  return page.evaluate(() => {
+    const viewport = document.querySelector("#trace-output");
+    const failed = viewport.querySelector('.trace-item.is-fail[data-line="3"]');
+    const coach = viewport.querySelector('[data-testid="coach-message"]');
+    const visibleRatio = (node) => {
+      if (!node) return 0;
+      const outer = viewport.getBoundingClientRect();
+      const inner = node.getBoundingClientRect();
+      const width = Math.max(0, Math.min(outer.right, inner.right) - Math.max(outer.left, inner.left));
+      const height = Math.max(0, Math.min(outer.bottom, inner.bottom) - Math.max(outer.top, inner.top));
+      return (width * height) / Math.max(1, inner.width * inner.height);
+    };
+    return {
+      coachVisibleRatio: visibleRatio(coach),
+      detailFontSize: parseFloat(getComputedStyle(failed.querySelector("small")).fontSize),
+      failedVisibleRatio: visibleRatio(failed),
+      scrollHeight: viewport.scrollHeight,
+      scrollTop: viewport.scrollTop,
+      viewportHeight: viewport.clientHeight,
+    };
+  });
+}
+
+async function measureControlContrast(page, selector) {
+  return page.locator(selector).evaluate((node) => {
+    const style = getComputedStyle(node);
+    const parseColor = (value) => {
+      const channels = value.match(/[\d.]+/gu)?.map(Number) ?? [0, 0, 0];
+      return channels.slice(0, 3);
+    };
+    const luminance = (channels) => {
+      const linear = channels.map((channel) => {
+        const normalized = channel / 255;
+        return normalized <= 0.04045 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
+      });
+      return linear[0] * 0.2126 + linear[1] * 0.7152 + linear[2] * 0.0722;
+    };
+    const foreground = luminance(parseColor(style.color));
+    const background = luminance(parseColor(style.backgroundColor));
+    const lighter = Math.max(foreground, background);
+    const darker = Math.min(foreground, background);
+    return {
+      backgroundColor: style.backgroundColor,
+      color: style.color,
+      contrastRatio: (lighter + 0.05) / (darker + 0.05),
+      height: node.getBoundingClientRect().height,
+    };
+  });
+}
+
+async function measureCompositedScene(page) {
+  const buffer = await page.locator(".scene-card").screenshot({ caret: "hide", type: "png" });
+  const source = `data:image/png;base64,${buffer.toString("base64")}`;
+  const raster = await page.evaluate(async (imageSource) => {
+    const image = new Image();
+    image.src = imageSource;
+    await image.decode();
+    const probe = document.createElement("canvas");
+    probe.width = 120;
+    probe.height = 80;
+    const context = probe.getContext("2d", { willReadFrequently: true });
+    context.drawImage(image, 0, 0, probe.width, probe.height);
+    const pixels = context.getImageData(0, 0, probe.width, probe.height).data;
+    const edgeBuckets = new Set();
+    let edgeLuminance = 0;
+    let edgePixels = 0;
+    for (let y = 0; y < probe.height; y += 1) {
+      for (let x = 0; x < probe.width; x += 1) {
+        if (x > probe.width * 0.25 && x < probe.width * 0.75 && y > probe.height * 0.15 && y < probe.height * 0.85) continue;
+        const index = (y * probe.width + x) * 4;
+        const red = pixels[index];
+        const green = pixels[index + 1];
+        const blue = pixels[index + 2];
+        edgeLuminance += red * 0.2126 + green * 0.7152 + blue * 0.0722;
+        edgeBuckets.add(`${Math.floor(red / 32)}:${Math.floor(green / 32)}:${Math.floor(blue / 32)}`);
+        edgePixels += 1;
+      }
+    }
+    return {
+      edgeAverageLuminance: edgeLuminance / Math.max(1, edgePixels),
+      edgeColorBuckets: edgeBuckets.size,
+    };
+  }, source);
+  const overlayAlpha = await page.locator("#start-layer").evaluate((node) => {
+    const channels = getComputedStyle(node).backgroundColor.match(/[\d.]+/gu)?.map(Number) ?? [];
+    return channels.length >= 4 ? channels[3] : 1;
+  });
+  return { ...raster, overlayAlpha };
+}
+
+async function measureCanvasPresentation(page) {
+  return page.evaluate(() => {
+    const source = document.querySelector("#farm-canvas");
+    const probe = document.createElement("canvas");
+    probe.width = 96;
+    probe.height = 64;
+    const context = probe.getContext("2d", { willReadFrequently: true });
+    context.imageSmoothingEnabled = false;
+    context.drawImage(source, 0, 0, probe.width, probe.height);
+    const pixels = context.getImageData(0, 0, probe.width, probe.height).data;
+    const buckets = new Set();
+    let nonDark = 0;
+    for (let index = 0; index < pixels.length; index += 4) {
+      const red = pixels[index];
+      const green = pixels[index + 1];
+      const blue = pixels[index + 2];
+      if (red + green + blue >= 48) nonDark += 1;
+      buckets.add(`${Math.floor(red / 32)}:${Math.floor(green / 32)}:${Math.floor(blue / 32)}`);
+    }
+    return {
+      nonDarkRatio: nonDark / (pixels.length / 4),
+      uniqueColorBuckets: buckets.size,
+    };
+  });
 }
 
 async function waitForPaint(page) {

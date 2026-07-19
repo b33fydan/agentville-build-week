@@ -2,11 +2,11 @@
   "schema": "agentville.browser-smoke.v1",
   "status": "PASS",
   "invocation": "smoke",
-  "startedAt": "2026-07-18T15:43:37.549Z",
-  "finishedAt": "2026-07-18T15:44:02.374Z",
-  "durationMs": 24825,
+  "startedAt": "2026-07-19T02:46:30.711Z",
+  "finishedAt": "2026-07-19T02:47:00.831Z",
+  "durationMs": 30120,
   "target": "dist",
-  "baseUrl": "http://127.0.0.1:54381",
+  "baseUrl": "http://127.0.0.1:55294",
   "browser": {
     "engine": "chromium",
     "headless": true,
@@ -56,6 +56,49 @@
       }
     },
     {
+      "name": "welcome renders the farm before Start is clicked",
+      "passed": true,
+      "details": {
+        "nonDarkRatio": 1,
+        "uniqueColorBuckets": 74
+      }
+    },
+    {
+      "name": "welcome farm preview has rich color variation",
+      "passed": true,
+      "details": {
+        "nonDarkRatio": 1,
+        "uniqueColorBuckets": 74
+      }
+    },
+    {
+      "name": "welcome overlay keeps the composited farm visibly lit",
+      "passed": true,
+      "details": {
+        "edgeAverageLuminance": 100.16243326514399,
+        "edgeColorBuckets": 29,
+        "overlayAlpha": 0.34
+      }
+    },
+    {
+      "name": "welcome overlay keeps farm color variation outside the start card",
+      "passed": true,
+      "details": {
+        "edgeAverageLuminance": 100.16243326514399,
+        "edgeColorBuckets": 29,
+        "overlayAlpha": 0.34
+      }
+    },
+    {
+      "name": "welcome scrim stays translucent enough to see the diorama",
+      "passed": true,
+      "details": {
+        "edgeAverageLuminance": 100.16243326514399,
+        "edgeColorBuckets": 29,
+        "overlayAlpha": 0.34
+      }
+    },
+    {
       "name": "started mission exposes render_game_to_text",
       "passed": true,
       "details": {
@@ -95,6 +138,230 @@
       }
     },
     {
+      "name": "farm renderer reports the layered voxel style",
+      "passed": true,
+      "details": {
+        "actual": "layered-voxel-farm",
+        "expected": "layered-voxel-farm"
+      }
+    },
+    {
+      "name": "farm renderer reports two terrain elevation layers",
+      "passed": true,
+      "details": {
+        "actual": 2,
+        "expected": 2
+      }
+    },
+    {
+      "name": "refined farm renders at least 240 voxel forms",
+      "passed": true,
+      "details": {
+        "grid": {
+          "width": 9,
+          "height": 7
+        },
+        "elevationLayers": 2,
+        "voxelCount": 264,
+        "propCount": 25,
+        "propFamilies": [
+          "bridge",
+          "crate",
+          "crop",
+          "debris",
+          "fence",
+          "flowers",
+          "hay",
+          "pump",
+          "reservoir",
+          "rock",
+          "shed",
+          "sign",
+          "tree"
+        ],
+        "screenBounds": {
+          "left": 181,
+          "top": 150,
+          "right": 975,
+          "bottom": 571,
+          "width": 794,
+          "height": 421
+        }
+      }
+    },
+    {
+      "name": "refined farm includes at least 24 authored props",
+      "passed": true,
+      "details": {
+        "grid": {
+          "width": 9,
+          "height": 7
+        },
+        "elevationLayers": 2,
+        "voxelCount": 264,
+        "propCount": 25,
+        "propFamilies": [
+          "bridge",
+          "crate",
+          "crop",
+          "debris",
+          "fence",
+          "flowers",
+          "hay",
+          "pump",
+          "reservoir",
+          "rock",
+          "shed",
+          "sign",
+          "tree"
+        ],
+        "screenBounds": {
+          "left": 181,
+          "top": 150,
+          "right": 975,
+          "bottom": 571,
+          "width": 794,
+          "height": 421
+        }
+      }
+    },
+    {
+      "name": "refined farm exposes the approved agricultural prop families",
+      "passed": true,
+      "details": {
+        "grid": {
+          "width": 9,
+          "height": 7
+        },
+        "elevationLayers": 2,
+        "voxelCount": 264,
+        "propCount": 25,
+        "propFamilies": [
+          "bridge",
+          "crate",
+          "crop",
+          "debris",
+          "fence",
+          "flowers",
+          "hay",
+          "pump",
+          "reservoir",
+          "rock",
+          "shed",
+          "sign",
+          "tree"
+        ],
+        "screenBounds": {
+          "left": 181,
+          "top": 150,
+          "right": 975,
+          "bottom": 571,
+          "width": 794,
+          "height": 421
+        }
+      }
+    },
+    {
+      "name": "renderer-derived farm bounds stay inside the canvas",
+      "passed": true,
+      "details": {
+        "canvas": {
+          "height": 722,
+          "width": 1041
+        },
+        "farmBounds": {
+          "left": 181,
+          "top": 150,
+          "right": 975,
+          "bottom": 571,
+          "width": 794,
+          "height": 421
+        }
+      }
+    },
+    {
+      "name": "voxel farm occupies a substantial part of the scene",
+      "passed": true,
+      "details": {
+        "canvas": {
+          "height": 722,
+          "width": 1041
+        },
+        "farmBounds": {
+          "left": 181,
+          "top": 150,
+          "right": 975,
+          "bottom": 571,
+          "width": 794,
+          "height": 421
+        }
+      }
+    },
+    {
+      "name": "Bert renderer reports a humanoid farmhand silhouette",
+      "passed": true,
+      "details": {
+        "actual": "humanoid-farmhand",
+        "expected": "humanoid-farmhand"
+      }
+    },
+    {
+      "name": "Bert actually renders a head, face, torso, paired arms, hands, legs, and boots",
+      "passed": true,
+      "details": {
+        "silhouette": "humanoid-farmhand",
+        "action": "idle",
+        "moving": false,
+        "pose": "idle",
+        "renderedParts": [
+          "face",
+          "hair",
+          "hat-brim",
+          "hat-crown",
+          "head",
+          "left-arm",
+          "left-boot",
+          "left-hand",
+          "left-leg",
+          "overall-bib",
+          "pelvis",
+          "right-arm",
+          "right-boot",
+          "right-hand",
+          "right-leg",
+          "torso"
+        ],
+        "screenBounds": {
+          "left": 386,
+          "top": 248,
+          "right": 437,
+          "bottom": 339,
+          "width": 51,
+          "height": 91
+        }
+      }
+    },
+    {
+      "name": "Bert's projected silhouette is large enough to read at normal zoom",
+      "passed": true,
+      "details": {
+        "left": 386,
+        "top": 248,
+        "right": 437,
+        "bottom": 339,
+        "width": 51,
+        "height": 91
+      }
+    },
+    {
+      "name": "Bert begins in an idle visual pose",
+      "passed": true,
+      "details": {
+        "actual": "idle",
+        "expected": "idle"
+      }
+    },
+    {
       "name": "farm exposes the irrigation sign",
       "passed": true,
       "details": {
@@ -120,12 +387,24 @@
       "passed": true,
       "details": {
         "canvas": {
-          "height": 584,
-          "width": 856
+          "height": 575,
+          "width": 814
         },
         "document": {
           "height": 720,
           "width": 1280
+        },
+        "rig": {
+          "actionHeight": 44,
+          "editorFontSize": 13,
+          "editorHelpFontSize": 12,
+          "hintHeight": 44,
+          "languageDescriptionFontSize": 10,
+          "motionHeight": 44,
+          "promptFontSize": 12,
+          "sceneRadius": 0,
+          "sceneBorder": 4,
+          "workbenchBorder": 4
         }
       }
     },
@@ -134,13 +413,137 @@
       "passed": true,
       "details": {
         "canvas": {
-          "height": 584,
-          "width": 856
+          "height": 575,
+          "width": 814
         },
         "document": {
           "height": 720,
           "width": 1280
+        },
+        "rig": {
+          "actionHeight": 44,
+          "editorFontSize": 13,
+          "editorHelpFontSize": 12,
+          "hintHeight": 44,
+          "languageDescriptionFontSize": 10,
+          "motionHeight": 44,
+          "promptFontSize": 12,
+          "sceneRadius": 0,
+          "sceneBorder": 4,
+          "workbenchBorder": 4
         }
+      }
+    },
+    {
+      "name": "Voxel Field Rig uses square scene geometry",
+      "passed": true,
+      "details": {
+        "actionHeight": 44,
+        "editorFontSize": 13,
+        "editorHelpFontSize": 12,
+        "hintHeight": 44,
+        "languageDescriptionFontSize": 10,
+        "motionHeight": 44,
+        "promptFontSize": 12,
+        "sceneRadius": 0,
+        "sceneBorder": 4,
+        "workbenchBorder": 4
+      }
+    },
+    {
+      "name": "Voxel Field Rig mounts both main panels in substantial frames",
+      "passed": true,
+      "details": {
+        "actionHeight": 44,
+        "editorFontSize": 13,
+        "editorHelpFontSize": 12,
+        "hintHeight": 44,
+        "languageDescriptionFontSize": 10,
+        "motionHeight": 44,
+        "promptFontSize": 12,
+        "sceneRadius": 0,
+        "sceneBorder": 4,
+        "workbenchBorder": 4
+      }
+    },
+    {
+      "name": "Workbench code remains at least 13px",
+      "passed": true,
+      "details": {
+        "actionHeight": 44,
+        "editorFontSize": 13,
+        "editorHelpFontSize": 12,
+        "hintHeight": 44,
+        "languageDescriptionFontSize": 10,
+        "motionHeight": 44,
+        "promptFontSize": 12,
+        "sceneRadius": 0,
+        "sceneBorder": 4,
+        "workbenchBorder": 4
+      }
+    },
+    {
+      "name": "Workbench actions remain at least 44px tall",
+      "passed": true,
+      "details": {
+        "actionHeight": 44,
+        "editorFontSize": 13,
+        "editorHelpFontSize": 12,
+        "hintHeight": 44,
+        "languageDescriptionFontSize": 10,
+        "motionHeight": 44,
+        "promptFontSize": 12,
+        "sceneRadius": 0,
+        "sceneBorder": 4,
+        "workbenchBorder": 4
+      }
+    },
+    {
+      "name": "learner-facing hint and motion controls remain at least 44px tall",
+      "passed": true,
+      "details": {
+        "actionHeight": 44,
+        "editorFontSize": 13,
+        "editorHelpFontSize": 12,
+        "hintHeight": 44,
+        "languageDescriptionFontSize": 10,
+        "motionHeight": 44,
+        "promptFontSize": 12,
+        "sceneRadius": 0,
+        "sceneBorder": 4,
+        "workbenchBorder": 4
+      }
+    },
+    {
+      "name": "lesson prompt and editor guidance remain at least 12px",
+      "passed": true,
+      "details": {
+        "actionHeight": 44,
+        "editorFontSize": 13,
+        "editorHelpFontSize": 12,
+        "hintHeight": 44,
+        "languageDescriptionFontSize": 10,
+        "motionHeight": 44,
+        "promptFontSize": 12,
+        "sceneRadius": 0,
+        "sceneBorder": 4,
+        "workbenchBorder": 4
+      }
+    },
+    {
+      "name": "safe-language descriptions remain at least 10px",
+      "passed": true,
+      "details": {
+        "actionHeight": 44,
+        "editorFontSize": 13,
+        "editorHelpFontSize": 12,
+        "hintHeight": 44,
+        "languageDescriptionFontSize": 10,
+        "motionHeight": 44,
+        "promptFontSize": 12,
+        "sceneRadius": 0,
+        "sceneBorder": 4,
+        "workbenchBorder": 4
       }
     },
     {
@@ -433,6 +836,14 @@
       }
     },
     {
+      "name": "renderer exposes Bert's walking pose during Observe",
+      "passed": true,
+      "details": {
+        "actual": "walk",
+        "expected": "walk"
+      }
+    },
+    {
       "name": "Bert leaves his starting tile during Observe",
       "passed": true,
       "details": {
@@ -499,6 +910,14 @@
       "details": {}
     },
     {
+      "name": "renderer exposes Bert's inspect pose after Observe",
+      "passed": true,
+      "details": {
+        "actual": "inspect",
+        "expected": "inspect"
+      }
+    },
+    {
       "name": "accepted Observe leaves the authoritative world unchanged",
       "passed": true,
       "details": {
@@ -510,6 +929,30 @@
       "name": "stopped-flow callout appears after Observe",
       "passed": true,
       "details": {}
+    },
+    {
+      "name": "Observe teaching overlays leave Bert's humanoid silhouette unobscured",
+      "passed": true,
+      "details": {
+        "bert": {
+          "left": 456,
+          "top": 332,
+          "right": 517,
+          "bottom": 404
+        },
+        "coveredArea": 0,
+        "overlays": [
+          {
+            "selector": "#bert-speech",
+            "overlapArea": 0
+          },
+          {
+            "selector": "#blockage-callout",
+            "overlapArea": 0
+          }
+        ],
+        "visibleRatio": 1
+      }
     },
     {
       "name": "accepted Decide exposes render_game_to_text",
@@ -548,6 +991,14 @@
       "details": {
         "actual": true,
         "expected": true
+      }
+    },
+    {
+      "name": "renderer exposes Bert's thinking pose after Decide",
+      "passed": true,
+      "details": {
+        "actual": "think",
+        "expected": "think"
       }
     },
     {
@@ -592,21 +1043,21 @@
       "details": {
         "scene": {
           "bottom": 710,
-          "left": 14,
-          "right": 874,
-          "top": 122
+          "left": 12,
+          "right": 834,
+          "top": 127
         },
         "bubble": {
-          "bottom": 404.28125,
-          "left": 246.984375,
-          "right": 482.984375,
-          "top": 338.203125
+          "bottom": 300.875,
+          "left": 498.484375,
+          "right": 750.484375,
+          "top": 240.875
         },
         "concept": {
-          "bottom": 651.007080078125,
-          "left": 27.731292724609375,
-          "right": 358.2687072753906,
-          "top": 560.008544921875
+          "bottom": 648,
+          "left": 28,
+          "right": 358,
+          "top": 551.96875
         },
         "document": {
           "height": 720,
@@ -620,21 +1071,21 @@
       "details": {
         "scene": {
           "bottom": 710,
-          "left": 14,
-          "right": 874,
-          "top": 122
+          "left": 12,
+          "right": 834,
+          "top": 127
         },
         "bubble": {
-          "bottom": 404.28125,
-          "left": 246.984375,
-          "right": 482.984375,
-          "top": 338.203125
+          "bottom": 300.875,
+          "left": 498.484375,
+          "right": 750.484375,
+          "top": 240.875
         },
         "concept": {
-          "bottom": 651.007080078125,
-          "left": 27.731292724609375,
-          "right": 358.2687072753906,
-          "top": 560.008544921875
+          "bottom": 648,
+          "left": 28,
+          "right": 358,
+          "top": 551.96875
         },
         "document": {
           "height": 720,
@@ -648,26 +1099,54 @@
       "details": {
         "scene": {
           "bottom": 710,
-          "left": 14,
-          "right": 874,
-          "top": 122
+          "left": 12,
+          "right": 834,
+          "top": 127
         },
         "bubble": {
-          "bottom": 404.28125,
-          "left": 246.984375,
-          "right": 482.984375,
-          "top": 338.203125
+          "bottom": 300.875,
+          "left": 498.484375,
+          "right": 750.484375,
+          "top": 240.875
         },
         "concept": {
-          "bottom": 651.007080078125,
-          "left": 27.731292724609375,
-          "right": 358.2687072753906,
-          "top": 560.008544921875
+          "bottom": 648,
+          "left": 28,
+          "right": 358,
+          "top": 551.96875
         },
         "document": {
           "height": 720,
           "width": 1280
         }
+      }
+    },
+    {
+      "name": "Decide teaching overlays leave Bert's humanoid silhouette unobscured",
+      "passed": true,
+      "details": {
+        "bert": {
+          "left": 456,
+          "top": 332,
+          "right": 497,
+          "bottom": 404
+        },
+        "coveredArea": 0,
+        "overlays": [
+          {
+            "selector": "#bert-speech",
+            "overlapArea": 0
+          },
+          {
+            "selector": "#blockage-callout",
+            "overlapArea": 0
+          },
+          {
+            "selector": "#agent-boundary-note",
+            "overlapArea": 0
+          }
+        ],
+        "visibleRatio": 1
       }
     },
     {
@@ -925,6 +1404,54 @@
       "details": {}
     },
     {
+      "name": "failure trace auto-follows the failed Act line",
+      "passed": true,
+      "details": {
+        "coachVisibleRatio": 1,
+        "detailFontSize": 12,
+        "failedVisibleRatio": 1,
+        "scrollHeight": 258,
+        "scrollTop": 96,
+        "viewportHeight": 111
+      }
+    },
+    {
+      "name": "failed Act evidence is inside the visible trace viewport",
+      "passed": true,
+      "details": {
+        "coachVisibleRatio": 1,
+        "detailFontSize": 12,
+        "failedVisibleRatio": 1,
+        "scrollHeight": 258,
+        "scrollTop": 96,
+        "viewportHeight": 111
+      }
+    },
+    {
+      "name": "Codex Coach repair guidance is inside the visible trace viewport",
+      "passed": true,
+      "details": {
+        "coachVisibleRatio": 1,
+        "detailFontSize": 12,
+        "failedVisibleRatio": 1,
+        "scrollHeight": 258,
+        "scrollTop": 96,
+        "viewportHeight": 111
+      }
+    },
+    {
+      "name": "failure trace guidance remains at least 12px",
+      "passed": true,
+      "details": {
+        "coachVisibleRatio": 1,
+        "detailFontSize": 12,
+        "failedVisibleRatio": 1,
+        "scrollHeight": 258,
+        "scrollTop": 96,
+        "viewportHeight": 111
+      }
+    },
+    {
       "name": "compiled repair exposes render_game_to_text",
       "passed": true,
       "details": {
@@ -1017,6 +1544,66 @@
       }
     },
     {
+      "name": "active blockage repair exposes render_game_to_text",
+      "passed": true,
+      "details": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "renderer exposes Bert's active clear pose during repair",
+      "passed": true,
+      "details": {
+        "actual": "clear",
+        "expected": "clear"
+      }
+    },
+    {
+      "name": "active repair keeps Bert's clear action",
+      "passed": true,
+      "details": {
+        "actual": "clear",
+        "expected": "clear"
+      }
+    },
+    {
+      "name": "Bert visibly carries his tool during repair",
+      "passed": true,
+      "details": {
+        "silhouette": "humanoid-farmhand",
+        "action": "clear",
+        "moving": false,
+        "pose": "clear",
+        "renderedParts": [
+          "face",
+          "hair",
+          "hat-brim",
+          "hat-crown",
+          "head",
+          "left-arm",
+          "left-boot",
+          "left-hand",
+          "left-leg",
+          "overall-bib",
+          "pelvis",
+          "right-arm",
+          "right-boot",
+          "right-hand",
+          "right-leg",
+          "tool",
+          "torso"
+        ],
+        "screenBounds": {
+          "left": 572,
+          "top": 244,
+          "right": 642,
+          "bottom": 335,
+          "width": 70,
+          "height": 91
+        }
+      }
+    },
+    {
       "name": "grand payoff exposes render_game_to_text",
       "passed": true,
       "details": {
@@ -1064,6 +1651,22 @@
       }
     },
     {
+      "name": "grand payoff keeps Bert's repair action active",
+      "passed": true,
+      "details": {
+        "actual": "clear",
+        "expected": "clear"
+      }
+    },
+    {
+      "name": "grand payoff celebrates the verified visible result",
+      "passed": true,
+      "details": {
+        "actual": "verify",
+        "expected": "verify"
+      }
+    },
+    {
       "name": "passing repair exposes render_game_to_text",
       "passed": true,
       "details": {
@@ -1108,6 +1711,14 @@
       "details": {
         "actual": 3,
         "expected": 3
+      }
+    },
+    {
+      "name": "PASS settles Bert into a verify pose",
+      "passed": true,
+      "details": {
+        "actual": "verify",
+        "expected": "verify"
       }
     },
     {
@@ -1322,8 +1933,8 @@
       "name": "feedback link stays on the game origin",
       "passed": true,
       "details": {
-        "actual": "http://127.0.0.1:54381",
-        "expected": "http://127.0.0.1:54381"
+        "actual": "http://127.0.0.1:55294",
+        "expected": "http://127.0.0.1:55294"
       }
     },
     {
@@ -1346,8 +1957,8 @@
       "name": "visible Give feedback href matches state",
       "passed": true,
       "details": {
-        "actual": "http://127.0.0.1:54381/feedback/?session_id=AVBW-TEST-0001",
-        "expected": "http://127.0.0.1:54381/feedback/?session_id=AVBW-TEST-0001"
+        "actual": "http://127.0.0.1:55294/feedback/?session_id=AVBW-TEST-0001",
+        "expected": "http://127.0.0.1:55294/feedback/?session_id=AVBW-TEST-0001"
       }
     },
     {
@@ -1359,45 +1970,80 @@
           "width": 1280
         },
         "tile": {
-          "bottom": 580.6328125,
-          "height": 441.265625,
+          "bottom": 582.5390625,
+          "height": 445.078125,
           "left": 50,
           "right": 1230,
-          "top": 139.3671875,
+          "top": 137.4609375,
           "width": 1180
         },
         "recap": {
-          "bottom": 432.6328125,
-          "height": 178,
-          "left": 65,
-          "right": 1215,
-          "top": 254.6328125,
-          "width": 1150
+          "bottom": 420.5390625,
+          "height": 180,
+          "left": 67,
+          "right": 1213,
+          "top": 240.5390625,
+          "width": 1146
         },
         "lessonAlert": {
-          "bottom": 515.6328125,
-          "height": 74,
-          "left": 65,
-          "right": 1215,
-          "top": 441.6328125,
-          "width": 1150
+          "bottom": 505.5390625,
+          "height": 76,
+          "left": 67,
+          "right": 1213,
+          "top": 429.5390625,
+          "width": 1146
         },
         "actions": {
-          "bottom": 567.6328125,
-          "height": 34,
-          "left": 923.515625,
-          "right": 1215,
-          "top": 533.6328125,
-          "width": 291.484375
+          "bottom": 567.5390625,
+          "height": 44,
+          "left": 882.6875,
+          "right": 1213,
+          "top": 523.5390625,
+          "width": 330.3125
         },
         "tileOverflow": {
           "horizontal": false,
           "vertical": false
         },
+        "actionHeights": [
+          44,
+          44,
+          44
+        ],
         "actionHitTests": [
           true,
           true,
           true
+        ],
+        "receiptValues": [
+          {
+            "clientHeight": 12,
+            "clientWidth": 185,
+            "scrollHeight": 12,
+            "scrollWidth": 185,
+            "text": "AVBW-TEST-0001"
+          },
+          {
+            "clientHeight": 23,
+            "clientWidth": 185,
+            "scrollHeight": 23,
+            "scrollWidth": 185,
+            "text": "East Channel blocked · 3 beds dry"
+          },
+          {
+            "clientHeight": 12,
+            "clientWidth": 185,
+            "scrollHeight": 12,
+            "scrollWidth": 185,
+            "text": "act clear blockage"
+          },
+          {
+            "clientHeight": 23,
+            "clientWidth": 185,
+            "scrollHeight": 23,
+            "scrollWidth": 185,
+            "text": "blocked true → false · watered 0 → 3"
+          }
         ]
       }
     },
@@ -1422,20 +2068,20 @@
       "passed": true,
       "details": {
         "recap": {
-          "bottom": 432.6328125,
-          "height": 178,
-          "left": 65,
-          "right": 1215,
-          "top": 254.6328125,
-          "width": 1150
+          "bottom": 420.5390625,
+          "height": 180,
+          "left": 67,
+          "right": 1213,
+          "top": 240.5390625,
+          "width": 1146
         },
         "actions": {
-          "bottom": 567.6328125,
-          "height": 34,
-          "left": 923.515625,
-          "right": 1215,
-          "top": 533.6328125,
-          "width": 291.484375
+          "bottom": 567.5390625,
+          "height": 44,
+          "left": 882.6875,
+          "right": 1213,
+          "top": 523.5390625,
+          "width": 330.3125
         }
       }
     },
@@ -1448,45 +2094,80 @@
           "width": 1280
         },
         "tile": {
-          "bottom": 580.6328125,
-          "height": 441.265625,
+          "bottom": 582.5390625,
+          "height": 445.078125,
           "left": 50,
           "right": 1230,
-          "top": 139.3671875,
+          "top": 137.4609375,
           "width": 1180
         },
         "recap": {
-          "bottom": 432.6328125,
-          "height": 178,
-          "left": 65,
-          "right": 1215,
-          "top": 254.6328125,
-          "width": 1150
+          "bottom": 420.5390625,
+          "height": 180,
+          "left": 67,
+          "right": 1213,
+          "top": 240.5390625,
+          "width": 1146
         },
         "lessonAlert": {
-          "bottom": 515.6328125,
-          "height": 74,
-          "left": 65,
-          "right": 1215,
-          "top": 441.6328125,
-          "width": 1150
+          "bottom": 505.5390625,
+          "height": 76,
+          "left": 67,
+          "right": 1213,
+          "top": 429.5390625,
+          "width": 1146
         },
         "actions": {
-          "bottom": 567.6328125,
-          "height": 34,
-          "left": 923.515625,
-          "right": 1215,
-          "top": 533.6328125,
-          "width": 291.484375
+          "bottom": 567.5390625,
+          "height": 44,
+          "left": 882.6875,
+          "right": 1213,
+          "top": 523.5390625,
+          "width": 330.3125
         },
         "tileOverflow": {
           "horizontal": false,
           "vertical": false
         },
+        "actionHeights": [
+          44,
+          44,
+          44
+        ],
         "actionHitTests": [
           true,
           true,
           true
+        ],
+        "receiptValues": [
+          {
+            "clientHeight": 12,
+            "clientWidth": 185,
+            "scrollHeight": 12,
+            "scrollWidth": 185,
+            "text": "AVBW-TEST-0001"
+          },
+          {
+            "clientHeight": 23,
+            "clientWidth": 185,
+            "scrollHeight": 23,
+            "scrollWidth": 185,
+            "text": "East Channel blocked · 3 beds dry"
+          },
+          {
+            "clientHeight": 12,
+            "clientWidth": 185,
+            "scrollHeight": 12,
+            "scrollWidth": 185,
+            "text": "act clear blockage"
+          },
+          {
+            "clientHeight": 23,
+            "clientWidth": 185,
+            "scrollHeight": 23,
+            "scrollWidth": 185,
+            "text": "blocked true → false · watered 0 → 3"
+          }
         ]
       }
     },
@@ -1497,6 +2178,49 @@
         true,
         true,
         true
+      ]
+    },
+    {
+      "name": "all debrief actions remain at least 44px tall",
+      "passed": true,
+      "details": [
+        44,
+        44,
+        44
+      ]
+    },
+    {
+      "name": "receipt evidence values wrap without clipping",
+      "passed": true,
+      "details": [
+        {
+          "clientHeight": 12,
+          "clientWidth": 185,
+          "scrollHeight": 12,
+          "scrollWidth": 185,
+          "text": "AVBW-TEST-0001"
+        },
+        {
+          "clientHeight": 23,
+          "clientWidth": 185,
+          "scrollHeight": 23,
+          "scrollWidth": 185,
+          "text": "East Channel blocked · 3 beds dry"
+        },
+        {
+          "clientHeight": 12,
+          "clientWidth": 185,
+          "scrollHeight": 12,
+          "scrollWidth": 185,
+          "text": "act clear blockage"
+        },
+        {
+          "clientHeight": 23,
+          "clientWidth": 185,
+          "scrollHeight": 23,
+          "scrollWidth": 185,
+          "text": "blocked true → false · watered 0 → 3"
+        }
       ]
     },
     {
@@ -1528,6 +2252,26 @@
       "details": {
         "actual": "AVBW-TEST-0001",
         "expected": "AVBW-TEST-0001"
+      }
+    },
+    {
+      "name": "feedback return control remains at least 44px tall",
+      "passed": true,
+      "details": {
+        "backgroundColor": "rgb(16, 41, 31)",
+        "color": "rgb(156, 242, 240)",
+        "contrastRatio": 12.047664673037596,
+        "height": 44
+      }
+    },
+    {
+      "name": "feedback return control has readable contrast",
+      "passed": true,
+      "details": {
+        "backgroundColor": "rgb(16, 41, 31)",
+        "color": "rgb(156, 242, 240)",
+        "contrastRatio": 12.047664673037596,
+        "height": 44
       }
     },
     {
@@ -1581,7 +2325,7 @@
       "name": "feedback export produces a local download",
       "passed": true,
       "details": {
-        "downloadedPath": "/var/folders/2x/zw6qlh_d6_x5r_p8cf1g3xww0000gn/T/playwright-artifacts-hGREVX/78682d57-b660-4d4a-8121-12c810fd9013"
+        "downloadedPath": "/var/folders/2x/zw6qlh_d6_x5r_p8cf1g3xww0000gn/T/playwright-artifacts-lF4Uhy/fb2a7583-b3f0-4cbf-9f42-f7c4c64e9104"
       }
     },
     {
@@ -1598,6 +2342,130 @@
       "details": {
         "actual": "agentville.feedback.v1",
         "expected": "agentville.feedback.v1"
+      }
+    },
+    {
+      "name": "390px feedback has no horizontal document overflow",
+      "passed": true,
+      "details": {
+        "captionDisplays": [
+          "block",
+          "block",
+          "block",
+          "block",
+          "block"
+        ],
+        "captionFontSizes": [
+          9,
+          9,
+          9,
+          9,
+          9
+        ],
+        "consentFontSize": 12,
+        "consentHeight": 44,
+        "documentWidth": 390,
+        "labelHeights": [
+          58.890625,
+          58.890625,
+          58.890625,
+          58.890625,
+          58.890625
+        ],
+        "viewportWidth": 390
+      }
+    },
+    {
+      "name": "mobile feedback rating targets remain at least 44px tall",
+      "passed": true,
+      "details": {
+        "captionDisplays": [
+          "block",
+          "block",
+          "block",
+          "block",
+          "block"
+        ],
+        "captionFontSizes": [
+          9,
+          9,
+          9,
+          9,
+          9
+        ],
+        "consentFontSize": 12,
+        "consentHeight": 44,
+        "documentWidth": 390,
+        "labelHeights": [
+          58.890625,
+          58.890625,
+          58.890625,
+          58.890625,
+          58.890625
+        ],
+        "viewportWidth": 390
+      }
+    },
+    {
+      "name": "mobile rating captions remain visible and readable",
+      "passed": true,
+      "details": {
+        "captionDisplays": [
+          "block",
+          "block",
+          "block",
+          "block",
+          "block"
+        ],
+        "captionFontSizes": [
+          9,
+          9,
+          9,
+          9,
+          9
+        ],
+        "consentFontSize": 12,
+        "consentHeight": 44,
+        "documentWidth": 390,
+        "labelHeights": [
+          58.890625,
+          58.890625,
+          58.890625,
+          58.890625,
+          58.890625
+        ],
+        "viewportWidth": 390
+      }
+    },
+    {
+      "name": "mobile feedback consent remains a readable 44px target",
+      "passed": true,
+      "details": {
+        "captionDisplays": [
+          "block",
+          "block",
+          "block",
+          "block",
+          "block"
+        ],
+        "captionFontSizes": [
+          9,
+          9,
+          9,
+          9,
+          9
+        ],
+        "consentFontSize": 12,
+        "consentHeight": 44,
+        "documentWidth": 390,
+        "labelHeights": [
+          58.890625,
+          58.890625,
+          58.890625,
+          58.890625,
+          58.890625
+        ],
+        "viewportWidth": 390
       }
     },
     {
@@ -1754,6 +2622,131 @@
       }
     },
     {
+      "name": "390px layout has no horizontal document overflow",
+      "passed": true,
+      "details": {
+        "documentWidth": 390,
+        "viewportWidth": 390,
+        "stageLabelDisplay": "block",
+        "stageLabelFontSize": 9,
+        "stageLabelText": "Program",
+        "actionHeights": [
+          44,
+          44
+        ],
+        "languageTops": [
+          939,
+          939,
+          989,
+          989
+        ],
+        "workbench": {
+          "left": 7,
+          "right": 383
+        }
+      }
+    },
+    {
+      "name": "mobile mission rail retains its stage label",
+      "passed": true,
+      "details": {
+        "documentWidth": 390,
+        "viewportWidth": 390,
+        "stageLabelDisplay": "block",
+        "stageLabelFontSize": 9,
+        "stageLabelText": "Program",
+        "actionHeights": [
+          44,
+          44
+        ],
+        "languageTops": [
+          939,
+          939,
+          989,
+          989
+        ],
+        "workbench": {
+          "left": 7,
+          "right": 383
+        }
+      }
+    },
+    {
+      "name": "mobile action blocks remain at least 44px tall",
+      "passed": true,
+      "details": {
+        "documentWidth": 390,
+        "viewportWidth": 390,
+        "stageLabelDisplay": "block",
+        "stageLabelFontSize": 9,
+        "stageLabelText": "Program",
+        "actionHeights": [
+          44,
+          44
+        ],
+        "languageTops": [
+          939,
+          939,
+          989,
+          989
+        ],
+        "workbench": {
+          "left": 7,
+          "right": 383
+        }
+      }
+    },
+    {
+      "name": "mobile safe-language slots form two rows",
+      "passed": true,
+      "details": {
+        "documentWidth": 390,
+        "viewportWidth": 390,
+        "stageLabelDisplay": "block",
+        "stageLabelFontSize": 9,
+        "stageLabelText": "Program",
+        "actionHeights": [
+          44,
+          44
+        ],
+        "languageTops": [
+          939,
+          939,
+          989,
+          989
+        ],
+        "workbench": {
+          "left": 7,
+          "right": 383
+        }
+      }
+    },
+    {
+      "name": "mobile Workbench remains inside the viewport",
+      "passed": true,
+      "details": {
+        "documentWidth": 390,
+        "viewportWidth": 390,
+        "stageLabelDisplay": "block",
+        "stageLabelFontSize": 9,
+        "stageLabelText": "Program",
+        "actionHeights": [
+          44,
+          44
+        ],
+        "languageTops": [
+          939,
+          939,
+          989,
+          989
+        ],
+        "workbench": {
+          "left": 7,
+          "right": 383
+        }
+      }
+    },
+    {
       "name": "browser emitted no console errors",
       "passed": true,
       "details": {
@@ -1894,10 +2887,13 @@
     }
   },
   "artifacts": {
+    "welcome": "artifacts/screenshots/agentville-build-week-welcome.png",
     "hero": "artifacts/screenshots/agentville-build-week-hero.png",
     "irrigationCue1280": "artifacts/screenshots/agentville-build-week-irrigation-cue-1280.png",
     "observeError1280": "artifacts/screenshots/agentville-build-week-observe-error-1280.png",
     "observeSuccess1280": "artifacts/screenshots/agentville-build-week-observe-success-1280.png",
+    "bertDetail": "artifacts/screenshots/agentville-build-week-bert-detail.png",
+    "bertTeaching": "artifacts/screenshots/agentville-build-week-bert-teaching.png",
     "decideAha1280": "artifacts/screenshots/agentville-build-week-decide-aha-1280.png",
     "grandPayoff1280": "artifacts/screenshots/agentville-build-week-grand-payoff-1280.png",
     "compilerError": "artifacts/screenshots/agentville-build-week-compiler-error.png",
@@ -1905,6 +2901,8 @@
     "receipt": "artifacts/screenshots/agentville-build-week-receipt.png",
     "debrief1280": "artifacts/screenshots/agentville-build-week-debrief-1280.png",
     "feedback": "artifacts/screenshots/agentville-build-week-feedback.png",
+    "feedbackMobile390": "artifacts/screenshots/agentville-build-week-feedback-mobile-390.png",
+    "mobile390": "artifacts/screenshots/agentville-build-week-mobile-390.png",
     "debug": "artifacts/screenshots/agentville-build-week-smoke-error.png",
     "report": "artifacts/evidence/latest-smoke.json"
   },
@@ -1919,7 +2917,7 @@
     "server": {
       "root": "/Volumes/beefybackup/agentville-build-week/dist",
       "stderr": "",
-      "stdout": "AgentVille running at http://127.0.0.1:54381"
+      "stdout": "AgentVille running at http://127.0.0.1:55294"
     }
   }
 }

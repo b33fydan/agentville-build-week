@@ -51,6 +51,18 @@ This ID is preserved for Build Week `/feedback` and development-session traceabi
 
 Commit `1c6c9eb` deployed in [Actions run 29650610214](https://github.com/b33fydan/agentville-build-week/actions/runs/29650610214). The final production and public runs each passed 214/214 browser assertions with empty diagnostics; the Node suite passed 28/28.
 
+## 2026-07-18 — Voxel Field Rig visual identity
+
+**Human vision:** Completely refine the game's face. Replace the simple presentation with a more robust block-built game UI, push the farm toward a richer voxel look, and make Bert read as a humanoid character rather than a stack of cubes.
+
+**Codex / GPT-5.6 contribution:** Kept the working mission architecture and rebuilt its presentation as one original **Voxel Field Rig**. The Canvas renderer now draws a larger two-layer diorama with stepped voxel sky forms, stone-lined irrigation, fuller buildings and waterworks, bridge, fences, crops, trees, and small agricultural props. Bert is depth-sorted with the world and constructed from separately rendered boots, legs, overalls, torso, arms, hands, head, face, hair, straw hat, and wrench, with distinct walk, inspect, think, clear, and verify poses. The surrounding HUD, progress rail, mission plate, safe-language slots, editor, trace, actions, debrief, and feedback page share the same square beveled spruce, sand, water, harvest, and tomato material system.
+
+The renderer now publishes presentation evidence derived from the same frame it drew: voxel and prop counts, prop families, tile-derived terrain elevations, farm bounds, Bert's rendered anatomy, action, pose, and geometry-derived screen bounds. That evidence is descriptive only and cannot influence compilation, world mutation, or PASS. Dedicated raw-detail and composited-teaching Bert captures plus refreshed welcome, hero, teaching, failure, payoff, debrief, feedback, and mobile frames were inspected directly.
+
+**Skill influence:** The web-game workflow exposed and fixed a welcome-only canvas resize bug, required a fresh generic-client state capture, and preserved deterministic state hooks. The frontend-design workflow supplied the cohesive Voxel Field Rig art direction and material hierarchy instead of treating the request as a palette swap. Three independent Codex review lanes audited world art, UI hierarchy, and proof coverage; their final findings led to collision-aware teaching overlays, a visible failure/coach trace, larger learner text and controls, untruncated receipt evidence, accessible mobile feedback targets, a high-contrast feedback return control, an explicit clear-pose sample, and composited rather than raw-canvas welcome proof.
+
+The visual candidate passes 28/28 Node tests and 266/266 local production-dist browser assertions with empty browser/network diagnostics. Deployment and exact public proof are recorded separately after Pages publishes this candidate.
+
 ## Clean-room declaration
 
 The build did not copy or adapt implementation code, art, screenshots, or generated artifacts from `/Volumes/beefybackup/AgentVille`. Source and visuals were authored within `/Volumes/beefybackup/agentville-build-week`; game art is procedural Canvas 2D plus CSS.

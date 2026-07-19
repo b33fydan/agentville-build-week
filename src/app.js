@@ -79,7 +79,11 @@ const elements = {
   verificationStatus: query("#verification-status-text"),
 };
 
-const renderer = new FarmRenderer(elements.canvas);
+const renderer = new FarmRenderer(elements.canvas, {
+  onResize: () => {
+    if (elements.app.dataset.ready === "true") render();
+  },
+});
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 elements.app.dataset.testMode = String(TEST_MODE);
@@ -485,7 +489,7 @@ function finishLessonRehearsal(phase) {
   state.lesson.conceptVisible = phaseIndex >= 1;
   state.lesson.bertMessage = rehearsalCompleteMessage(phase);
   state.visual.bert.moving = false;
-  state.visual.bert.action = phase === "decide" ? "think" : "idle";
+  state.visual.bert.action = phase === "observe" ? "inspect" : phase === "decide" ? "think" : "idle";
   state.visual.routeVisible = false;
   elements.editor.disabled = false;
 
@@ -691,10 +695,10 @@ function renderWorldStatus(visualWorld) {
   elements.canvas.setAttribute(
     "aria-label",
     evidenceLevel === 0
-      ? "A compact isometric voxel farm with three dry tomato beds. A small IRRIGATION sign marks the East Channel, and Bert waits nearby."
+      ? "A layered isometric voxel farm with three dry tomato beds. A block-built IRRIGATION sign marks the East Channel, and humanoid voxel farmhand Bert waits nearby."
       : blocked
-        ? "A compact isometric voxel farm. The IRRIGATION sign marks the East Channel, where stopped water and debris are visible before three dry tomato beds. Bert is inspecting the channel."
-        : "A compact isometric voxel farm. The East Channel is clear, water is flowing, and all three tomato beds are watered. Bert stands beside the repaired irrigation.",
+        ? "A layered isometric voxel farm. The IRRIGATION sign marks the East Channel, where stopped water and debris are visible before three dry tomato beds. Humanoid voxel farmhand Bert is inspecting the channel."
+        : "A layered isometric voxel farm. The East Channel is clear, water is flowing, and all three tomato beds are watered. Humanoid voxel farmhand Bert stands beside the repaired irrigation.",
   );
 
   const copy = {
@@ -878,6 +882,17 @@ function renderCompilerBadge() {
 function renderTrace() {
   elements.traceOutput.replaceChildren();
   let eventCount = 0;
+  let coachInserted = false;
+  let followTarget = null;
+
+  const appendCoach = () => {
+    if (!state.coach || coachInserted) return null;
+    const coach = createCoachTrace(state.coach);
+    elements.traceOutput.append(coach);
+    coachInserted = true;
+    eventCount += 1;
+    return coach;
+  };
 
   const teachingErrors =
     state.compileResult?.ok === false
@@ -897,13 +912,20 @@ function renderTrace() {
       const complete = index < state.execution.completedSteps;
       const status = complete ? outcomeClass(entry.outcome) : index === currentIndex ? "running" : "queued";
       const message = complete ? entry.message : index === currentIndex ? "Executing this phase…" : "Waiting for the previous phase.";
-      elements.traceOutput.append(createTraceItem(entry, status, message));
+      const item = createTraceItem(entry, status, message);
+      elements.traceOutput.append(item);
+      if (index === currentIndex || (state.execution.completedSteps >= 4 && index === 3)) followTarget = item;
       eventCount += 1;
     });
   } else if (state.lastTrace.length > 0) {
     for (const entry of state.lastTrace) {
-      elements.traceOutput.append(createTraceItem(entry, outcomeClass(entry.outcome), entry.message));
+      const item = createTraceItem(entry, outcomeClass(entry.outcome), entry.message);
+      elements.traceOutput.append(item);
       eventCount += 1;
+      if (state.coach && entry.line === state.coach.focusLine) {
+        followTarget = item;
+        appendCoach();
+      }
     }
   } else if (state.compiledPlan) {
     for (const step of state.compiledPlan.steps) {
@@ -923,23 +945,8 @@ function renderTrace() {
     }
   }
 
-  if (state.coach) {
-    const coach = document.createElement("div");
-    coach.className = "coach-note";
-    coach.dataset.testid = "coach-message";
-    const mark = document.createElement("span");
-    mark.textContent = "C";
-    const body = document.createElement("div");
-    const strong = document.createElement("strong");
-    const message = document.createTextNode(` · ${state.coach.message} `);
-    const code = document.createElement("code");
-    strong.textContent = "CODEX COACH";
-    code.textContent = state.coach.suggestion;
-    body.append(strong, message, code);
-    coach.append(mark, body);
-    elements.traceOutput.append(coach);
-    eventCount += 1;
-  }
+  const trailingCoach = appendCoach();
+  if (!followTarget && trailingCoach) followTarget = trailingCoach;
 
   if (eventCount === 0) {
     const empty = document.createElement("div");
@@ -956,11 +963,13 @@ function renderTrace() {
   }
 
   elements.traceCount.textContent = `${eventCount} ${eventCount === 1 ? "event" : "events"}`;
+  if (followTarget) requestAnimationFrame(() => revealTraceTarget(followTarget));
 }
 
 function createTraceItem(entry, status, message) {
   const item = document.createElement("div");
   item.className = `trace-item is-${status}`;
+  item.dataset.line = String(entry.line);
   const index = document.createElement("span");
   const body = document.createElement("div");
   const title = document.createElement("b");
@@ -975,6 +984,31 @@ function createTraceItem(entry, status, message) {
   body.append(title, detail);
   item.append(index, body, stateLabel);
   return item;
+}
+
+function createCoachTrace(coachState) {
+  const coach = document.createElement("div");
+  coach.className = "coach-note";
+  coach.dataset.testid = "coach-message";
+  const mark = document.createElement("span");
+  mark.textContent = "C";
+  const body = document.createElement("div");
+  const strong = document.createElement("strong");
+  const message = document.createTextNode(` · ${coachState.message} `);
+  const code = document.createElement("code");
+  strong.textContent = "CODEX COACH";
+  code.textContent = coachState.suggestion;
+  body.append(strong, message, code);
+  coach.append(mark, body);
+  return coach;
+}
+
+function revealTraceTarget(target) {
+  if (!target?.isConnected) return;
+  const outputBounds = elements.traceOutput.getBoundingClientRect();
+  const targetBounds = target.getBoundingClientRect();
+  const targetTop = targetBounds.top - outputBounds.top + elements.traceOutput.scrollTop;
+  elements.traceOutput.scrollTop = Math.max(0, targetTop - 6);
 }
 
 function createErrorTrace(error) {
@@ -1073,11 +1107,57 @@ function visualWorldState() {
 
 function positionWorldLabels() {
   const blockage = renderer.project(4.1, 3.02, 1.05);
-  elements.blockageCallout.style.left = `${clamp(blockage.x + 12, 12, renderer.width - 135)}px`;
-  elements.blockageCallout.style.top = `${clamp(blockage.y - 32, 88, renderer.height - 80)}px`;
-  const bert = renderer.project(state.visual.bert.x, state.visual.bert.y, 1.28);
-  elements.bertTag.style.left = `${clamp(bert.x + 12, 10, renderer.width - 80)}px`;
-  elements.bertTag.style.top = `${clamp(bert.y - 18, 80, renderer.height - 60)}px`;
+  const presentation = renderer.presentationSnapshot();
+  const bertBounds = presentation?.bert?.screenBounds ?? null;
+  const paddedBert = bertBounds
+    ? {
+        left: bertBounds.left - 12,
+        top: bertBounds.top - 12,
+        right: bertBounds.right + 12,
+        bottom: bertBounds.bottom + 12,
+      }
+    : null;
+  const sign = renderer.project(IRRIGATION_SIGN.position.x, IRRIGATION_SIGN.position.y, 1.15);
+  const sceneExclusions = [
+    { left: 12, top: 12, right: Math.min(renderer.width * 0.48, 420), bottom: 172 },
+    { left: sign.x - 42, top: sign.y - 25, right: sign.x + 82, bottom: sign.y + 30 },
+    { left: 8, top: renderer.height - 58, right: renderer.width - 8, bottom: renderer.height - 6 },
+    ...(paddedBert ? [paddedBert] : []),
+  ];
+  const blockageWidth = elements.blockageCallout.offsetWidth || 132;
+  const blockageHeight = elements.blockageCallout.offsetHeight || 48;
+  const blockageCandidates = [
+    { left: blockage.x + 34, top: blockage.y - blockageHeight - 28 },
+    { left: blockage.x - blockageWidth - 34, top: blockage.y - blockageHeight - 28 },
+    { left: blockage.x + 38, top: blockage.y + 18 },
+    { left: blockage.x - blockageWidth - 38, top: blockage.y + 18 },
+  ].map((candidate, index) => ({
+    index,
+    left: clamp(candidate.left, 12, renderer.width - blockageWidth - 12),
+    top: clamp(candidate.top, 88, renderer.height - blockageHeight - 58),
+  }));
+  const scoredBlockage = blockageCandidates.map((candidate) => {
+    const rect = {
+      left: candidate.left,
+      top: candidate.top,
+      right: candidate.left + blockageWidth,
+      bottom: candidate.top + blockageHeight,
+    };
+    return {
+      ...candidate,
+      rect,
+      score: sceneExclusions.reduce((total, exclusion) => total + overlapArea(rect, exclusion), 0) + candidate.index * 12,
+    };
+  });
+  scoredBlockage.sort((a, b) => a.score - b.score);
+  const blockagePlacement = scoredBlockage[0];
+  elements.blockageCallout.style.left = `${blockagePlacement.left}px`;
+  elements.blockageCallout.style.top = `${blockagePlacement.top}px`;
+
+  const bert = renderer.getBertAnchor(state.visual.bert);
+  const bertTagWidth = elements.bertTag.offsetWidth || 104;
+  elements.bertTag.style.left = `${clamp(bert.x - bertTagWidth - 14, 10, renderer.width - bertTagWidth - 10)}px`;
+  elements.bertTag.style.top = `${clamp(bert.y - 8, 80, renderer.height - 60)}px`;
 
   if (!elements.bertSpeech.hidden) {
     const bubbleWidth = Math.min(elements.bertSpeech.offsetWidth || 236, 236);
@@ -1092,12 +1172,12 @@ function positionWorldLabels() {
       left: clamp(candidate.left, 12, renderer.width - bubbleWidth - 12),
       top: clamp(candidate.top, 90, renderer.height - bubbleHeight - 56),
     }));
-    const sign = renderer.project(IRRIGATION_SIGN.position.x, IRRIGATION_SIGN.position.y, 1.15);
     const exclusions = [
       { left: 12, top: 12, right: Math.min(renderer.width * 0.48, 420), bottom: 172 },
       { left: sign.x - 42, top: sign.y - 25, right: sign.x + 82, bottom: sign.y + 30 },
-      { left: blockage.x - 12, top: blockage.y - 45, right: blockage.x + 145, bottom: blockage.y + 34 },
+      blockagePlacement.rect,
       { left: 8, top: renderer.height - 58, right: renderer.width - 8, bottom: renderer.height - 6 },
+      ...(paddedBert ? [paddedBert] : []),
     ];
     const scored = candidates.map((candidate) => {
       const rect = {
@@ -1283,6 +1363,7 @@ function snapshotForAutomation() {
         },
       ],
     },
+    presentation: renderer.presentationSnapshot(),
     trace: state.lastTrace.map(({ line, phase, command, outcome, message }) => ({ line, phase, command, outcome, message })),
     verification: { ...state.verification },
     coach: state.coach ? { ...state.coach } : null,

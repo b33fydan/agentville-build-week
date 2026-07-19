@@ -7,10 +7,13 @@ playwright-report/
 test-results/
 artifacts/browser/
 artifacts/screenshots/*.png
+!artifacts/screenshots/agentville-build-week-welcome.png
 !artifacts/screenshots/agentville-build-week-hero.png
 !artifacts/screenshots/agentville-build-week-irrigation-cue-1280.png
 !artifacts/screenshots/agentville-build-week-observe-error-1280.png
 !artifacts/screenshots/agentville-build-week-observe-success-1280.png
+!artifacts/screenshots/agentville-build-week-bert-detail.png
+!artifacts/screenshots/agentville-build-week-bert-teaching.png
 !artifacts/screenshots/agentville-build-week-decide-aha-1280.png
 !artifacts/screenshots/agentville-build-week-grand-payoff-1280.png
 !artifacts/screenshots/agentville-build-week-compiler-error.png
@@ -18,6 +21,8 @@ artifacts/screenshots/*.png
 !artifacts/screenshots/agentville-build-week-receipt.png
 !artifacts/screenshots/agentville-build-week-debrief-1280.png
 !artifacts/screenshots/agentville-build-week-feedback.png
+!artifacts/screenshots/agentville-build-week-feedback-mobile-390.png
+!artifacts/screenshots/agentville-build-week-mobile-390.png
 !.gitkeep
 .env
 .env.*

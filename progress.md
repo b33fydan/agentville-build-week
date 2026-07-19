@@ -14,6 +14,20 @@ Original prompt: Build a clean-room hackathon project called AgentVille: Build W
 - Run the three genuine first-time sessions in `docs/PLAYTEST_PROTOCOL.md`.
 - Record the demo video and any separate event `/feedback` ID in the evidence ledger.
 
+## 2026-07-18 — Voxel Field Rig refinement (in progress)
+
+- Reframed the complete visual surface as an original **Voxel Field Rig**: a bright hand-built farm diorama mounted inside an angular spruce-and-metal game console.
+- Rebuilt the farm renderer with a stepped voxel sky, square sun and clouds, layered stone/soil foundations, stone-lined channel, fuller shed and reservoir, pump, bridge, crates, hay, rocks, flowers, richer trees, detailed crop beds, and a larger composition.
+- Rebuilt Bert as a depth-sorted humanoid voxel farmhand with separate boots, legs, torso, overalls, arms, hands, head, face, hair, straw hat, wrench, gait, thinking, repair, and verification poses.
+- Added renderer-derived presentation evidence to `render_game_to_text()`: actual voxel/prop counts, prop families, farm bounds, Bert anatomy, action, pose, and projected bounds.
+- Reworked the complete HUD, mission rail, world frame, Workbench, buttons, debrief, and feedback page into one square, beveled material system with larger learner text and 44px controls.
+- Found and fixed a welcome-only renderer lifecycle bug where a late canvas resize could clear the farm preview until Start was clicked.
+- Expanded the browser smoke from 214 to 266 assertions, including composited welcome visibility, tile-derived terrain elevations, farm containment/occupancy, actual rendered anatomy, geometry-derived Bert bounds, unobscured teaching poses, explicit clear/tool use, visible failure guidance, untruncated receipt values, panel framing, type/control floors, 1280 containment, and 390px game/feedback layouts.
+- Added raw 2× detail and composited teaching captures for Bert; visually inspected welcome, hero, Observe, Decide, failure, grand payoff, debrief, feedback, mobile, and both Bert evidence frames.
+- Closed three independent final-review findings by moving teaching overlays away from Bert, auto-following the failed Act line and Codex Coach, raising learner-critical text/targets, wrapping receipt evidence, strengthening desktop/mobile feedback and replay controls, and replacing hard-coded presentation claims with drawn evidence.
+- `COPYFILE_DISABLE=1 npm run smoke` passes the production `dist/` artifact with 28/28 Node tests, 266/266 browser assertions, and empty diagnostics.
+- TODO: commit the validated visual candidate, deploy it, and rerun the 266-assertion flow against the public Pages build.
+
 ## 2026-07-18 — Progressive teaching pass (in progress)
 
 - Began the learner-directed refinement that checks one instruction at a time and rewards Observe, Decide, and Act with deterministic Bert rehearsals before the complete program can run.

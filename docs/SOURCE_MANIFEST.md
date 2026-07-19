@@ -11,15 +11,15 @@
 | `src/compiler.js` | Non-executable prefix validator and four-line allowlisted compiler | Authored clean-room for this repository |
 | `src/mission.js` | Deterministic East Channel world transitions and proof | Authored clean-room for this repository |
 | `src/debrief.js` | Receipt-derived plain-language learning recap | Authored clean-room for this repository |
-| `src/world.js` | Procedural Canvas 2D isometric farm, Bert, water, crops, and debris | Authored clean-room for this repository |
-| `src/styles.css` | Field-manual visual system and responsive layout | Authored clean-room for this repository |
+| `src/world.js` | Layered procedural Canvas 2D farm, presentation evidence, humanoid Bert, water, crops, and props | Authored clean-room for this repository |
+| `src/styles.css` | Voxel Field Rig material system and responsive game layout | Authored clean-room for this repository |
 | `feedback/` | Local session-preserving feedback form and evidence export | Authored clean-room for this repository |
 
 ## Assets
 
-The shipped game has no external image, model, texture, font, audio, or video assets. Farm tiles, buildings, plants, channel, obstruction, particles, route, and Bert are rendered from Canvas 2D geometry and color values. Bert's question, lightbulb cue, agent-boundary note, and weather bulletin are local HTML/CSS text and shapes. The interface uses CSS and local font fallbacks already installed on the visitor's system.
+The shipped game has no external image, model, texture, font, audio, or video assets. The two-layer terrain, stepped sky and fields, channel stones, bridge, shed, waterworks, fences, crates, hay, rocks, flowers, trees, crops, obstruction, route, and Bert are rendered from Canvas 2D geometry and color values. Bert's humanoid anatomy, face, clothing, hat, tool, and poses are procedural drawing operations in `src/world.js`; the dedicated Bert PNG is validation evidence, not a runtime asset. Bert's question, lightbulb cue, agent-boundary note, and weather bulletin are local HTML/CSS text and shapes. The interface uses CSS and local font fallbacks already installed on the visitor's system.
 
-The small grain treatment is an inline procedural SVG turbulence filter authored in `src/styles.css`; it is not a copied bitmap.
+The small grain treatment and Voxel Field Rig grid are inline procedural CSS/SVG treatments authored in `src/styles.css`; neither is a copied bitmap.
 
 ## Development-only dependency
 

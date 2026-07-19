@@ -1,6 +1,6 @@
 # Five-minute Playtest Protocol
 
-**Version:** 2026-07-18 progressive lesson
+**Version:** 2026-07-18 progressive lesson + Voxel Field Rig
 
 **Purpose:** Collect honest Education-track evidence for manual acceptance M1 without coaching the solution.
 
@@ -17,12 +17,14 @@
 
 1. Ask: “Please finish this lesson. Think aloud if you are comfortable.”
 2. Observe whether the player notices the **IRRIGATION** sign and dry tomato beds before the UI names the obstruction.
-3. Record whether they enter `observe irrigation` before using **Hint this line**, whether Bert's walk/Aha helps them form Decide, and whether the lightbulb note clarifies what the learner controls.
-4. Record whether they understand that each accepted line is a rehearsal and that only **Run full program** can change the farm.
-5. After the first run, record whether they read verification before editing.
-6. Stop the timer when the PASS receipt becomes visible or at five minutes.
-7. Ask whether the Lesson 02 weather signal makes them want to continue; do not imply that Mission 01 failed.
-8. Open **Give feedback** and confirm the displayed session ID matches the receipt.
+3. Before Bert speaks, record whether the tester identifies him as a person/farmhand rather than an object, robot block, or UI marker; do not supply the answer.
+4. Record whether they enter `observe irrigation` before using **Hint this line**, whether Bert's walk/Aha helps them form Decide, and whether the lightbulb note clarifies what the learner controls.
+5. Record whether they understand that each accepted line is a rehearsal and that only **Run full program** can change the farm.
+6. After the first run, record whether they read verification before editing.
+7. Stop the timer when the PASS receipt becomes visible or at five minutes.
+8. Ask whether the interface felt like one game world or separate web panels, and whether any text or control was hard to read.
+9. Ask whether the Lesson 02 weather signal makes them want to continue; do not imply that Mission 01 failed.
+10. Open **Give feedback** and confirm the displayed session ID matches the receipt.
 
 ## Run 2 — Repair clarity
 
@@ -60,11 +62,14 @@ Save one consented record as `artifacts/evidence/playtest-YYYY-MM-DD-<tester-cod
   "secondsToFirstFailure": null,
   "secondsFailureToRepair": null,
   "noticedIrrigationSign": false,
+  "recognizedBertAsFarmhand": false,
+  "interfaceFeltLikeOneGame": false,
   "authoredObserveBeforeDraftHint": false,
   "usedDraftHint": false,
   "understoodRehearsalVsExecution": false,
   "explainedHumanAgentBoundary": false,
   "wantedLessonTwo": false,
+  "visualConfusions": [],
   "verbalCoachingGiven": false,
   "observations": [],
   "testerExplanationOfVerify": "",
