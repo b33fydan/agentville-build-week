@@ -22,7 +22,7 @@ A first-time player can open the game in a desktop browser and complete one dete
 
 | ID | Pass condition | Evidence target |
 | --- | --- | --- |
-| A1 | The production build opens in Chromium with no install, account, or API key. | **PASS** — 302/302 assertions against local production `dist/`; deployed predecessor independently passes 266/266 at the live Pages URL |
+| A1 | The production build opens in Chromium with no install, account, or API key. | **PASS** — 302/302 assertions against local production `dist/` and the live Pages URL |
 | A2 | **Start mission** loads the same layered farm and blocked East Channel on every reset. | Mission-state unit test + browser state hook |
 | A3 | The Workbench guides one player-authored instruction at a time in `observe`, `decide`, `act`, `verify` order, while still accepting a complete allowlisted four-line program. | Prefix/compiler tests + browser smoke |
 | A4 | Invalid syntax cannot mutate the farm and reports the offending line with a concrete repair suggestion. | Compiler sandbox tests + UI smoke |
@@ -51,10 +51,10 @@ A first-time player can open the game in a desktop browser and complete one dete
 | ID | Pass condition | Evidence target | Status |
 | --- | --- | --- | --- |
 | M1 | At least two of three first-time testers reach the receipt within five minutes without verbal coaching. | Dated playtest records in `artifacts/evidence/` | Pending genuine sessions |
-| M2 | The public deployment completes the same full mission in the declared judging browser. | [Live Pages URL](https://b33fydan.github.io/agentville-build-week/) + `npm run test:public` | **PASS for deployed predecessor** — Voxel Field Rig 266/266 on 2026-07-18; decision-model release pending publication |
+| M2 | The public deployment completes the same full mission in the declared judging browser. | [Live Pages URL](https://b33fydan.github.io/agentville-build-week/) + `npm run test:public` | **PASS** — decision-model release 302/302 on 2026-07-19 |
 | M3 | The demo video shows the symptom decision, generic Act execution, Verify failure, line-2 repair, world change, receipt, and feedback session continuity. | Timestamped Devpost evidence index | Pending video |
 
-The decision-model release passes 34/34 Node tests plus 302/302 browser assertions against production `dist/`, with empty diagnostics. The currently deployed Voxel Field Rig predecessor passes 266/266 against the public Pages origin. M1 and M3 remain visibly incomplete until genuine human and video evidence exists.
+The decision-model release passes 34/34 Node tests plus 302/302 browser assertions against both production `dist/` and the public Pages origin, with empty diagnostics. M1 and M3 remain visibly incomplete until genuine human and video evidence exists.
 
 ## Non-goals for this build
 

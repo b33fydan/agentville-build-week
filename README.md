@@ -142,7 +142,7 @@ The app also exposes two deterministic automation seams:
 
 The browser smoke rejects console/page errors, external requests, state/DOM disagreement, missing session continuity, and a false PASS. Machine-readable results are written to `artifacts/evidence/latest-smoke.json` for local production and `artifacts/evidence/latest-public-smoke.json` for the deployed build.
 
-The decision-model release passes 34/34 Node tests and 302/302 local production-dist browser assertions. The smoke covers the compiler-minted Decide→Act binding, rejection of forged decision results, real `when` evaluation, the already-satisfied no-action path for both decisions, the guided symptom choice, truthful Verify failure, line-2 repair, unchanged generic Act, final receipt, debrief, feedback continuity, reset, and responsive layouts. At 1280×720 it also proves that all four editor lines fit and that the failed Verify plus Coach are simultaneously visible. Its console, page, network, response, and dialog diagnostics are empty. The currently deployed predecessor remains independently proven at 266/266 public assertions while this release is published.
+The decision-model release passes 34/34 Node tests and 302/302 browser assertions against both local production `dist/` and the public Pages build. The smoke covers the compiler-minted Decide→Act binding, rejection of forged decision results, real `when` evaluation, the already-satisfied no-action path for both decisions, the guided symptom choice, truthful Verify failure, line-2 repair, unchanged generic Act, final receipt, debrief, feedback continuity, reset, and responsive layouts. At 1280×720 it also proves that all four editor lines fit and that the failed Verify plus Coach are simultaneously visible. Its console, page, network, response, and dialog diagnostics are empty.
 
 ## Production build and deployment
 
@@ -153,7 +153,7 @@ node scripts/serve.mjs --root=dist --port=4173
 
 `dist/` is a static site. The canonical deployment is [GitHub Pages](https://b33fydan.github.io/agentville-build-week/), published from `main` by `.github/workflows/pages.yml`. Each push installs Chromium, runs `npm run smoke`, uploads `dist/`, and deploys only after validation passes. The first successful deployment was [Actions run 29554682024](https://github.com/b33fydan/agentville-build-week/actions/runs/29554682024) at commit `cb57621` on 2026-07-17.
 
-The live root and `/feedback/` route return HTTP 200. The current public predecessor, the Voxel Field Rig, deployed successfully in [Actions run 29670780954](https://github.com/b33fydan/agentville-build-week/actions/runs/29670780954) at commit `c8ab4db` on 2026-07-18, then `npm run test:public` completed all 266 browser assertions with empty diagnostics. The decision-model release is locally proven at 302/302 and will replace this predecessor after its deployment gate passes. `vercel.json` and `netlify.toml` remain valid alternate-host declarations. No deployment path requires a server function or application secret.
+The live root and `/feedback/` route return HTTP 200. The Decide-selects/Act-executes release deployed successfully in [Actions run 29690596219](https://github.com/b33fydan/agentville-build-week/actions/runs/29690596219) at commit `7f04f10` on 2026-07-19; `npm run test:public` then completed all 302 browser assertions with empty diagnostics. `vercel.json` and `netlify.toml` remain valid alternate-host declarations. No deployment path requires a server function or application secret.
 
 ## Submission evidence
 

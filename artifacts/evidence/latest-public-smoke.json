@@ -2,9 +2,9 @@
   "schema": "agentville.browser-smoke.v1",
   "status": "PASS",
   "invocation": "smoke",
-  "startedAt": "2026-07-19T02:51:26.175Z",
-  "finishedAt": "2026-07-19T02:51:56.708Z",
-  "durationMs": 30533,
+  "startedAt": "2026-07-19T14:21:50.866Z",
+  "finishedAt": "2026-07-19T14:22:22.878Z",
+  "durationMs": 32012,
   "target": "public",
   "baseUrl": "https://b33fydan.github.io/agentville-build-week/",
   "browser": {
@@ -966,8 +966,8 @@
       "name": "Observe and Decide remain accepted in order",
       "passed": true,
       "details": {
-        "actual": "observe irrigation,decide if irrigation is blocked",
-        "expected": "observe irrigation,decide if irrigation is blocked"
+        "actual": "observe irrigation,decide water tomatoes when dry",
+        "expected": "observe irrigation,decide water tomatoes when dry"
       }
     },
     {
@@ -979,12 +979,17 @@
       }
     },
     {
-      "name": "Decide names the blockage evidence",
+      "name": "Decide keeps the discovered evidence visible",
       "passed": true,
       "details": {
         "actual": 2,
         "expected": 2
       }
+    },
+    {
+      "name": "Decide visibly records the symptom response",
+      "passed": true,
+      "details": {}
     },
     {
       "name": "decision teaching boundary becomes visible",
@@ -1049,7 +1054,7 @@
           "top": 127
         },
         "bubble": {
-          "bottom": 300.875,
+          "bottom": 316.75,
           "left": 498.484375,
           "right": 750.484375,
           "top": 240.875
@@ -1077,7 +1082,7 @@
           "top": 127
         },
         "bubble": {
-          "bottom": 300.875,
+          "bottom": 316.75,
           "left": 498.484375,
           "right": 750.484375,
           "top": 240.875
@@ -1105,7 +1110,7 @@
           "top": 127
         },
         "bubble": {
-          "bottom": 300.875,
+          "bottom": 316.75,
           "left": 498.484375,
           "right": 750.484375,
           "top": 240.875
@@ -1158,11 +1163,11 @@
       }
     },
     {
-      "name": "Act becomes the third accepted command",
+      "name": "Act becomes the shared execution command",
       "passed": true,
       "details": {
-        "actual": "act water tomatoes",
-        "expected": "act water tomatoes"
+        "actual": "act chosen repair",
+        "expected": "act chosen repair"
       }
     },
     {
@@ -1198,6 +1203,53 @@
       }
     },
     {
+      "name": "edited accepted Decide exposes render_game_to_text",
+      "passed": true,
+      "details": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "editing accepted Decide rewinds later lesson steps",
+      "passed": true,
+      "details": {
+        "actual": 1,
+        "expected": 1
+      }
+    },
+    {
+      "name": "editing accepted Decide returns focus to line 2",
+      "passed": true,
+      "details": {
+        "actual": "decide",
+        "expected": "decide"
+      }
+    },
+    {
+      "name": "editing accepted Decide hides the prior concept reward",
+      "passed": true,
+      "details": {
+        "actual": false,
+        "expected": false
+      }
+    },
+    {
+      "name": "editing accepted Decide cannot preserve a plan",
+      "passed": true,
+      "details": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "name": "editing accepted Decide leaves the farm unchanged",
+      "passed": true,
+      "details": {
+        "actual": "east-channel-v1:B1:W0:C0",
+        "expected": "east-channel-v1:B1:W0:C0"
+      }
+    },
+    {
       "name": "compiled water draft exposes render_game_to_text",
       "passed": true,
       "details": {
@@ -1218,6 +1270,30 @@
       "details": {
         "actual": 4,
         "expected": 4
+      }
+    },
+    {
+      "name": "compiled draft binds the line-2 decision",
+      "passed": true,
+      "details": {
+        "actual": "decide water tomatoes when dry",
+        "expected": "decide water tomatoes when dry"
+      }
+    },
+    {
+      "name": "compiled draft binds the selected response",
+      "passed": true,
+      "details": {
+        "actual": "water tomatoes",
+        "expected": "water tomatoes"
+      }
+    },
+    {
+      "name": "compiled Act remains the generic executor",
+      "passed": true,
+      "details": {
+        "actual": "act chosen repair",
+        "expected": "act chosen repair"
       }
     },
     {
@@ -1371,31 +1447,87 @@
       }
     },
     {
-      "name": "failure coach focuses line 3",
+      "name": "failure trace records the symptom decision",
       "passed": true,
       "details": {
-        "actual": 3,
-        "expected": 3
+        "actual": "water tomatoes",
+        "expected": "water tomatoes"
       }
     },
     {
-      "name": "failure coach recommends the allowlisted repair",
+      "name": "generic Act executes the symptom decision",
       "passed": true,
       "details": {
-        "actual": "act clear blockage",
-        "expected": "act clear blockage"
+        "actual": "water tomatoes",
+        "expected": "water tomatoes"
       }
     },
     {
-      "name": "failure returns the lesson to Act repair",
+      "name": "Verify owns the failed verdict",
       "passed": true,
       "details": {
-        "actual": "act",
-        "expected": "act"
+        "actual": "FAIL",
+        "expected": "FAIL"
       }
     },
     {
-      "name": "Bert explains that line 3 could not cross the debris",
+      "name": "failure receipt preserves the wrong decision",
+      "passed": true,
+      "details": {
+        "actual": "decide water tomatoes when dry",
+        "expected": "decide water tomatoes when dry"
+      }
+    },
+    {
+      "name": "failure receipt preserves the generic Act command",
+      "passed": true,
+      "details": {
+        "actual": "act chosen repair",
+        "expected": "act chosen repair"
+      }
+    },
+    {
+      "name": "failure receipt records the executed symptom response",
+      "passed": true,
+      "details": {
+        "actual": "water tomatoes",
+        "expected": "water tomatoes"
+      }
+    },
+    {
+      "name": "failure coach focuses line 2",
+      "passed": true,
+      "details": {
+        "actual": 2,
+        "expected": 2
+      }
+    },
+    {
+      "name": "failure coach renders after Verify",
+      "passed": true,
+      "details": {
+        "actual": 4,
+        "expected": 4
+      }
+    },
+    {
+      "name": "failure coach recommends the allowlisted decision repair",
+      "passed": true,
+      "details": {
+        "actual": "decide clear blockage when blocked",
+        "expected": "decide clear blockage when blocked"
+      }
+    },
+    {
+      "name": "failure returns the lesson to Decide repair",
+      "passed": true,
+      "details": {
+        "actual": "decide",
+        "expected": "decide"
+      }
+    },
+    {
+      "name": "Bert explains that the chosen response failed",
       "passed": true,
       "details": {}
     },
@@ -1405,51 +1537,134 @@
       "details": {}
     },
     {
-      "name": "failure trace auto-follows the failed Act line",
+      "name": "Act is visibly labeled NO CHANGE rather than FAIL",
       "passed": true,
       "details": {
-        "coachVisibleRatio": 1,
-        "detailFontSize": 12,
-        "failedVisibleRatio": 1,
-        "scrollHeight": 258,
-        "scrollTop": 96,
-        "viewportHeight": 111
+        "actual": "NO CHANGE",
+        "expected": "NO CHANGE"
       }
     },
     {
-      "name": "failed Act evidence is inside the visible trace viewport",
+      "name": "Verify is the only trace row carrying the FAIL verdict",
       "passed": true,
       "details": {
+        "actual": 1,
+        "expected": 1
+      }
+    },
+    {
+      "name": "failure trace marks line 2 as the coached cause",
+      "passed": true,
+      "details": {
+        "causeMarked": true,
         "coachVisibleRatio": 1,
-        "detailFontSize": 12,
+        "detailFontSize": 10,
         "failedVisibleRatio": 1,
-        "scrollHeight": 258,
-        "scrollTop": 96,
-        "viewportHeight": 111
+        "scrollHeight": 200,
+        "scrollTop": 76,
+        "viewportHeight": 124
+      }
+    },
+    {
+      "name": "failure trace auto-follows Verify and Coach",
+      "passed": true,
+      "details": {
+        "causeMarked": true,
+        "coachVisibleRatio": 1,
+        "detailFontSize": 10,
+        "failedVisibleRatio": 1,
+        "scrollHeight": 200,
+        "scrollTop": 76,
+        "viewportHeight": 124
+      }
+    },
+    {
+      "name": "failed Verify evidence is inside the visible trace viewport",
+      "passed": true,
+      "details": {
+        "causeMarked": true,
+        "coachVisibleRatio": 1,
+        "detailFontSize": 10,
+        "failedVisibleRatio": 1,
+        "scrollHeight": 200,
+        "scrollTop": 76,
+        "viewportHeight": 124
       }
     },
     {
       "name": "Codex Coach repair guidance is inside the visible trace viewport",
       "passed": true,
       "details": {
+        "causeMarked": true,
         "coachVisibleRatio": 1,
-        "detailFontSize": 12,
+        "detailFontSize": 10,
         "failedVisibleRatio": 1,
-        "scrollHeight": 258,
-        "scrollTop": 96,
-        "viewportHeight": 111
+        "scrollHeight": 200,
+        "scrollTop": 76,
+        "viewportHeight": 124
       }
     },
     {
-      "name": "failure trace guidance remains at least 12px",
+      "name": "failure trace guidance remains at least 10px",
       "passed": true,
       "details": {
+        "causeMarked": true,
         "coachVisibleRatio": 1,
-        "detailFontSize": 12,
+        "detailFontSize": 10,
         "failedVisibleRatio": 1,
-        "scrollHeight": 258,
-        "scrollTop": 96,
-        "viewportHeight": 111
+        "scrollHeight": 200,
+        "scrollTop": 76,
+        "viewportHeight": 124
+      }
+    },
+    {
+      "name": "four-line editor stays inside its allocated area at 1280x720",
+      "passed": true,
+      "details": {
+        "allSourceVisible": true,
+        "area": {
+          "bottom": 465.15625,
+          "height": 107.65625,
+          "top": 357.5
+        },
+        "editor": {
+          "bottom": 465.15625,
+          "clientHeight": 108,
+          "height": 107.65625,
+          "scrollHeight": 108,
+          "top": 357.5
+        },
+        "editorInsideArea": true,
+        "helpDisplay": "none"
+      }
+    },
+    {
+      "name": "all four program lines fit without editor scrolling at 1280x720",
+      "passed": true,
+      "details": {
+        "allSourceVisible": true,
+        "area": {
+          "bottom": 465.15625,
+          "height": 107.65625,
+          "top": 357.5
+        },
+        "editor": {
+          "bottom": 465.15625,
+          "clientHeight": 108,
+          "height": 107.65625,
+          "scrollHeight": 108,
+          "top": 357.5
+        },
+        "editorInsideArea": true,
+        "helpDisplay": "none"
+      }
+    },
+    {
+      "name": "redundant editor help collapses for a complete compact program",
+      "passed": true,
+      "details": {
+        "actual": "none",
+        "expected": "none"
       }
     },
     {
@@ -1468,11 +1683,27 @@
       }
     },
     {
-      "name": "repair changes only the action command",
+      "name": "repair changes only the decision command",
       "passed": true,
       "details": {
-        "actual": "act clear blockage",
-        "expected": "act clear blockage"
+        "actual": "decide clear blockage when blocked",
+        "expected": "decide clear blockage when blocked"
+      }
+    },
+    {
+      "name": "repair preserves the generic Act command",
+      "passed": true,
+      "details": {
+        "actual": "act chosen repair",
+        "expected": "act chosen repair"
+      }
+    },
+    {
+      "name": "repair binding selects blockage removal",
+      "passed": true,
+      "details": {
+        "actual": "clear blockage",
+        "expected": "clear blockage"
       }
     },
     {
@@ -1481,6 +1712,22 @@
       "details": {
         "actual": "east-channel-v1:B1:W0:C0",
         "expected": "east-channel-v1:B1:W0:C0"
+      }
+    },
+    {
+      "name": "repair compile cannot increment world revision",
+      "passed": true,
+      "details": {
+        "actual": 1,
+        "expected": 1
+      }
+    },
+    {
+      "name": "repair compile cannot issue a passing receipt",
+      "passed": true,
+      "details": {
+        "actual": null,
+        "expected": null
       }
     },
     {
@@ -1540,8 +1787,8 @@
       "name": "repair recompiles after the stale-plan guard",
       "passed": true,
       "details": {
-        "actual": "act clear blockage",
-        "expected": "act clear blockage"
+        "actual": "decide clear blockage when blocked",
+        "expected": "decide clear blockage when blocked"
       }
     },
     {
@@ -1565,6 +1812,14 @@
       "details": {
         "actual": "clear",
         "expected": "clear"
+      }
+    },
+    {
+      "name": "active generic Act executes blockage removal",
+      "passed": true,
+      "details": {
+        "actual": "clear blockage",
+        "expected": "clear blockage"
       }
     },
     {
@@ -1747,11 +2002,35 @@
       }
     },
     {
-      "name": "receipt records the repair action",
+      "name": "receipt records the repaired decision",
       "passed": true,
       "details": {
-        "actual": "act clear blockage",
-        "expected": "act clear blockage"
+        "actual": "decide clear blockage when blocked",
+        "expected": "decide clear blockage when blocked"
+      }
+    },
+    {
+      "name": "receipt records the selected response",
+      "passed": true,
+      "details": {
+        "actual": "clear blockage",
+        "expected": "clear blockage"
+      }
+    },
+    {
+      "name": "receipt preserves the generic Act instruction",
+      "passed": true,
+      "details": {
+        "actual": "act chosen repair",
+        "expected": "act chosen repair"
+      }
+    },
+    {
+      "name": "receipt records the executed repair",
+      "passed": true,
+      "details": {
+        "actual": "clear blockage",
+        "expected": "clear blockage"
       }
     },
     {
@@ -1808,8 +2087,8 @@
       "name": "learning recap names the learner accomplishment",
       "passed": true,
       "details": {
-        "actual": "You fixed the cause—and proved it.",
-        "expected": "You fixed the cause—and proved it."
+        "actual": "You changed the decision—and fixed the cause.",
+        "expected": "You changed the decision—and fixed the cause."
       }
     },
     {
@@ -1821,11 +2100,19 @@
       }
     },
     {
-      "name": "learning recap explains the repaired action",
+      "name": "learning recap explains the repaired decision",
       "passed": true,
       "details": {
-        "actual": "act clear blockage",
-        "expected": "act clear blockage"
+        "actual": "decide clear blockage when blocked",
+        "expected": "decide clear blockage when blocked"
+      }
+    },
+    {
+      "name": "learning recap preserves the generic Act instruction",
+      "passed": true,
+      "details": {
+        "actual": "act chosen repair",
+        "expected": "act chosen repair"
       }
     },
     {
@@ -1848,24 +2135,24 @@
       "name": "learning recap identifies the changed line",
       "passed": true,
       "details": {
-        "actual": 3,
-        "expected": 3
+        "actual": 2,
+        "expected": 2
       }
     },
     {
-      "name": "learning recap preserves the failed action",
+      "name": "learning recap preserves the failed decision",
       "passed": true,
       "details": {
-        "actual": "act water tomatoes",
-        "expected": "act water tomatoes"
+        "actual": "decide water tomatoes when dry",
+        "expected": "decide water tomatoes when dry"
       }
     },
     {
-      "name": "learning recap preserves the repaired action",
+      "name": "learning recap preserves the repaired decision",
       "passed": true,
       "details": {
-        "actual": "act clear blockage",
-        "expected": "act clear blockage"
+        "actual": "decide clear blockage when blocked",
+        "expected": "decide clear blockage when blocked"
       }
     },
     {
@@ -1931,6 +2218,38 @@
       }
     },
     {
+      "name": "visible debrief Decide command matches text state",
+      "passed": true,
+      "details": {
+        "actual": "decide clear blockage when blocked",
+        "expected": "decide clear blockage when blocked"
+      }
+    },
+    {
+      "name": "visible debrief Act command matches text state",
+      "passed": true,
+      "details": {
+        "actual": "act chosen repair",
+        "expected": "act chosen repair"
+      }
+    },
+    {
+      "name": "visible debrief title matches text state",
+      "passed": true,
+      "details": {
+        "actual": "You changed the decision—and fixed the cause.",
+        "expected": "You changed the decision—and fixed the cause."
+      }
+    },
+    {
+      "name": "visible receipt action matches executed response and causal line",
+      "passed": true,
+      "details": {
+        "actual": "clear blockage · selected on line 2",
+        "expected": "clear blockage · selected on line 2"
+      }
+    },
+    {
       "name": "feedback link stays on the game origin",
       "passed": true,
       "details": {
@@ -1971,35 +2290,35 @@
           "width": 1280
         },
         "tile": {
-          "bottom": 582.5390625,
-          "height": 445.078125,
+          "bottom": 592.5,
+          "height": 465,
           "left": 50,
           "right": 1230,
-          "top": 137.4609375,
+          "top": 127.5,
           "width": 1180
         },
         "recap": {
-          "bottom": 420.5390625,
+          "bottom": 430.5,
           "height": 180,
           "left": 67,
           "right": 1213,
-          "top": 240.5390625,
+          "top": 250.5,
           "width": 1146
         },
         "lessonAlert": {
-          "bottom": 505.5390625,
+          "bottom": 515.5,
           "height": 76,
           "left": 67,
           "right": 1213,
-          "top": 429.5390625,
+          "top": 439.5,
           "width": 1146
         },
         "actions": {
-          "bottom": 567.5390625,
+          "bottom": 577.5,
           "height": 44,
           "left": 882.6875,
           "right": 1213,
-          "top": 523.5390625,
+          "top": 533.5,
           "width": 330.3125
         },
         "tileOverflow": {
@@ -2032,11 +2351,11 @@
             "text": "East Channel blocked · 3 beds dry"
           },
           {
-            "clientHeight": 12,
+            "clientHeight": 23,
             "clientWidth": 185,
-            "scrollHeight": 12,
+            "scrollHeight": 23,
             "scrollWidth": 185,
-            "text": "act clear blockage"
+            "text": "clear blockage · selected on line 2"
           },
           {
             "clientHeight": 23,
@@ -2069,19 +2388,19 @@
       "passed": true,
       "details": {
         "recap": {
-          "bottom": 420.5390625,
+          "bottom": 430.5,
           "height": 180,
           "left": 67,
           "right": 1213,
-          "top": 240.5390625,
+          "top": 250.5,
           "width": 1146
         },
         "actions": {
-          "bottom": 567.5390625,
+          "bottom": 577.5,
           "height": 44,
           "left": 882.6875,
           "right": 1213,
-          "top": 523.5390625,
+          "top": 533.5,
           "width": 330.3125
         }
       }
@@ -2095,35 +2414,35 @@
           "width": 1280
         },
         "tile": {
-          "bottom": 582.5390625,
-          "height": 445.078125,
+          "bottom": 592.5,
+          "height": 465,
           "left": 50,
           "right": 1230,
-          "top": 137.4609375,
+          "top": 127.5,
           "width": 1180
         },
         "recap": {
-          "bottom": 420.5390625,
+          "bottom": 430.5,
           "height": 180,
           "left": 67,
           "right": 1213,
-          "top": 240.5390625,
+          "top": 250.5,
           "width": 1146
         },
         "lessonAlert": {
-          "bottom": 505.5390625,
+          "bottom": 515.5,
           "height": 76,
           "left": 67,
           "right": 1213,
-          "top": 429.5390625,
+          "top": 439.5,
           "width": 1146
         },
         "actions": {
-          "bottom": 567.5390625,
+          "bottom": 577.5,
           "height": 44,
           "left": 882.6875,
           "right": 1213,
-          "top": 523.5390625,
+          "top": 533.5,
           "width": 330.3125
         },
         "tileOverflow": {
@@ -2156,11 +2475,11 @@
             "text": "East Channel blocked · 3 beds dry"
           },
           {
-            "clientHeight": 12,
+            "clientHeight": 23,
             "clientWidth": 185,
-            "scrollHeight": 12,
+            "scrollHeight": 23,
             "scrollWidth": 185,
-            "text": "act clear blockage"
+            "text": "clear blockage · selected on line 2"
           },
           {
             "clientHeight": 23,
@@ -2209,11 +2528,11 @@
           "text": "East Channel blocked · 3 beds dry"
         },
         {
-          "clientHeight": 12,
+          "clientHeight": 23,
           "clientWidth": 185,
-          "scrollHeight": 12,
+          "scrollHeight": 23,
           "scrollWidth": 185,
-          "text": "act clear blockage"
+          "text": "clear blockage · selected on line 2"
         },
         {
           "clientHeight": 23,
@@ -2326,7 +2645,7 @@
       "name": "feedback export produces a local download",
       "passed": true,
       "details": {
-        "downloadedPath": "/var/folders/2x/zw6qlh_d6_x5r_p8cf1g3xww0000gn/T/playwright-artifacts-CyF2ds/2e903f8b-841b-474f-88c4-94fb26a8538f"
+        "downloadedPath": "/var/folders/2x/zw6qlh_d6_x5r_p8cf1g3xww0000gn/T/playwright-artifacts-qR5s77/d42fb034-b61d-46b1-b63b-37a0d9c9f81c"
       }
     },
     {
@@ -2850,7 +3169,7 @@
       "eastChannel": "blocked",
       "tomatoBedsWatered": 0,
       "verification": "FAIL",
-      "coachLine": 3,
+      "coachLine": 2,
       "receiptVerdict": null
     },
     "success": {

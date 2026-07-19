@@ -31,7 +31,7 @@
 
 | Criterion | Artifact or command | Status |
 | --- | --- | --- |
-| A1 | Production Chromium smoke plus `npm run test:public` against [GitHub Pages](https://b33fydan.github.io/agentville-build-week/) | PASS — decision-model release 302/302 locally; deployed Voxel Field Rig predecessor 266/266 publicly |
+| A1 | Production Chromium smoke plus `npm run test:public` against [GitHub Pages](https://b33fydan.github.io/agentville-build-week/) | PASS — decision-model release 302/302 locally and publicly |
 | A2–A23 | `npm run smoke` decision-model release | PASS — 34/34 Node tests + 302/302 production-dist browser assertions |
 | Welcome frame | `artifacts/screenshots/agentville-build-week-welcome.png` | Captured and inspected; composited edge luminance/color proof confirms the layered farm remains visible before Start |
 | Hero frame | `artifacts/screenshots/agentville-build-week-hero.png` | Captured and inspected; larger layered farm, block-built HUD, humanoid Bert |
@@ -50,10 +50,10 @@
 | Mobile Workbench | `artifacts/screenshots/agentville-build-week-mobile-390.png` | Captured and inspected at 390×844; two-column language slots, 44px actions, no horizontal overflow |
 | Mobile feedback | `artifacts/screenshots/agentville-build-week-feedback-mobile-390.png` | Captured and inspected at 390×844; rating captions remain visible and rating/consent targets meet 44px |
 | Local machine evidence | `artifacts/evidence/latest-smoke.json` | PASS against production `dist/`, 302/302; diagnostics empty |
-| Public mission smoke | `artifacts/evidence/latest-public-smoke.json` via `npm run test:public` | PASS — 266/266; console, page, request, response, and dialog diagnostics empty |
+| Public mission smoke | `artifacts/evidence/latest-public-smoke.json` via `npm run test:public` | PASS — 302/302; console, page, request, response, dialog, and runner diagnostics empty |
 | Human evidence | `artifacts/evidence/playtest-YYYY-MM-DD-<tester>.json` | Pending genuine sessions |
 | Source evidence | [github.com/b33fydan/agentville-build-week](https://github.com/b33fydan/agentville-build-week) | PUBLIC repository; first deployed commit `cb57621` |
-| Deployment evidence | [b33fydan.github.io/agentville-build-week](https://b33fydan.github.io/agentville-build-week/) | PASS for current predecessor — HTTP 200; Voxel Field Rig [Actions run 29670780954](https://github.com/b33fydan/agentville-build-week/actions/runs/29670780954) succeeded at `c8ab4db` on 2026-07-18; decision-model release pending publication |
+| Deployment evidence | [b33fydan.github.io/agentville-build-week](https://b33fydan.github.io/agentville-build-week/) | PASS — root and `/feedback/` HTTP 200; decision-model [Actions run 29690596219](https://github.com/b33fydan/agentville-build-week/actions/runs/29690596219) succeeded at `7f04f10` on 2026-07-19 |
 
 ## Deployment snapshot
 
@@ -66,8 +66,9 @@
 - **Latest predecessor proof deployment:** Actions run `29621632492` at commit `5290b08`
 - **Progressive lesson deployment:** Actions run `29650610214` at commit `1c6c9eb`
 - **Voxel Field Rig deployment:** Actions run `29670780954` at commit `c8ab4db`
-- **Decision-model local verification:** 34/34 Node tests plus 302/302 production-dist browser assertions and empty diagnostics
-- **Public verification:** current predecessor HTTP 200 plus `npm run test:public` with 266/266 browser assertions and empty diagnostics; decision-model release pending publication
+- **Decision-model deployment:** Actions run `29690596219` at commit `7f04f10`
+- **Decision-model verification:** 34/34 Node tests plus 302/302 browser assertions against production `dist/` and the public Pages origin, with empty diagnostics
+- **Public verification:** root and `/feedback/` HTTP 200 plus `npm run test:public` with 302/302 browser assertions and empty diagnostics
 - **Still pending:** three genuine playtests, demo video URL, and any separate Build Week `/feedback` ID
 
 ## `/feedback` continuity contract
