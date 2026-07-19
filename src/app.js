@@ -1000,7 +1000,14 @@ function renderTrace() {
   }
 
   elements.traceCount.textContent = `${eventCount} ${eventCount === 1 ? "event" : "events"}`;
-  if (followTarget) requestAnimationFrame(() => revealTraceTarget(followTarget));
+  if (followTarget) {
+    const alignTrace = () => revealTraceTarget(followTarget);
+    requestAnimationFrame(() => {
+      alignTrace();
+      requestAnimationFrame(alignTrace);
+    });
+    document.fonts?.ready.then(alignTrace);
+  }
 }
 
 function createTraceItem(entry, status, message) {

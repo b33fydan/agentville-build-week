@@ -94,9 +94,12 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
 
   const check = (name, condition, details = {}) => {
     const passed = Boolean(condition);
-    assertions.push({ name, passed, details: jsonSafe(details) });
+    const safeDetails = jsonSafe(details);
+    assertions.push({ name, passed, details: safeDetails });
     if (!passed) {
-      const error = new Error(`Smoke assertion failed: ${name}`);
+      const error = new Error(
+        `Smoke assertion failed: ${name} · ${JSON.stringify(safeDetails)}`,
+      );
       error.isSmokeAssertion = true;
       throw error;
     }

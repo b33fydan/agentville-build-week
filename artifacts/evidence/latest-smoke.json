@@ -2,11 +2,11 @@
   "schema": "agentville.browser-smoke.v1",
   "status": "PASS",
   "invocation": "smoke",
-  "startedAt": "2026-07-19T14:12:36.565Z",
-  "finishedAt": "2026-07-19T14:13:08.445Z",
-  "durationMs": 31880,
+  "startedAt": "2026-07-19T14:17:44.984Z",
+  "finishedAt": "2026-07-19T14:18:17.034Z",
+  "durationMs": 32050,
   "target": "dist",
-  "baseUrl": "http://127.0.0.1:56827",
+  "baseUrl": "http://127.0.0.1:57074",
   "browser": {
     "engine": "chromium",
     "headless": true,
@@ -2252,8 +2252,8 @@
       "name": "feedback link stays on the game origin",
       "passed": true,
       "details": {
-        "actual": "http://127.0.0.1:56827",
-        "expected": "http://127.0.0.1:56827"
+        "actual": "http://127.0.0.1:57074",
+        "expected": "http://127.0.0.1:57074"
       }
     },
     {
@@ -2276,8 +2276,8 @@
       "name": "visible Give feedback href matches state",
       "passed": true,
       "details": {
-        "actual": "http://127.0.0.1:56827/feedback/?session_id=AVBW-TEST-0001",
-        "expected": "http://127.0.0.1:56827/feedback/?session_id=AVBW-TEST-0001"
+        "actual": "http://127.0.0.1:57074/feedback/?session_id=AVBW-TEST-0001",
+        "expected": "http://127.0.0.1:57074/feedback/?session_id=AVBW-TEST-0001"
       }
     },
     {
@@ -2644,7 +2644,7 @@
       "name": "feedback export produces a local download",
       "passed": true,
       "details": {
-        "downloadedPath": "/var/folders/2x/zw6qlh_d6_x5r_p8cf1g3xww0000gn/T/playwright-artifacts-2hGsbF/8c3a416c-181d-4aa4-bdc3-d9436e719e3b"
+        "downloadedPath": "/var/folders/2x/zw6qlh_d6_x5r_p8cf1g3xww0000gn/T/playwright-artifacts-ddkXLL/ce5016e1-8300-46e4-beb2-555c892157c7"
       }
     },
     {
@@ -3236,7 +3236,7 @@
     "server": {
       "root": "/Volumes/beefybackup/agentville-build-week/dist",
       "stderr": "",
-      "stdout": "AgentVille running at http://127.0.0.1:56827"
+      "stdout": "AgentVille running at http://127.0.0.1:57074"
     }
   }
 }
