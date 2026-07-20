@@ -126,7 +126,7 @@ function resolveDecision(step, binding, snapshot) {
     binding.condition !== canonical.condition ||
     binding.selectedAction !== canonical.selectedAction ||
     binding.actLine !== 3 ||
-    binding.actCommand !== "act chosen repair"
+    binding.actCommand !== "act on the decision"
   ) {
     throw new TypeError("Mission decision does not match its compiled binding.");
   }
@@ -151,7 +151,7 @@ function assertDecisionResult(decision, binding) {
     binding.decisionCommand !== decision.command ||
     binding.condition !== canonical.condition ||
     binding.selectedAction !== canonical.selectedAction ||
-    binding.actCommand !== "act chosen repair" ||
+    binding.actCommand !== "act on the decision" ||
     decision.condition !== canonical.condition ||
     typeof decision.conditionMet !== "boolean" ||
     decision.selectedAction !==

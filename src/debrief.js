@@ -1,11 +1,11 @@
 import { DECISION_BINDINGS } from "./compiler.js";
 
 const COMMANDS = Object.freeze({
-  observe: "observe irrigation",
-  symptomDecision: "decide water tomatoes when dry",
-  causeDecision: "decide clear blockage when blocked",
-  act: "act chosen repair",
-  verify: "verify tomatoes are watered",
+  observe: "observe the east channel",
+  symptomDecision: "decide water the tomatoes when the beds are dry",
+  causeDecision: "decide clear the blockage when the water is blocked",
+  act: "act on the decision",
+  verify: "verify every tomato bed is watered",
 });
 
 export function createLearningRecap(receipt, { failedReceipt = null } = {}) {

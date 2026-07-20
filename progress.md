@@ -92,7 +92,7 @@ Original prompt: Build a clean-room hackathon project called AgentVille: Build W
 ## 2026-07-19 — Decision semantics refinement
 
 - Reframed line 2 as a real bounded choice: the guided draft selects direct watering for dry tomatoes, while the repair selects blockage removal when irrigation is blocked.
-- Reframed line 3 as the shared `act chosen repair` executor so Act carries out the response chosen by Decide instead of choosing again.
+- Reframed line 3 as the shared `act on the decision` executor so Act carries out the response chosen by Decide instead of choosing again.
 - Bumped the safe-plan version, added a compiler-minted immutable decision binding, evaluated each `when` condition against authoritative world state, and made the simulator branch only on the frozen Decide result.
 - Expanded the receipt to distinguish the decision command, selected action, generic Act instruction, and executed action.
 - Moved the truthful learner recap to a line-2 repair derived from matching FAIL and PASS receipts rather than a boolean alone.
@@ -115,3 +115,11 @@ Original prompt: Build a clean-room hackathon project called AgentVille: Build W
 - Ran the provided generic web-game Playwright client against production `dist/`, inspected its canvas/state output, then completed the full mission smoke.
 - `COPYFILE_DISABLE=1 npm run smoke` passes 34/34 Node tests and 304/304 production-dist browser assertions with empty console, page, network, response, dialog, and runner diagnostics.
 - Refreshed and visually inspected the blocked hero and irrigation clue at 1600×900 and 1280×720 plus the flowing grand payoff at 1280×720. Publication and public-smoke evidence are the remaining release steps.
+
+## 2026-07-20 — Plain-English agent language
+
+- Migrated Mission 01 to the exact beginner-facing forms `observe the east channel`, `decide water the tomatoes when the beds are dry`, `decide clear the blockage when the water is blocked`, `act on the decision`, and `verify every tomato bed is watered`.
+- Updated the compiler allowlist, simulator binding checks, progressive Workbench, Bert/Coach/debrief surfaces, smoke fixtures, learner docs, and submission drafts without changing the existing world behavior.
+- Preserved the key teaching distinction: the guided response safely acts on a symptom and fails verification; repairing only Decide targets the cause and passes.
+- `COPYFILE_DISABLE=1 npm run smoke` passes 34/34 Node tests and 304/304 production-dist browser assertions with empty diagnostics after updating the exact-text accessibility checks.
+- Ran the provided generic web-game client against the live source server, inspected `render_game_to_text()`, and visually confirmed the aligned farm canvas still renders correctly.

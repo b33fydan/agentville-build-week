@@ -2,9 +2,9 @@
   "schema": "agentville.browser-smoke.v1",
   "status": "PASS",
   "invocation": "smoke",
-  "startedAt": "2026-07-19T14:21:50.866Z",
-  "finishedAt": "2026-07-19T14:22:22.878Z",
-  "durationMs": 32012,
+  "startedAt": "2026-07-20T21:19:00.925Z",
+  "finishedAt": "2026-07-20T21:19:34.334Z",
+  "durationMs": 33409,
   "target": "public",
   "baseUrl": "https://b33fydan.github.io/agentville-build-week/",
   "browser": {
@@ -61,7 +61,7 @@
       "passed": true,
       "details": {
         "nonDarkRatio": 1,
-        "uniqueColorBuckets": 74
+        "uniqueColorBuckets": 71
       }
     },
     {
@@ -69,15 +69,15 @@
       "passed": true,
       "details": {
         "nonDarkRatio": 1,
-        "uniqueColorBuckets": 74
+        "uniqueColorBuckets": 71
       }
     },
     {
       "name": "welcome overlay keeps the composited farm visibly lit",
       "passed": true,
       "details": {
-        "edgeAverageLuminance": 100.16243326514399,
-        "edgeColorBuckets": 29,
+        "edgeAverageLuminance": 100.18060594807085,
+        "edgeColorBuckets": 28,
         "overlayAlpha": 0.34
       }
     },
@@ -85,8 +85,8 @@
       "name": "welcome overlay keeps farm color variation outside the start card",
       "passed": true,
       "details": {
-        "edgeAverageLuminance": 100.16243326514399,
-        "edgeColorBuckets": 29,
+        "edgeAverageLuminance": 100.18060594807085,
+        "edgeColorBuckets": 28,
         "overlayAlpha": 0.34
       }
     },
@@ -94,8 +94,8 @@
       "name": "welcome scrim stays translucent enough to see the diorama",
       "passed": true,
       "details": {
-        "edgeAverageLuminance": 100.16243326514399,
-        "edgeColorBuckets": 29,
+        "edgeAverageLuminance": 100.18060594807085,
+        "edgeColorBuckets": 28,
         "overlayAlpha": 0.34
       }
     },
@@ -163,7 +163,7 @@
           "height": 7
         },
         "elevationLayers": 2,
-        "voxelCount": 264,
+        "voxelCount": 282,
         "propCount": 25,
         "propFamilies": [
           "bridge",
@@ -187,6 +187,39 @@
           "bottom": 571,
           "width": 794,
           "height": 421
+        },
+        "gridAlignment": {
+          "axes": {
+            "x": {
+              "x": 46,
+              "y": 23
+            },
+            "y": {
+              "x": -46,
+              "y": 23
+            }
+          },
+          "channel": {
+            "axes": [
+              "x"
+            ],
+            "segmentCount": 9,
+            "joinedPairCount": 8,
+            "maxAxisErrorPx": 0,
+            "maxJoinGapPx": 0,
+            "maxRailPostGapPx": 0
+          },
+          "fences": {
+            "axes": [
+              "x",
+              "y"
+            ],
+            "segmentCount": 6,
+            "joinedPairCount": 3,
+            "maxAxisErrorPx": 0,
+            "maxJoinGapPx": 0,
+            "maxRailPostGapPx": 0
+          }
         }
       }
     },
@@ -199,7 +232,7 @@
           "height": 7
         },
         "elevationLayers": 2,
-        "voxelCount": 264,
+        "voxelCount": 282,
         "propCount": 25,
         "propFamilies": [
           "bridge",
@@ -223,6 +256,39 @@
           "bottom": 571,
           "width": 794,
           "height": 421
+        },
+        "gridAlignment": {
+          "axes": {
+            "x": {
+              "x": 46,
+              "y": 23
+            },
+            "y": {
+              "x": -46,
+              "y": 23
+            }
+          },
+          "channel": {
+            "axes": [
+              "x"
+            ],
+            "segmentCount": 9,
+            "joinedPairCount": 8,
+            "maxAxisErrorPx": 0,
+            "maxJoinGapPx": 0,
+            "maxRailPostGapPx": 0
+          },
+          "fences": {
+            "axes": [
+              "x",
+              "y"
+            ],
+            "segmentCount": 6,
+            "joinedPairCount": 3,
+            "maxAxisErrorPx": 0,
+            "maxJoinGapPx": 0,
+            "maxRailPostGapPx": 0
+          }
         }
       }
     },
@@ -235,7 +301,7 @@
           "height": 7
         },
         "elevationLayers": 2,
-        "voxelCount": 264,
+        "voxelCount": 282,
         "propCount": 25,
         "propFamilies": [
           "bridge",
@@ -259,6 +325,113 @@
           "bottom": 571,
           "width": 794,
           "height": 421
+        },
+        "gridAlignment": {
+          "axes": {
+            "x": {
+              "x": 46,
+              "y": 23
+            },
+            "y": {
+              "x": -46,
+              "y": 23
+            }
+          },
+          "channel": {
+            "axes": [
+              "x"
+            ],
+            "segmentCount": 9,
+            "joinedPairCount": 8,
+            "maxAxisErrorPx": 0,
+            "maxJoinGapPx": 0,
+            "maxRailPostGapPx": 0
+          },
+          "fences": {
+            "axes": [
+              "x",
+              "y"
+            ],
+            "segmentCount": 6,
+            "joinedPairCount": 3,
+            "maxAxisErrorPx": 0,
+            "maxJoinGapPx": 0,
+            "maxRailPostGapPx": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "irrigation water follows the joined projected map-X axis",
+      "passed": true,
+      "details": {
+        "axes": {
+          "x": {
+            "x": 46,
+            "y": 23
+          },
+          "y": {
+            "x": -46,
+            "y": 23
+          }
+        },
+        "channel": {
+          "axes": [
+            "x"
+          ],
+          "segmentCount": 9,
+          "joinedPairCount": 8,
+          "maxAxisErrorPx": 0,
+          "maxJoinGapPx": 0,
+          "maxRailPostGapPx": 0
+        },
+        "fences": {
+          "axes": [
+            "x",
+            "y"
+          ],
+          "segmentCount": 6,
+          "joinedPairCount": 3,
+          "maxAxisErrorPx": 0,
+          "maxJoinGapPx": 0,
+          "maxRailPostGapPx": 0
+        }
+      }
+    },
+    {
+      "name": "fence rails and posts share the projected map axes",
+      "passed": true,
+      "details": {
+        "axes": {
+          "x": {
+            "x": 46,
+            "y": 23
+          },
+          "y": {
+            "x": -46,
+            "y": 23
+          }
+        },
+        "channel": {
+          "axes": [
+            "x"
+          ],
+          "segmentCount": 9,
+          "joinedPairCount": 8,
+          "maxAxisErrorPx": 0,
+          "maxJoinGapPx": 0,
+          "maxRailPostGapPx": 0
+        },
+        "fences": {
+          "axes": [
+            "x",
+            "y"
+          ],
+          "segmentCount": 6,
+          "joinedPairCount": 3,
+          "maxAxisErrorPx": 0,
+          "maxJoinGapPx": 0,
+          "maxRailPostGapPx": 0
         }
       }
     },
@@ -2645,7 +2818,7 @@
       "name": "feedback export produces a local download",
       "passed": true,
       "details": {
-        "downloadedPath": "/var/folders/2x/zw6qlh_d6_x5r_p8cf1g3xww0000gn/T/playwright-artifacts-qR5s77/d42fb034-b61d-46b1-b63b-37a0d9c9f81c"
+        "downloadedPath": "/var/folders/2x/zw6qlh_d6_x5r_p8cf1g3xww0000gn/T/playwright-artifacts-3oBqkX/8514b38e-afae-4ed7-929e-49f9b391370e"
       }
     },
     {

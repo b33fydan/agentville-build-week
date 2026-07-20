@@ -18,15 +18,15 @@ const PUBLIC_REPORT_PATH = resolve(EVIDENCE_DIR, "latest-public-smoke.json");
 const PLAYWRIGHT_VERSION = createRequire(import.meta.url)("playwright/package.json").version;
 
 const DRAFT_PROGRAM = [
-  "observe irrigation",
-  "decide water tomatoes when dry",
-  "act chosen repair",
-  "verify tomatoes are watered",
+  "observe the east channel",
+  "decide water the tomatoes when the beds are dry",
+  "act on the decision",
+  "verify every tomato bed is watered",
 ].join("\n");
 
-const REPAIR_DECISION = "decide clear blockage when blocked";
+const REPAIR_DECISION = "decide clear the blockage when the water is blocked";
 const REPAIRED_PROGRAM = DRAFT_PROGRAM.replace(
-  "decide water tomatoes when dry",
+  "decide water the tomatoes when the beds are dry",
   REPAIR_DECISION,
 );
 
@@ -375,16 +375,16 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     check("full-program run starts disabled", await runButton.isDisabled());
     await page.locator("#hint-button").click();
     const currentHint = (await page.locator("#language-reference").textContent()) ?? "";
-    check("line hint reveals the irrigation noun", currentHint.includes("irrigation"));
+    check("line hint reveals the East Channel clue", currentHint.includes("east channel"));
     check(
       "line hint is included in the accessible phase name",
-      (await page.locator('[data-phase="observe"]').getAttribute("aria-label"))?.includes("irrigation"),
+      (await page.locator('[data-phase="observe"]').getAttribute("aria-label"))?.includes("east channel"),
     );
     check(
       "line hint does not reveal Decide, Act, or Verify commands",
-      !currentHint.includes("when dry") &&
-        !currentHint.includes("chosen repair") &&
-        !currentHint.includes("tomatoes are watered"),
+      !currentHint.includes("when the beds are dry") &&
+        !currentHint.includes("act on the decision") &&
+        !currentHint.includes("every tomato bed is watered"),
     );
     equal("hint never writes source for the learner", await editor.inputValue(), "");
 
@@ -434,8 +434,8 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     equal("locked multi-line prefix leaves world revision stable", lockedPrefix.world.revision, initialWorldRevision);
 
     await waitForPaint(page);
-    await editor.fill("observe irrigation");
-    await page.waitForFunction(() => document.querySelector("#program-editor")?.value === "observe irrigation");
+    await editor.fill("observe the east channel");
+    await page.waitForFunction(() => document.querySelector("#program-editor")?.value === "observe the east channel");
     await compileButton.click();
     const observing = await readTextState(page, "Observe rehearsal", check);
     equal("accepted Observe enters a rehearsal", observing.lesson.status, "rehearsing");
@@ -456,7 +456,7 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     equal("Observe rehearsal cannot increment world revision", observingMidway.world.revision, initialWorldRevision);
     await advanceTime(page, 800);
     const observed = await readTextState(page, "accepted Observe", check);
-    equal("Observe becomes the first accepted command", observed.lesson.acceptedCommands.join(","), "observe irrigation");
+    equal("Observe becomes the first accepted command", observed.lesson.acceptedCommands.join(","), "observe the east channel");
     equal("Decide unlocks after Observe", observed.lesson.currentPhase, "decide");
     equal("Observe reveals stopped-flow evidence", observed.lesson.evidenceLevel, 1);
     check("Observe produces Bert's Aha response", observed.lesson.bertMessage?.text.startsWith("Aha!"));
@@ -482,7 +482,7 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     equal(
       "Observe and Decide remain accepted in order",
       decided.lesson.acceptedCommands.join(","),
-      "observe irrigation,decide water tomatoes when dry",
+      "observe the east channel,decide water the tomatoes when the beds are dry",
     );
     equal("Act unlocks after Decide", decided.lesson.currentPhase, "act");
     equal("Decide keeps the discovered evidence visible", decided.lesson.evidenceLevel, 2);
@@ -558,7 +558,7 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     await compileButton.click();
     await advanceTime(page, 1000);
     const acted = await readTextState(page, "accepted Act", check);
-    equal("Act becomes the shared execution command", acted.lesson.acceptedCommands[2], "act chosen repair");
+    equal("Act becomes the shared execution command", acted.lesson.acceptedCommands[2], "act on the decision");
     equal("Verify unlocks after Act", acted.lesson.currentPhase, "verify");
     equal("Act rehearsal cannot change world hash", acted.world.worldHash, initialWorldHash);
     equal("Act rehearsal cannot increment world revision", acted.world.revision, initialWorldRevision);
@@ -568,7 +568,7 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
       DRAFT_PROGRAM.split("\n")
         .slice(0, 2)
         .join("\n")
-        .replace("decide water tomatoes when dry", REPAIR_DECISION),
+        .replace("decide water the tomatoes when the beds are dry", REPAIR_DECISION),
     );
     const rewoundDecision = await readTextState(page, "edited accepted Decide", check);
     equal("editing accepted Decide rewinds later lesson steps", rewoundDecision.lesson.acceptedCommands.length, 1);
@@ -593,7 +593,7 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     equal(
       "compiled draft binds the line-2 decision",
       compiledDraft.program.binding?.decisionCommand,
-      "decide water tomatoes when dry",
+      "decide water the tomatoes when the beds are dry",
     );
     equal(
       "compiled draft binds the selected response",
@@ -603,7 +603,7 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     equal(
       "compiled Act remains the generic executor",
       compiledDraft.program.binding?.actCommand,
-      "act chosen repair",
+      "act on the decision",
     );
     equal(
       "compiled phases preserve observe-decide-act-verify order",
@@ -651,8 +651,8 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     equal("failure trace records the symptom decision", failed.trace[1]?.selectedAction, "water tomatoes");
     equal("generic Act executes the symptom decision", failed.trace[2]?.executedAction, "water tomatoes");
     equal("Verify owns the failed verdict", failed.trace[3]?.outcome, "FAIL");
-    equal("failure receipt preserves the wrong decision", failed.failureReceipt?.decision, "decide water tomatoes when dry");
-    equal("failure receipt preserves the generic Act command", failed.failureReceipt?.action, "act chosen repair");
+    equal("failure receipt preserves the wrong decision", failed.failureReceipt?.decision, "decide water the tomatoes when the beds are dry");
+    equal("failure receipt preserves the generic Act command", failed.failureReceipt?.action, "act on the decision");
     equal("failure receipt records the executed symptom response", failed.failureReceipt?.executedAction, "water tomatoes");
     equal("failure coach focuses line 2", failed.coach?.focusLine, 2);
     equal("failure coach renders after Verify", failed.coach?.insertAfterLine, 4);
@@ -717,7 +717,7 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     const compiledRepair = await readTextState(page, "compiled repair", check);
     equal("repair compiles", compiledRepair.program.compile.ok, true);
     equal("repair changes only the decision command", compiledRepair.program.plan[1]?.command, REPAIR_DECISION);
-    equal("repair preserves the generic Act command", compiledRepair.program.plan[2]?.command, "act chosen repair");
+    equal("repair preserves the generic Act command", compiledRepair.program.plan[2]?.command, "act on the decision");
     equal("repair binding selects blockage removal", compiledRepair.program.binding?.selectedAction, "clear blockage");
     equal("repair compile still leaves world unchanged", compiledRepair.world.worldHash, initialWorldHash);
     equal("repair compile cannot increment world revision", compiledRepair.world.revision, initialWorldRevision);
@@ -775,7 +775,7 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     equal("receipt preserves mission session", passed.receipt?.sessionId, started.session.id);
     equal("receipt records the repaired decision", passed.receipt?.decision, REPAIR_DECISION);
     equal("receipt records the selected response", passed.receipt?.selectedAction, "clear blockage");
-    equal("receipt preserves the generic Act instruction", passed.receipt?.action, "act chosen repair");
+    equal("receipt preserves the generic Act instruction", passed.receipt?.action, "act on the decision");
     equal("receipt records the executed repair", passed.receipt?.executedAction, "clear blockage");
     equal("receipt before state is blocked", passed.receipt?.before?.irrigationBlocked, true);
     equal("receipt after state is clear", passed.receipt?.after?.irrigationBlocked, false);
@@ -791,11 +791,11 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
       "observe,decide,act,verify",
     );
     equal("learning recap explains the repaired decision", passed.learningRecap?.phases[1]?.command, REPAIR_DECISION);
-    equal("learning recap preserves the generic Act instruction", passed.learningRecap?.phases[2]?.command, "act chosen repair");
+    equal("learning recap preserves the generic Act instruction", passed.learningRecap?.phases[2]?.command, "act on the decision");
     equal("learning recap reports the verified crop total", passed.learningRecap?.result.tomatoBedsWateredAfter, 3);
     equal("learning recap credits an observed failure", passed.learningRecap?.learner.diagnosedFailure, true);
     equal("learning recap identifies the changed line", passed.learningRecap?.learner.changedLine, 2);
-    equal("learning recap preserves the failed decision", passed.learningRecap?.learner.from, "decide water tomatoes when dry");
+    equal("learning recap preserves the failed decision", passed.learningRecap?.learner.from, "decide water the tomatoes when the beds are dry");
     equal("learning recap preserves the repaired decision", passed.learningRecap?.learner.to, REPAIR_DECISION);
     check("learning recap tile is visible", await page.getByTestId("learning-recap").isVisible());
     equal("learning recap renders four visible phase cards", await page.locator("[data-recap-phase]:visible").count(), 4);

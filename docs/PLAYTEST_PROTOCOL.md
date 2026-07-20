@@ -18,7 +18,7 @@
 1. Ask: “Please finish this lesson. Think aloud if you are comfortable.”
 2. Observe whether the player notices the **IRRIGATION** sign and dry tomato beds before the UI names the obstruction.
 3. Before Bert speaks, record whether the tester identifies him as a person/farmhand rather than an object, robot block, or UI marker; do not supply the answer.
-4. Record whether they enter `observe irrigation` before using **Hint this line**, whether Bert's walk/Aha helps them form Decide, and whether they understand that Decide chooses a response while Act carries it out.
+4. Record whether they enter `observe the east channel` before using **Hint this line**, whether Bert's walk/Aha helps them form Decide, and whether they understand that Decide chooses a response while Act carries it out.
 5. Record whether they understand that each accepted line is a rehearsal and that only **Run full program** can change the farm.
 6. After the first run, record whether they read verification before editing.
 7. Stop the timer when the PASS receipt becomes visible or at five minutes.

@@ -2,11 +2,11 @@
   "schema": "agentville.browser-smoke.v1",
   "status": "PASS",
   "invocation": "smoke",
-  "startedAt": "2026-07-20T00:59:05.694Z",
-  "finishedAt": "2026-07-20T00:59:38.498Z",
-  "durationMs": 32804,
+  "startedAt": "2026-07-20T21:24:34.213Z",
+  "finishedAt": "2026-07-20T21:25:07.195Z",
+  "durationMs": 32982,
   "target": "dist",
-  "baseUrl": "http://127.0.0.1:58890",
+  "baseUrl": "http://127.0.0.1:63749",
   "browser": {
     "engine": "chromium",
     "headless": true,
@@ -764,7 +764,7 @@
       "details": {}
     },
     {
-      "name": "line hint reveals the irrigation noun",
+      "name": "line hint reveals the East Channel clue",
       "passed": true,
       "details": {}
     },
@@ -1057,8 +1057,8 @@
       "name": "Observe becomes the first accepted command",
       "passed": true,
       "details": {
-        "actual": "observe irrigation",
-        "expected": "observe irrigation"
+        "actual": "observe the east channel",
+        "expected": "observe the east channel"
       }
     },
     {
@@ -1138,8 +1138,8 @@
       "name": "Observe and Decide remain accepted in order",
       "passed": true,
       "details": {
-        "actual": "observe irrigation,decide water tomatoes when dry",
-        "expected": "observe irrigation,decide water tomatoes when dry"
+        "actual": "observe the east channel,decide water the tomatoes when the beds are dry",
+        "expected": "observe the east channel,decide water the tomatoes when the beds are dry"
       }
     },
     {
@@ -1338,8 +1338,8 @@
       "name": "Act becomes the shared execution command",
       "passed": true,
       "details": {
-        "actual": "act chosen repair",
-        "expected": "act chosen repair"
+        "actual": "act on the decision",
+        "expected": "act on the decision"
       }
     },
     {
@@ -1448,8 +1448,8 @@
       "name": "compiled draft binds the line-2 decision",
       "passed": true,
       "details": {
-        "actual": "decide water tomatoes when dry",
-        "expected": "decide water tomatoes when dry"
+        "actual": "decide water the tomatoes when the beds are dry",
+        "expected": "decide water the tomatoes when the beds are dry"
       }
     },
     {
@@ -1464,8 +1464,8 @@
       "name": "compiled Act remains the generic executor",
       "passed": true,
       "details": {
-        "actual": "act chosen repair",
-        "expected": "act chosen repair"
+        "actual": "act on the decision",
+        "expected": "act on the decision"
       }
     },
     {
@@ -1646,16 +1646,16 @@
       "name": "failure receipt preserves the wrong decision",
       "passed": true,
       "details": {
-        "actual": "decide water tomatoes when dry",
-        "expected": "decide water tomatoes when dry"
+        "actual": "decide water the tomatoes when the beds are dry",
+        "expected": "decide water the tomatoes when the beds are dry"
       }
     },
     {
       "name": "failure receipt preserves the generic Act command",
       "passed": true,
       "details": {
-        "actual": "act chosen repair",
-        "expected": "act chosen repair"
+        "actual": "act on the decision",
+        "expected": "act on the decision"
       }
     },
     {
@@ -1686,8 +1686,8 @@
       "name": "failure coach recommends the allowlisted decision repair",
       "passed": true,
       "details": {
-        "actual": "decide clear blockage when blocked",
-        "expected": "decide clear blockage when blocked"
+        "actual": "decide clear the blockage when the water is blocked",
+        "expected": "decide clear the blockage when the water is blocked"
       }
     },
     {
@@ -1858,16 +1858,16 @@
       "name": "repair changes only the decision command",
       "passed": true,
       "details": {
-        "actual": "decide clear blockage when blocked",
-        "expected": "decide clear blockage when blocked"
+        "actual": "decide clear the blockage when the water is blocked",
+        "expected": "decide clear the blockage when the water is blocked"
       }
     },
     {
       "name": "repair preserves the generic Act command",
       "passed": true,
       "details": {
-        "actual": "act chosen repair",
-        "expected": "act chosen repair"
+        "actual": "act on the decision",
+        "expected": "act on the decision"
       }
     },
     {
@@ -1959,8 +1959,8 @@
       "name": "repair recompiles after the stale-plan guard",
       "passed": true,
       "details": {
-        "actual": "decide clear blockage when blocked",
-        "expected": "decide clear blockage when blocked"
+        "actual": "decide clear the blockage when the water is blocked",
+        "expected": "decide clear the blockage when the water is blocked"
       }
     },
     {
@@ -2177,8 +2177,8 @@
       "name": "receipt records the repaired decision",
       "passed": true,
       "details": {
-        "actual": "decide clear blockage when blocked",
-        "expected": "decide clear blockage when blocked"
+        "actual": "decide clear the blockage when the water is blocked",
+        "expected": "decide clear the blockage when the water is blocked"
       }
     },
     {
@@ -2193,8 +2193,8 @@
       "name": "receipt preserves the generic Act instruction",
       "passed": true,
       "details": {
-        "actual": "act chosen repair",
-        "expected": "act chosen repair"
+        "actual": "act on the decision",
+        "expected": "act on the decision"
       }
     },
     {
@@ -2275,16 +2275,16 @@
       "name": "learning recap explains the repaired decision",
       "passed": true,
       "details": {
-        "actual": "decide clear blockage when blocked",
-        "expected": "decide clear blockage when blocked"
+        "actual": "decide clear the blockage when the water is blocked",
+        "expected": "decide clear the blockage when the water is blocked"
       }
     },
     {
       "name": "learning recap preserves the generic Act instruction",
       "passed": true,
       "details": {
-        "actual": "act chosen repair",
-        "expected": "act chosen repair"
+        "actual": "act on the decision",
+        "expected": "act on the decision"
       }
     },
     {
@@ -2315,16 +2315,16 @@
       "name": "learning recap preserves the failed decision",
       "passed": true,
       "details": {
-        "actual": "decide water tomatoes when dry",
-        "expected": "decide water tomatoes when dry"
+        "actual": "decide water the tomatoes when the beds are dry",
+        "expected": "decide water the tomatoes when the beds are dry"
       }
     },
     {
       "name": "learning recap preserves the repaired decision",
       "passed": true,
       "details": {
-        "actual": "decide clear blockage when blocked",
-        "expected": "decide clear blockage when blocked"
+        "actual": "decide clear the blockage when the water is blocked",
+        "expected": "decide clear the blockage when the water is blocked"
       }
     },
     {
@@ -2393,16 +2393,16 @@
       "name": "visible debrief Decide command matches text state",
       "passed": true,
       "details": {
-        "actual": "decide clear blockage when blocked",
-        "expected": "decide clear blockage when blocked"
+        "actual": "decide clear the blockage when the water is blocked",
+        "expected": "decide clear the blockage when the water is blocked"
       }
     },
     {
       "name": "visible debrief Act command matches text state",
       "passed": true,
       "details": {
-        "actual": "act chosen repair",
-        "expected": "act chosen repair"
+        "actual": "act on the decision",
+        "expected": "act on the decision"
       }
     },
     {
@@ -2425,8 +2425,8 @@
       "name": "feedback link stays on the game origin",
       "passed": true,
       "details": {
-        "actual": "http://127.0.0.1:58890",
-        "expected": "http://127.0.0.1:58890"
+        "actual": "http://127.0.0.1:63749",
+        "expected": "http://127.0.0.1:63749"
       }
     },
     {
@@ -2449,8 +2449,8 @@
       "name": "visible Give feedback href matches state",
       "passed": true,
       "details": {
-        "actual": "http://127.0.0.1:58890/feedback/?session_id=AVBW-TEST-0001",
-        "expected": "http://127.0.0.1:58890/feedback/?session_id=AVBW-TEST-0001"
+        "actual": "http://127.0.0.1:63749/feedback/?session_id=AVBW-TEST-0001",
+        "expected": "http://127.0.0.1:63749/feedback/?session_id=AVBW-TEST-0001"
       }
     },
     {
@@ -2817,7 +2817,7 @@
       "name": "feedback export produces a local download",
       "passed": true,
       "details": {
-        "downloadedPath": "/var/folders/2x/zw6qlh_d6_x5r_p8cf1g3xww0000gn/T/playwright-artifacts-9MFjcs/2358ca65-a537-47b0-bd23-0a999a1bf1b0"
+        "downloadedPath": "/var/folders/2x/zw6qlh_d6_x5r_p8cf1g3xww0000gn/T/playwright-artifacts-jt4eiW/eea500c6-4f1f-4885-abba-ffee65bbc35d"
       }
     },
     {
@@ -3409,7 +3409,7 @@
     "server": {
       "root": "/Volumes/beefybackup/agentville-build-week/dist",
       "stderr": "",
-      "stdout": "AgentVille running at http://127.0.0.1:58890"
+      "stdout": "AgentVille running at http://127.0.0.1:63749"
     }
   }
 }

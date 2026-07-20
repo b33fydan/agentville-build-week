@@ -13,16 +13,16 @@ import {
   snapshotMissionState,
 } from "../src/mission.js";
 
-const SYMPTOM_DECISION = "decide water tomatoes when dry";
-const CAUSE_DECISION = "decide clear blockage when blocked";
-const ACT_COMMAND = "act chosen repair";
+const SYMPTOM_DECISION = "decide water the tomatoes when the beds are dry";
+const CAUSE_DECISION = "decide clear the blockage when the water is blocked";
+const ACT_COMMAND = "act on the decision";
 
 const program = (decision) =>
   [
-    "observe irrigation",
+    "observe the east channel",
     decision,
     ACT_COMMAND,
-    "verify tomatoes are watered",
+    "verify every tomato bed is watered",
   ].join("\n");
 
 function planFor(decision) {
@@ -73,7 +73,7 @@ test("the symptom decision is carried out and truthfully fails verification", ()
       {
         line: 1,
         phase: "observe",
-        command: "observe irrigation",
+        command: "observe the east channel",
         outcome: "BLOCKED",
         selectedAction: undefined,
         executedAction: undefined,
@@ -97,7 +97,7 @@ test("the symptom decision is carried out and truthfully fails verification", ()
       {
         line: 4,
         phase: "verify",
-        command: "verify tomatoes are watered",
+        command: "verify every tomato bed is watered",
         outcome: "FAIL",
         selectedAction: undefined,
         executedAction: undefined,

@@ -9,14 +9,14 @@ import {
 import { FarmRenderer, IRRIGATION_SIGN } from "./world.js";
 
 const DRAFT_PROGRAM = [
-  "observe irrigation",
-  "decide water tomatoes when dry",
-  "act chosen repair",
-  "verify tomatoes are watered",
+  "observe the east channel",
+  "decide water the tomatoes when the beds are dry",
+  "act on the decision",
+  "verify every tomato bed is watered",
 ].join("\n");
 const DRAFT_LINES = Object.freeze(DRAFT_PROGRAM.split("\n"));
 
-const REPAIR_DECISION = "decide clear blockage when blocked";
+const REPAIR_DECISION = "decide clear the blockage when the water is blocked";
 const CLEAR_BLOCKAGE_ACTION = "clear blockage";
 const BERT_START = Object.freeze({ x: 2.2, y: 5.25 });
 const OBSERVE_DESTINATION = Object.freeze({ x: 4.25, y: 3.45 });

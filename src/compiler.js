@@ -11,31 +11,31 @@ export const PHASES = Object.freeze([
 ]);
 
 export const DECISION_BINDINGS = deepFreeze({
-  "decide water tomatoes when dry": {
+  "decide water the tomatoes when the beds are dry": {
     condition: "tomatoes dry",
     selectedAction: "water tomatoes",
   },
-  "decide clear blockage when blocked": {
+  "decide clear the blockage when the water is blocked": {
     condition: "irrigation blocked",
     selectedAction: "clear blockage",
   },
 });
 
 export const ALLOWED_COMMANDS = deepFreeze({
-  observe: ["observe irrigation"],
+  observe: ["observe the east channel"],
   decide: Object.keys(DECISION_BINDINGS),
-  act: ["act chosen repair"],
-  verify: ["verify tomatoes are watered"],
+  act: ["act on the decision"],
+  verify: ["verify every tomato bed is watered"],
 });
 
 const LABELS = Object.freeze({
-  "observe irrigation": "Observe the East Channel irrigation",
-  "decide water tomatoes when dry":
+  "observe the east channel": "Observe the East Channel irrigation",
+  "decide water the tomatoes when the beds are dry":
     "Choose direct watering for dry tomatoes",
-  "decide clear blockage when blocked":
+  "decide clear the blockage when the water is blocked":
     "Choose blockage removal when flow is blocked",
-  "act chosen repair": "Carry out the response chosen on line 2",
-  "verify tomatoes are watered":
+  "act on the decision": "Carry out the response chosen on line 2",
+  "verify every tomato bed is watered":
     "Verify that all tomato beds are watered",
 });
 

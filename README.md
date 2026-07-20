@@ -36,10 +36,10 @@ Open [http://127.0.0.1:4173](http://127.0.0.1:4173). No account, API key, build 
 The opening shows a layered voxel farm, humanoid Bert, three dry tomato beds, and a block-built **IRRIGATION** sign—but does not label the cause. The sign gives a first-time learner the missing noun for `observe ___` without revealing the repair. Observe then reports stopped water and visible debris before Decide asks what Bert should do. The Workbench checks exactly one new instruction at a time:
 
 ```agent
-observe irrigation
-decide water tomatoes when dry
-act chosen repair
-verify tomatoes are watered
+observe the east channel
+decide water the tomatoes when the beds are dry
+act on the decision
+verify every tomato bed is watered
 ```
 
 Each accepted prefix creates a small, non-authoritative rehearsal: Bert walks to the channel after Observe, line 2 records one bounded response after Decide, and line 3 prepares to carry that response out. Those rewards never change the farm or create a plan. Only all four lines can pass the strict compiler and unlock **Run full program**.
@@ -47,10 +47,10 @@ Each accepted prefix creates a small, non-authoritative rehearsal: Bert walks to
 The guided first complete draft is valid and safe, but it fails honestly: the decision treats the dry-bed symptom, so carrying it out cannot restore irrigation. Verify owns the FAIL verdict, and the Codex Coach connects that evidence to line 2. The player repairs only the decision:
 
 ```agent
-decide clear blockage when blocked
+decide clear the blockage when the water is blocked
 ```
 
-Bert replays all four instructions. Decide selects blockage removal, the unchanged `act chosen repair` line executes it, water travels downstream, all three beds recover, and Verify issues a receipt that distinguishes the decision, selected response, Act instruction, executed response, and before/after state. The closing debrief explains **Look → Choose → Change → Check**, names the learner's work as debugging an agent’s decision, and reveals a locked Lesson 02 weather signal.
+Bert replays all four instructions. Decide selects blockage removal, the unchanged `act on the decision` line executes it, water travels downstream, all three beds recover, and Verify issues a receipt that distinguishes the decision, selected response, Act instruction, executed response, and before/after state. The closing debrief explains **Look → Choose → Change → Check**, names the learner's work as debugging an agent’s decision, and reveals a locked Lesson 02 weather signal.
 
 ## Voxel Field Rig
 

@@ -5,14 +5,14 @@ import { compileProgram } from "../src/compiler.js";
 import { createLearningRecap } from "../src/debrief.js";
 import { runMission } from "../src/mission.js";
 
-const SYMPTOM_DECISION = "decide water tomatoes when dry";
-const CAUSE_DECISION = "decide clear blockage when blocked";
+const SYMPTOM_DECISION = "decide water the tomatoes when the beds are dry";
+const CAUSE_DECISION = "decide clear the blockage when the water is blocked";
 const program = (decision) =>
   [
-    "observe irrigation",
+    "observe the east channel",
     decision,
-    "act chosen repair",
-    "verify tomatoes are watered",
+    "act on the decision",
+    "verify every tomato bed is watered",
   ].join("\n");
 
 function run(decision, sessionId, state) {
@@ -46,7 +46,7 @@ test("repair recap explains the line-2 decision change and actual execution", ()
   );
   assert.equal(recap.phases[1].command, CAUSE_DECISION);
   assert.match(recap.phases[1].explanation, /cause/u);
-  assert.equal(recap.phases[2].command, "act chosen repair");
+  assert.equal(recap.phases[2].command, "act on the decision");
   assert.match(recap.phases[2].explanation, /clearing debris/u);
   assert.equal(
     recap.phases[3].explanation,
