@@ -11,7 +11,6 @@ Original prompt: Build a clean-room hackathon project called AgentVille: Build W
 
 ## Next
 
-- Commit and publish the validated three-mission artifact, verify GitHub Pages serves the exact release SHA, then run `npm run test:public` against it.
 - Run the three genuine first-time sessions in `docs/PLAYTEST_PROTOCOL.md`.
 - Record the demo video and any separate event `/feedback` ID in the evidence ledger.
 
@@ -138,4 +137,6 @@ Original prompt: Build a clean-room hackathon project called AgentVille: Build W
 - Preserved the static, credential-free, network-free critical path and the clean-room boundary from `/Volumes/beefybackup/AgentVille`.
 - Current verified worktree evidence: **58/58 Node tests** and **735/735 production-dist browser assertions** pass with empty diagnostics; a local manual sequential Playwright run completed Mission 01 → Mission 02 → Mission 03; direct renderer proof passes **16/16**; and the provided generic web-game client passed with its state and canvas output inspected.
 - All **15/15** canonical three-mission captures were generated and visually inspected, including every authoring, causal failure, repaired PASS, responsive, reset, and feedback state.
-- Evidence still pending at this checkpoint: commit and GitHub Pages deployment of this worktree, a public smoke against that exact deployment, genuine learner sessions, the demo video, and any separate event-issued `/feedback` ID. The preceding 304/304 grid-alignment evidence remains historical and is not proof of this course.
+- Committed the release as `f40613c` (`Teach three farm missions`), then validated and deployed that exact SHA in GitHub Actions run `29784537727`.
+- Confirmed the live root and `/feedback/` return HTTP 200, live `build-meta.json` declares all three missions, and `COPYFILE_DISABLE=1 npm run test:public` passes **735/735** with empty diagnostics and exact mission/session feedback continuity. The machine-readable report is `artifacts/evidence/latest-public-smoke.json`.
+- Genuine learner sessions, the demo video, and any separate event-issued `/feedback` ID remain pending human/event evidence. The preceding 304/304 grid-alignment evidence remains historical and is not proof of this course.

@@ -4,7 +4,7 @@
 
 **Three-mission audit:** 2026-07-20
 
-**Current release status:** The three-mission course passes its Node and production-dist browser gates, and all current-release captures were inspected. Commit/deployment evidence and a fresh public smoke are still pending. Historical one-mission evidence below must not be presented as proof of this release.
+**Current release status:** Runtime commit `f40613c` passes the Node, production-dist, capture-review, Pages-deployment, and public-browser gates. Historical one-mission evidence below must not be presented as proof of this release.
 
 **Codex development task ID:** `019f6e24-76bc-71f2-b326-0b13c9eafd04` — preserved for Build Week `/feedback` traceability.
 
@@ -14,20 +14,22 @@ Replace every `PENDING` value below only from an actual successful command, comm
 
 | Release fact | Authoritative value |
 | --- | --- |
-| `FINAL_THREE_MISSION_COMMIT` | `PENDING` |
+| `FINAL_THREE_MISSION_COMMIT` | `f40613c0d2c066e69e6195c9acbd2db335840925` (`Teach three farm missions`) |
 | `FINAL_LOCAL_NODE_SUITE` | `58/58 PASS` |
 | `FINAL_LOCAL_BROWSER_SMOKE` | `735/735 PASS` |
 | `FINAL_LOCAL_SMOKE_REPORT` | `artifacts/evidence/latest-smoke.json` — `agentville.browser-smoke.v3`, production `dist/`, empty diagnostics |
 | `FINAL_CANONICAL_CAPTURE_REVIEW` | `15/15 PASS` — visually inspected 2026-07-20 |
-| `FINAL_PAGES_ACTION_RUN` | `PENDING` |
-| `FINAL_DEPLOYED_COMMIT` | `PENDING` |
-| `FINAL_PUBLIC_BROWSER_SMOKE` | `PENDING` |
-| `FINAL_PUBLIC_SMOKE_REPORT` | `artifacts/evidence/latest-public-smoke.json` — predecessor proof until refreshed |
+| `FINAL_PAGES_ACTION_RUN` | [`29784537727`](https://github.com/b33fydan/agentville-build-week/actions/runs/29784537727) — build and deploy PASS |
+| `FINAL_DEPLOYED_COMMIT` | `f40613c0d2c066e69e6195c9acbd2db335840925` |
+| `FINAL_PUBLIC_BROWSER_SMOKE` | `735/735 PASS` |
+| `FINAL_PUBLIC_SMOKE_REPORT` | `artifacts/evidence/latest-public-smoke.json` — `agentville.browser-smoke.v3`, public HTTPS target, empty diagnostics |
 | `FINAL_EVENT_FEEDBACK_ID` | `PENDING` — use only an ID actually issued by the Build Week event |
 | `FINAL_DEMO_VIDEO_URL` | `PENDING` |
 | `FINAL_HUMAN_PLAYTEST_PACKET` | `PENDING` |
 
 `COPYFILE_DISABLE=1 npm run smoke` completed successfully on 2026-07-20 at `2026-07-20T22:26:32.763Z`: 58/58 Node tests and 735/735 production-browser assertions passed, all diagnostic collections were empty, and the 15 report-owned screenshots were visually inspected.
+
+GitHub Actions run `29784537727` validated and deployed runtime commit `f40613c` on 2026-07-20. The live root and `/feedback/` returned HTTP 200, `build-meta.json` declared `missionCount: 3`, and `COPYFILE_DISABLE=1 npm run test:public` finished at `2026-07-20T22:40:18.515Z` with 735/735 assertions and empty diagnostics.
 
 ## Three-mission evidence obligations
 
@@ -40,7 +42,7 @@ Replace every `PENDING` value below only from an actual successful command, comm
 | Ordered course | Mission 01 PASS unlocks Mission 02; Mission 02 PASS unlocks Mission 03; final receipt reports course complete | **PASS — 735-assertion production browser report** |
 | Static/network boundary | Production `dist/`, same-origin request guard, empty console/page/request/response/dialog diagnostics | **PASS — all diagnostic collections empty** |
 | Visual proof | Inspected course selector; M1/M2/M3 authoring, failure, and PASS; feedback; judging and mobile containment frames | **PASS — 15/15 current-release captures inspected** |
-| Public proof | Pages workflow for `FINAL_THREE_MISSION_COMMIT`, live root and feedback HTTP 200, fresh `npm run test:public` PASS | Pending deployment |
+| Public proof | Pages workflow for `FINAL_THREE_MISSION_COMMIT`, live root and feedback HTTP 200, fresh `npm run test:public` PASS | **PASS — run `29784537727`, 735/735 public** |
 
 ## Mission-bound receipt and feedback identity
 
@@ -89,9 +91,9 @@ Existing images with older generic names such as `agentville-build-week-hero.png
 
 - [x] Public repository URL: [github.com/b33fydan/agentville-build-week](https://github.com/b33fydan/agentville-build-week)
 - [x] Public playable route exists: [b33fydan.github.io/agentville-build-week](https://b33fydan.github.io/agentville-build-week/)
-- [ ] Public route proven to serve `FINAL_THREE_MISSION_COMMIT`
+- [x] Public route proven to serve `FINAL_THREE_MISSION_COMMIT`
 - [x] Final local production browser smoke and machine-readable report
-- [ ] Final public browser smoke and machine-readable report
+- [x] Final public browser smoke and machine-readable report
 - [x] Current three-mission canonical screenshots inspected
 - [ ] Two-to-three-minute uncut three-mission demo
 - [ ] Three genuine first-time playtest records and completion times
@@ -113,7 +115,7 @@ The following records remain valuable provenance for the earlier East Channel re
 | Decision semantics | Actions run `29690596219`, commit `7f04f10`, 302/302 public browser assertions |
 | Grid alignment | Commit `053911f`, 34/34 Node and 304/304 local browser assertions; predecessor public smoke artifact preserved |
 
-Historical screenshots and `artifacts/evidence/latest-public-smoke.json` remain attributable to their recorded commits. The final release ledger must add, not infer, the new commit, Actions run, assertion count, diagnostics, and public session continuity.
+Historical screenshots and reports listed above remain attributable to their recorded commits. The refreshed `artifacts/evidence/latest-public-smoke.json` is current three-mission evidence for runtime commit `f40613c`, Actions run `29784537727`, all 735 assertions, empty diagnostics, and exact public session continuity.
 
 ## Manual evidence still requiring people
 

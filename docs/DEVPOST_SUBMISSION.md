@@ -10,7 +10,7 @@
 
 **Source:** [https://github.com/b33fydan/agentville-build-week](https://github.com/b33fydan/agentville-build-week)
 
-> Submission-evidence note, 2026-07-20: the three-mission course passes 58/58 Node tests and 735/735 production-browser assertions with empty diagnostics; all 15 current-release captures were inspected. Commit, public deployment, and a fresh public smoke are still pending. The live URL currently demonstrates the preceding release and must not yet be cited as proof of all three missions.
+> Submission-evidence note, 2026-07-20: runtime commit `f40613c` is live after GitHub Actions run `29784537727`. The course passes 58/58 Node tests, 735/735 production-browser assertions, and 735/735 public-browser assertions with empty diagnostics; all 15 current-release captures were inspected.
 
 ## Inspiration
 
@@ -148,20 +148,20 @@ Current verified worktree evidence on 2026-07-20:
 
 - **58/58 Node tests passed.**
 - The production `dist/` browser smoke passed **735/735 assertions** with empty console, page, external-request, request-failure, response, dialog, and runner diagnostics.
+- The deployed Pages release passed the same **735/735 public-browser assertions** with exact M01/M02/M03 receipt-to-feedback identities.
+- GitHub Actions run [`29784537727`](https://github.com/b33fydan/agentville-build-week/actions/runs/29784537727) validated and deployed runtime commit `f40613c`; live root, `/feedback/`, and three-mission build metadata return HTTP 200.
 - All **15/15** current-release captures were generated and visually inspected.
 - A local manual sequential Playwright run completed Mission 01 → Mission 02 → Mission 03.
 - Direct renderer proof passed **16/16** checks.
 - The provided generic web-game client completed successfully; its state and canvas output were inspected.
 
-Still pending before the three-mission release can be claimed complete:
+Still pending as submission/human evidence, not product-release gates:
 
-- GitHub Pages deployment of this worktree;
-- `npm run test:public` against that deployment;
 - three genuine first-time learner sessions;
 - the demo video;
 - any separate event-issued `/feedback` session ID.
 
-Earlier public and browser results remain historical evidence for their exact commits; they are not being reused as proof of this worktree.
+Earlier public and browser results remain historical evidence for their exact commits; the current release uses its own schema-v3 local and public 735-assertion reports.
 
 ## What we learned
 
@@ -173,7 +173,7 @@ Model-assisted educational design benefits from a hard authority boundary. Expla
 
 ## What's next
 
-The immediate next step is evidence, not another feature: commit and publish the verified static artifact, prove GitHub Pages serves that exact SHA, rerun the complete course at the public URL, record the demo, and conduct genuine novice playtests.
+The immediate next step is human submission evidence: record the demo, conduct genuine novice playtests, and preserve any event-issued `/feedback` ID exactly as issued.
 
 After submission, an optional live coaching seam could offer more ways to explain already-produced compiler and simulator evidence. It would remain unable to create plans, change the farm, unlock missions, or issue receipts.
 

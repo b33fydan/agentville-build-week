@@ -14,7 +14,7 @@ Each mission is designed as a compact five-minute loop. Together they teach that
 
 **Public release:** [b33fydan.github.io/agentville-build-week](https://b33fydan.github.io/agentville-build-week/) · **Source:** [github.com/b33fydan/agentville-build-week](https://github.com/b33fydan/agentville-build-week)
 
-> The three-mission worktree passes **58/58 Node tests** and **735/735 production-browser assertions** with empty diagnostics. All 15 current-release captures were visually inspected. Deployment and a fresh public smoke are still pending; the Pages URL currently proves the preceding release, not this three-mission course.
+> The three-mission release is live from runtime commit [`f40613c`](https://github.com/b33fydan/agentville-build-week/commit/f40613c0d2c066e69e6195c9acbd2db335840925). It passes **58/58 Node tests**, **735/735 production-browser assertions**, and **735/735 public-browser assertions** with empty diagnostics. All 15 current-release captures were visually inspected.
 
 ![AgentVille Build Week Edition showing Mission 01 on the layered voxel farm with humanoid Bert and the typed Agent Workbench](artifacts/screenshots/agentville-build-week-m01-authoring-1280.png)
 
@@ -223,11 +223,12 @@ Current three-mission worktree evidence on 2026-07-20:
 
 - **58/58 Node tests passed.**
 - The production `dist/` browser smoke passed **735/735 assertions** with zero console, page, external-request, request-failure, response, dialog, or runner diagnostics.
+- The deployed Pages release passed the same **735/735 public-browser assertions** with the three exact mission/session identities preserved through `/feedback/`.
+- GitHub Actions run [`29784537727`](https://github.com/b33fydan/agentville-build-week/actions/runs/29784537727) validated and deployed runtime commit `f40613c`; live root, `/feedback/`, and `build-meta.json` return HTTP 200, and the metadata declares all three missions.
 - All **15/15** canonical three-mission captures were generated and visually inspected at desktop, judging, and mobile viewports.
 - A local manual sequential Playwright run completed Mission 01 → Mission 02 → Mission 03.
 - Direct renderer proof passed **16/16** checks.
 - The provided generic web-game client completed successfully and its state/canvas output was inspected.
-- Commit, public deployment, and a fresh public browser smoke are still pending. The release is not claimed public until those gates pass.
 
 Generated smoke evidence belongs under `artifacts/evidence/`. Genuine human playtests, a demo video, and any separate event-issued `/feedback` session ID remain pending until those artifacts actually exist.
 

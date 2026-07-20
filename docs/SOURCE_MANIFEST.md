@@ -82,5 +82,6 @@ No `.env`, API key, test dependency, source-control metadata, evidence response,
 
 - The current worktree's Node suite passed **58/58** on 2026-07-20.
 - The production `dist/` browser smoke passed **735/735** assertions with empty diagnostics, and all **15/15** report-owned three-mission screenshots were visually inspected on 2026-07-20. The authoritative local report is `artifacts/evidence/latest-smoke.json`.
-- The public GitHub Pages URL still represents the preceding release until the current commit is deployed and `npm run test:public` produces a fresh PASS report.
-- Historical screenshots and smoke reports remain valid evidence only for the commits that produced them; they are not proof of this three-mission worktree.
+- GitHub Actions run `29784537727` validated and deployed runtime commit `f40613c`; the live root, `/feedback/`, and three-mission `build-meta.json` return HTTP 200.
+- The public browser smoke passed **735/735** with empty diagnostics and exact mission/session feedback continuity. Its authoritative report is `artifacts/evidence/latest-public-smoke.json`.
+- Historical screenshots and smoke reports remain valid evidence only for the commits that produced them; only the schema-v3 local/public reports and 15 current captures prove this three-mission release.

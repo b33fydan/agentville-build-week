@@ -4,7 +4,7 @@
 
 **Purpose:** Collect honest Education-track evidence without coaching a solution, and test whether novice learners can distinguish a wrong response, a late trigger, and missing observation evidence.
 
-The local three-mission production browser smoke has passed. Do not begin formal sessions until the current three-mission deployment and public smoke also pass. Developer runs, automated runs, and the earlier single-mission public release do not count as human evidence.
+The local and public three-mission production browser smokes have passed against runtime commit `f40613c`; formal sessions may now use the deployed URL. Developer runs, automated runs, and the earlier single-mission public release do not count as human evidence.
 
 ## Test setup
 

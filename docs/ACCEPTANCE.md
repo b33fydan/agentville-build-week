@@ -85,9 +85,9 @@ These are release obligations, not optional examples. Each row requires both Nod
 | Provided generic web-game client and inspected state/canvas output | **PASS** |
 | Expanded production-dist browser smoke for all acceptance rows | **PASS — 735/735; empty diagnostics** |
 | Canonical three-mission screenshot set | **PASS — 15/15 generated and visually inspected** |
-| Public deployment and `npm run test:public` for this three-mission release | **Pending** |
+| Public deployment and `npm run test:public` for this three-mission release | **PASS — runtime commit `f40613c`, Actions run `29784537727`, 735/735; empty diagnostics** |
 
-Previous one-mission public/browser evidence remains valid only for its historical release. It must not be presented as proof that this three-mission revision is deployed.
+Previous one-mission public/browser evidence remains valid only for its historical release. Current proof is the deployed runtime commit `f40613c` plus the schema-v3 local and public 735-assertion reports.
 
 ## Manual acceptance before submission
 
@@ -95,7 +95,7 @@ Previous one-mission public/browser evidence remains valid only for its historic
 | --- | --- | --- | --- |
 | H1 | At least two of three first-time testers complete one assigned mission within five minutes without verbal coaching. | Dated consented records under `artifacts/evidence/` | Pending genuine sessions |
 | H2 | At least one tester completes the unlock chain through all three missions and can distinguish wrong response, late signal, and missing evidence. | Sequential playtest record and learner's own explanation | Pending genuine session |
-| H3 | The final public deployment completes the exact three-mission course in the declared judging browser with matching mission/session feedback identity. | Live Pages URL + `npm run test:public` artifact | Pending deployment |
+| H3 | The final public deployment completes the exact three-mission course in the declared judging browser with matching mission/session feedback identity. | Live Pages URL + `npm run test:public` artifact | **PASS — 735/735; M01/M02/M03 identities matched** |
 | H4 | The demo video shows all three guided failures, their single-line repairs, visible world changes, mission-bound receipts, unlock transitions, and feedback continuity. | Timestamped Devpost evidence index | Pending video |
 
 ## Non-goals for this build
