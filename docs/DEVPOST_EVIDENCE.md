@@ -31,17 +31,17 @@
 
 | Criterion | Artifact or command | Status |
 | --- | --- | --- |
-| A1 | Production Chromium smoke plus `npm run test:public` against [GitHub Pages](https://b33fydan.github.io/agentville-build-week/) | PASS — decision-model release 302/302 locally and publicly |
-| A2–A23 | `npm run smoke` decision-model release | PASS — 34/34 Node tests + 302/302 production-dist browser assertions |
+| A1 | Production Chromium smoke plus `npm run test:public` against [GitHub Pages](https://b33fydan.github.io/agentville-build-week/) | PASS — grid-alignment release 304/304 locally; current public predecessor 302/302 during publication |
+| A2–A24 | `npm run smoke` grid-alignment release | PASS — 34/34 Node tests + 304/304 production-dist browser assertions |
 | Welcome frame | `artifacts/screenshots/agentville-build-week-welcome.png` | Captured and inspected; composited edge luminance/color proof confirms the layered farm remains visible before Start |
-| Hero frame | `artifacts/screenshots/agentville-build-week-hero.png` | Captured and inspected; larger layered farm, block-built HUD, humanoid Bert |
-| Irrigation clue at judging viewport | `artifacts/screenshots/agentville-build-week-irrigation-cue-1280.png` | Captured and inspected at 1280×720; sign readable, canvas visible, no page overflow |
+| Hero frame | `artifacts/screenshots/agentville-build-week-hero.png` | Captured and inspected; larger layered farm, block-built HUD, humanoid Bert, continuous projected channel and fence runs |
+| Irrigation clue at judging viewport | `artifacts/screenshots/agentville-build-week-irrigation-cue-1280.png` | Captured and inspected at 1280×720; sign readable, blocked channel and fence axes aligned, canvas visible, no page overflow |
 | Observe error at judging viewport | `artifacts/screenshots/agentville-build-week-observe-error-1280.png` | Captured and inspected at 1280×720; Bert question visible, no repair disclosed |
 | Observe reward at judging viewport | `artifacts/screenshots/agentville-build-week-observe-success-1280.png` | Captured and inspected at 1280×720; stopped water, visible debris, and Aha response visible |
 | Humanoid Bert detail | `artifacts/screenshots/agentville-build-week-bert-detail.png` | Captured and inspected as a 2× nearest-neighbor crop; face, torso, paired limbs, hands, boots, overalls, hat, and wrench readable |
 | Humanoid Bert in lesson | `artifacts/screenshots/agentville-build-week-bert-teaching.png` | Captured from the composited page; Bert, speech, and stopped-flow evidence are adjacent with zero measured overlay coverage of his geometry-derived bounds |
 | Decide reward at judging viewport | `artifacts/screenshots/agentville-build-week-decide-aha-1280.png` | Captured and inspected at 1280×720; bounded response, lightbulb, agent-boundary note, and controls contained |
-| Grand repaired payoff | `artifacts/screenshots/agentville-build-week-grand-payoff-1280.png` | Captured and inspected at 1280×720 before the receipt; channel clear, 3/3 beds watered, Verify visible |
+| Grand repaired payoff | `artifacts/screenshots/agentville-build-week-grand-payoff-1280.png` | Captured and inspected at 1280×720 before the receipt; continuous projected water channel clear, 3/3 beds watered, Verify visible |
 | Compiler error | `artifacts/screenshots/agentville-build-week-compiler-error.png` | Captured and inspected |
 | Failure frame | `artifacts/screenshots/agentville-build-week-failure.png` | Captured and inspected at 1280×720; Act is labeled `NO CHANGE`, failed Verify and Codex Coach are fully visible together, line 2 is marked as the cause, and all four editor lines fit without overlap or scroll |
 | Receipt frame | `artifacts/screenshots/agentville-build-week-receipt.png` | Captured and inspected |
@@ -49,7 +49,7 @@
 | Feedback continuity | `artifacts/screenshots/agentville-build-week-feedback.png` | Captured and inspected |
 | Mobile Workbench | `artifacts/screenshots/agentville-build-week-mobile-390.png` | Captured and inspected at 390×844; two-column language slots, 44px actions, no horizontal overflow |
 | Mobile feedback | `artifacts/screenshots/agentville-build-week-feedback-mobile-390.png` | Captured and inspected at 390×844; rating captions remain visible and rating/consent targets meet 44px |
-| Local machine evidence | `artifacts/evidence/latest-smoke.json` | PASS against production `dist/`, 302/302; diagnostics empty |
+| Local machine evidence | `artifacts/evidence/latest-smoke.json` | PASS against production `dist/`, 304/304; diagnostics empty |
 | Public mission smoke | `artifacts/evidence/latest-public-smoke.json` via `npm run test:public` | PASS — 302/302; console, page, request, response, dialog, and runner diagnostics empty |
 | Human evidence | `artifacts/evidence/playtest-YYYY-MM-DD-<tester>.json` | Pending genuine sessions |
 | Source evidence | [github.com/b33fydan/agentville-build-week](https://github.com/b33fydan/agentville-build-week) | PUBLIC repository; first deployed commit `cb57621` |
@@ -67,7 +67,7 @@
 - **Progressive lesson deployment:** Actions run `29650610214` at commit `1c6c9eb`
 - **Voxel Field Rig deployment:** Actions run `29670780954` at commit `c8ab4db`
 - **Decision-model deployment:** Actions run `29690596219` at commit `7f04f10`
-- **Decision-model verification:** 34/34 Node tests plus 302/302 browser assertions against production `dist/` and the public Pages origin, with empty diagnostics
+- **Grid-alignment local verification:** 34/34 Node tests plus 304/304 production-dist browser assertions, including actual rendered-edge and rail/post alignment, with empty diagnostics
 - **Public verification:** root and `/feedback/` HTTP 200 plus `npm run test:public` with 302/302 browser assertions and empty diagnostics
 - **Still pending:** three genuine playtests, demo video URL, and any separate Build Week `/feedback` ID
 

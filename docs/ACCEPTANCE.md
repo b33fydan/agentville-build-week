@@ -22,7 +22,7 @@ A first-time player can open the game in a desktop browser and complete one dete
 
 | ID | Pass condition | Evidence target |
 | --- | --- | --- |
-| A1 | The production build opens in Chromium with no install, account, or API key. | **PASS** — 302/302 assertions against local production `dist/` and the live Pages URL |
+| A1 | The production build opens in Chromium with no install, account, or API key. | **PASS** — 304/304 assertions against local production `dist/`; current live predecessor remains proven at 302/302 during publication |
 | A2 | **Start mission** loads the same layered farm and blocked East Channel on every reset. | Mission-state unit test + browser state hook |
 | A3 | The Workbench guides one player-authored instruction at a time in `observe`, `decide`, `act`, `verify` order, while still accepting a complete allowlisted four-line program. | Prefix/compiler tests + browser smoke |
 | A4 | Invalid syntax cannot mutate the farm and reports the offending line with a concrete repair suggestion. | Compiler sandbox tests + UI smoke |
@@ -45,6 +45,7 @@ A first-time player can open the game in a desktop browser and complete one dete
 | A21 | The welcome state visibly composites a non-empty, color-rich farm behind Start; the farm derives at least two terrain elevations from drawn tiles, includes 24 authored props and the approved agricultural prop families, stays inside the canvas, and occupies most of it. | Composited screenshot probe + renderer-derived bounds/state + welcome/hero screenshots |
 | A22 | Bert is recognizably humanoid at normal zoom: the renderer actually draws a head, face, torso, paired arms, hands, legs, boots, and repair tool; geometry-derived bounds meet the readable-size floor, teaching overlays leave at least 90% unobscured, and walking, inspecting, thinking, repair, and verification poses are sampled. | Renderer-derived browser assertions + raw 2× detail and composited teaching captures |
 | A23 | The Voxel Field Rig presents the farm, mission rail, Workbench, trace, debrief, and feedback as one square block-built UI; code is at least 13px, learner guidance is 10–12px, controls are at least 44px, evidence values wrap without truncation, failed Verify and Coach auto-follow together while line 2 is marked, and both game and feedback stay contained at 1280×720 and 390×844. | Computed-style/layout/viewport browser assertions + desktop, judging, and mobile screenshots |
+| A24 | Water surfaces, flow marks, channel banks, fence rails, and fence posts derive from the same projected map axes as the terrain; all eight channel joins and three adjacent fence joins meet with zero measured gap, and blocked/flowing states read as continuous structures at desktop and judging viewports. | Renderer-derived edge/join assertions + hero, irrigation-cue, and grand-payoff screenshots |
 
 ## Manual acceptance before submission
 
@@ -54,7 +55,7 @@ A first-time player can open the game in a desktop browser and complete one dete
 | M2 | The public deployment completes the same full mission in the declared judging browser. | [Live Pages URL](https://b33fydan.github.io/agentville-build-week/) + `npm run test:public` | **PASS** — decision-model release 302/302 on 2026-07-19 |
 | M3 | The demo video shows the symptom decision, generic Act execution, Verify failure, line-2 repair, world change, receipt, and feedback session continuity. | Timestamped Devpost evidence index | Pending video |
 
-The decision-model release passes 34/34 Node tests plus 302/302 browser assertions against both production `dist/` and the public Pages origin, with empty diagnostics. M1 and M3 remain visibly incomplete until genuine human and video evidence exists.
+The grid-alignment release passes 34/34 Node tests plus 304/304 browser assertions against production `dist/`, with empty diagnostics; the current public build remains independently proven at 302/302 until publication completes. M1 and M3 remain visibly incomplete until genuine human and video evidence exists.
 
 ## Non-goals for this build
 

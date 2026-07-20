@@ -75,6 +75,16 @@ The progressive lesson now lets Observe report stopped water, visible debris, an
 
 The decision-model release passes 34/34 Node tests and 302/302 browser assertions against both production `dist/` and the public Pages origin with empty diagnostics. The final hardening rejects caller-forged decision results, truthfully explains the already-satisfied no-action path for either decision, labels Act as `NO CHANGE` rather than `FAIL`, and proves the four-line editor plus failed Verify/Coach fit together at 1280×720. Observe, Decide, failure, grand-payoff, and debrief frames were regenerated and inspected at the judging viewport. Commit `7f04f10` deployed in [Actions run 29690596219](https://github.com/b33fydan/agentville-build-week/actions/runs/29690596219) on 2026-07-19; the live root and `/feedback/` both return HTTP 200.
 
+## 2026-07-19 — Isometric grid alignment
+
+**Human correction:** The fence and water pieces looked like independent lines pointed away from the farm instead of structures following its isometric orientation.
+
+**Codex / GPT-5.6 contribution:** Traced the defect to three incompatible screen-space slopes. Rebuilt channel surfaces, flow marks, dry-channel cracks, banks, fence rails, and posts from the renderer's map-X/map-Y projection. Adjacent channel tiles now share both rendered seam corners; adjacent fence sections share their two rail endpoints and actual projected post centers. The renderer publishes aggregate edge, seam, and rail/post measurements derived from the geometry it drew.
+
+**Skill and review influence:** The web-game workflow required the provided generic Playwright client, deterministic state output, the complete production mission smoke, and direct inspection of blocked and flowing screenshots. An independent read-only geometry review verified the baseline slope mismatch and required the automated proof to measure actual rendered corners rather than an unrelated ideal centerline.
+
+The local release passes 34/34 Node tests and 304/304 production-dist browser assertions with empty browser/network diagnostics. Hero, blocked-irrigation, and grand-payoff frames were inspected at 1600×900 and 1280×720 before publication.
+
 ## Clean-room declaration
 
 The build did not copy or adapt implementation code, art, screenshots, or generated artifacts from `/Volumes/beefybackup/AgentVille`. Source and visuals were authored within `/Volumes/beefybackup/agentville-build-week`; game art is procedural Canvas 2D plus CSS.

@@ -2,11 +2,11 @@
   "schema": "agentville.browser-smoke.v1",
   "status": "PASS",
   "invocation": "smoke",
-  "startedAt": "2026-07-19T14:17:44.984Z",
-  "finishedAt": "2026-07-19T14:18:17.034Z",
-  "durationMs": 32050,
+  "startedAt": "2026-07-20T00:59:05.694Z",
+  "finishedAt": "2026-07-20T00:59:38.498Z",
+  "durationMs": 32804,
   "target": "dist",
-  "baseUrl": "http://127.0.0.1:57074",
+  "baseUrl": "http://127.0.0.1:58890",
   "browser": {
     "engine": "chromium",
     "headless": true,
@@ -60,7 +60,7 @@
       "passed": true,
       "details": {
         "nonDarkRatio": 1,
-        "uniqueColorBuckets": 74
+        "uniqueColorBuckets": 71
       }
     },
     {
@@ -68,15 +68,15 @@
       "passed": true,
       "details": {
         "nonDarkRatio": 1,
-        "uniqueColorBuckets": 74
+        "uniqueColorBuckets": 71
       }
     },
     {
       "name": "welcome overlay keeps the composited farm visibly lit",
       "passed": true,
       "details": {
-        "edgeAverageLuminance": 100.16243326514399,
-        "edgeColorBuckets": 29,
+        "edgeAverageLuminance": 100.18060594807085,
+        "edgeColorBuckets": 28,
         "overlayAlpha": 0.34
       }
     },
@@ -84,8 +84,8 @@
       "name": "welcome overlay keeps farm color variation outside the start card",
       "passed": true,
       "details": {
-        "edgeAverageLuminance": 100.16243326514399,
-        "edgeColorBuckets": 29,
+        "edgeAverageLuminance": 100.18060594807085,
+        "edgeColorBuckets": 28,
         "overlayAlpha": 0.34
       }
     },
@@ -93,8 +93,8 @@
       "name": "welcome scrim stays translucent enough to see the diorama",
       "passed": true,
       "details": {
-        "edgeAverageLuminance": 100.16243326514399,
-        "edgeColorBuckets": 29,
+        "edgeAverageLuminance": 100.18060594807085,
+        "edgeColorBuckets": 28,
         "overlayAlpha": 0.34
       }
     },
@@ -162,7 +162,7 @@
           "height": 7
         },
         "elevationLayers": 2,
-        "voxelCount": 264,
+        "voxelCount": 282,
         "propCount": 25,
         "propFamilies": [
           "bridge",
@@ -186,6 +186,39 @@
           "bottom": 571,
           "width": 794,
           "height": 421
+        },
+        "gridAlignment": {
+          "axes": {
+            "x": {
+              "x": 46,
+              "y": 23
+            },
+            "y": {
+              "x": -46,
+              "y": 23
+            }
+          },
+          "channel": {
+            "axes": [
+              "x"
+            ],
+            "segmentCount": 9,
+            "joinedPairCount": 8,
+            "maxAxisErrorPx": 0,
+            "maxJoinGapPx": 0,
+            "maxRailPostGapPx": 0
+          },
+          "fences": {
+            "axes": [
+              "x",
+              "y"
+            ],
+            "segmentCount": 6,
+            "joinedPairCount": 3,
+            "maxAxisErrorPx": 0,
+            "maxJoinGapPx": 0,
+            "maxRailPostGapPx": 0
+          }
         }
       }
     },
@@ -198,7 +231,7 @@
           "height": 7
         },
         "elevationLayers": 2,
-        "voxelCount": 264,
+        "voxelCount": 282,
         "propCount": 25,
         "propFamilies": [
           "bridge",
@@ -222,6 +255,39 @@
           "bottom": 571,
           "width": 794,
           "height": 421
+        },
+        "gridAlignment": {
+          "axes": {
+            "x": {
+              "x": 46,
+              "y": 23
+            },
+            "y": {
+              "x": -46,
+              "y": 23
+            }
+          },
+          "channel": {
+            "axes": [
+              "x"
+            ],
+            "segmentCount": 9,
+            "joinedPairCount": 8,
+            "maxAxisErrorPx": 0,
+            "maxJoinGapPx": 0,
+            "maxRailPostGapPx": 0
+          },
+          "fences": {
+            "axes": [
+              "x",
+              "y"
+            ],
+            "segmentCount": 6,
+            "joinedPairCount": 3,
+            "maxAxisErrorPx": 0,
+            "maxJoinGapPx": 0,
+            "maxRailPostGapPx": 0
+          }
         }
       }
     },
@@ -234,7 +300,7 @@
           "height": 7
         },
         "elevationLayers": 2,
-        "voxelCount": 264,
+        "voxelCount": 282,
         "propCount": 25,
         "propFamilies": [
           "bridge",
@@ -258,6 +324,113 @@
           "bottom": 571,
           "width": 794,
           "height": 421
+        },
+        "gridAlignment": {
+          "axes": {
+            "x": {
+              "x": 46,
+              "y": 23
+            },
+            "y": {
+              "x": -46,
+              "y": 23
+            }
+          },
+          "channel": {
+            "axes": [
+              "x"
+            ],
+            "segmentCount": 9,
+            "joinedPairCount": 8,
+            "maxAxisErrorPx": 0,
+            "maxJoinGapPx": 0,
+            "maxRailPostGapPx": 0
+          },
+          "fences": {
+            "axes": [
+              "x",
+              "y"
+            ],
+            "segmentCount": 6,
+            "joinedPairCount": 3,
+            "maxAxisErrorPx": 0,
+            "maxJoinGapPx": 0,
+            "maxRailPostGapPx": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "irrigation water follows the joined projected map-X axis",
+      "passed": true,
+      "details": {
+        "axes": {
+          "x": {
+            "x": 46,
+            "y": 23
+          },
+          "y": {
+            "x": -46,
+            "y": 23
+          }
+        },
+        "channel": {
+          "axes": [
+            "x"
+          ],
+          "segmentCount": 9,
+          "joinedPairCount": 8,
+          "maxAxisErrorPx": 0,
+          "maxJoinGapPx": 0,
+          "maxRailPostGapPx": 0
+        },
+        "fences": {
+          "axes": [
+            "x",
+            "y"
+          ],
+          "segmentCount": 6,
+          "joinedPairCount": 3,
+          "maxAxisErrorPx": 0,
+          "maxJoinGapPx": 0,
+          "maxRailPostGapPx": 0
+        }
+      }
+    },
+    {
+      "name": "fence rails and posts share the projected map axes",
+      "passed": true,
+      "details": {
+        "axes": {
+          "x": {
+            "x": 46,
+            "y": 23
+          },
+          "y": {
+            "x": -46,
+            "y": 23
+          }
+        },
+        "channel": {
+          "axes": [
+            "x"
+          ],
+          "segmentCount": 9,
+          "joinedPairCount": 8,
+          "maxAxisErrorPx": 0,
+          "maxJoinGapPx": 0,
+          "maxRailPostGapPx": 0
+        },
+        "fences": {
+          "axes": [
+            "x",
+            "y"
+          ],
+          "segmentCount": 6,
+          "joinedPairCount": 3,
+          "maxAxisErrorPx": 0,
+          "maxJoinGapPx": 0,
+          "maxRailPostGapPx": 0
         }
       }
     },
@@ -2252,8 +2425,8 @@
       "name": "feedback link stays on the game origin",
       "passed": true,
       "details": {
-        "actual": "http://127.0.0.1:57074",
-        "expected": "http://127.0.0.1:57074"
+        "actual": "http://127.0.0.1:58890",
+        "expected": "http://127.0.0.1:58890"
       }
     },
     {
@@ -2276,8 +2449,8 @@
       "name": "visible Give feedback href matches state",
       "passed": true,
       "details": {
-        "actual": "http://127.0.0.1:57074/feedback/?session_id=AVBW-TEST-0001",
-        "expected": "http://127.0.0.1:57074/feedback/?session_id=AVBW-TEST-0001"
+        "actual": "http://127.0.0.1:58890/feedback/?session_id=AVBW-TEST-0001",
+        "expected": "http://127.0.0.1:58890/feedback/?session_id=AVBW-TEST-0001"
       }
     },
     {
@@ -2644,7 +2817,7 @@
       "name": "feedback export produces a local download",
       "passed": true,
       "details": {
-        "downloadedPath": "/var/folders/2x/zw6qlh_d6_x5r_p8cf1g3xww0000gn/T/playwright-artifacts-ddkXLL/ce5016e1-8300-46e4-beb2-555c892157c7"
+        "downloadedPath": "/var/folders/2x/zw6qlh_d6_x5r_p8cf1g3xww0000gn/T/playwright-artifacts-9MFjcs/2358ca65-a537-47b0-bd23-0a999a1bf1b0"
       }
     },
     {
@@ -3236,7 +3409,7 @@
     "server": {
       "root": "/Volumes/beefybackup/agentville-build-week/dist",
       "stderr": "",
-      "stdout": "AgentVille running at http://127.0.0.1:57074"
+      "stdout": "AgentVille running at http://127.0.0.1:58890"
     }
   }
 }

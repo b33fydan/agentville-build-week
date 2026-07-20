@@ -105,3 +105,13 @@ Original prompt: Build a clean-room hackathon project called AgentVille: Build W
 - Updated the README, acceptance contract, playtest protocol, clean-room manifest, collaboration record, and Devpost submission/evidence drafts.
 - Deployment retry [29690596219](https://github.com/b33fydan/agentville-build-week/actions/runs/29690596219) passed its full validation and Pages jobs at commit `7f04f10`; the live root and `/feedback/` each return HTTP 200.
 - `COPYFILE_DISABLE=1 npm run test:public` then passed all 302 assertions against the deployed decision-model release with empty console, page, request, response, dialog, and runner diagnostics. The machine-readable public evidence is preserved in `artifacts/evidence/latest-public-smoke.json`.
+
+## 2026-07-19 — Isometric grid alignment
+
+- Reproduced the learner-visible mismatch: map axes project at slopes `+0.5` and `-0.5`, while water surfaces used about `+0.304`, fence rails used about `±0.256`, and their posts/banks followed unrelated diagonals.
+- Rebuilt water polygons, highlights, dry cracks, and bank stones from grid coordinates projected along map X; all nine channel segments now share their eight rendered seams.
+- Rebuilt both fence orientations from map-axis endpoints; adjacent sections share posts and both rail endpoints instead of stepping or overshooting.
+- Added renderer-derived evidence from the actual water edges, seam corners, rail endpoints, and projected post centers. The new assertions prove zero axis error and zero join gap at the tested viewport.
+- Ran the provided generic web-game Playwright client against production `dist/`, inspected its canvas/state output, then completed the full mission smoke.
+- `COPYFILE_DISABLE=1 npm run smoke` passes 34/34 Node tests and 304/304 production-dist browser assertions with empty console, page, network, response, dialog, and runner diagnostics.
+- Refreshed and visually inspected the blocked hero and irrigation clue at 1600×900 and 1280×720 plus the flowing grand payoff at 1280×720. Publication and public-smoke evidence are the remaining release steps.

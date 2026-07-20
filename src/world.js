@@ -121,6 +121,10 @@ export class FarmRenderer {
       terrainElevations: new Set(),
       propCount: STATIC_PROPS.length,
       propFamilies: PROP_FAMILIES,
+      alignment: {
+        channelSegments: [],
+        fenceSegments: [],
+      },
       bert: null,
     };
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
@@ -171,8 +175,25 @@ export class FarmRenderer {
         propCount: this.frameStats?.propCount ?? 0,
         propFamilies: [...(this.frameStats?.propFamilies ?? [])],
         screenBounds: boundsForPoints(corners),
+        gridAlignment: this.buildGridAlignmentSnapshot(),
       },
       bert: this.frameStats?.bert ? structuredClone(this.frameStats.bert) : null,
+    };
+  }
+
+  buildGridAlignmentSnapshot() {
+    const origin = this.project(0, 0, 0);
+    const axes = {
+      x: subtractPoints(this.project(1, 0, 0), origin),
+      y: subtractPoints(this.project(0, 1, 0), origin),
+    };
+    return {
+      axes: {
+        x: roundPoint(axes.x),
+        y: roundPoint(axes.y),
+      },
+      channel: summarizeProjectedSegments(this.frameStats?.alignment?.channelSegments ?? [], axes),
+      fences: summarizeProjectedSegments(this.frameStats?.alignment?.fenceSegments ?? [], axes),
     };
   }
 
@@ -334,54 +355,89 @@ export class FarmRenderer {
 
   drawChannelSurface(x, y, flowing, state, timeMs) {
     const ctx = this.context;
-    const center = this.project(x, y, 0.19);
-    const halfW = this.tileWidth * 0.46;
-    const halfH = this.tileHeight * 0.28;
+    const elevation = 0.19;
+    const halfLength = 0.5;
+    const halfWidth = 0.22;
+    const surface = [
+      this.project(x - halfLength, y - halfWidth, elevation),
+      this.project(x + halfLength, y - halfWidth, elevation),
+      this.project(x + halfLength, y + halfWidth, elevation),
+      this.project(x - halfLength, y + halfWidth, elevation),
+    ];
+    const segment = makeProjectedSegment(
+      "x",
+      { x: x - 0.5, y },
+      { x: x + 0.5, y },
+      midpoint(surface[0], surface[3]),
+      midpoint(surface[1], surface[2]),
+      {
+        renderedEdges: [
+          { start: surface[0], end: surface[1] },
+          { start: surface[3], end: surface[2] },
+        ],
+        joinStart: [surface[0], surface[3]],
+        joinEnd: [surface[1], surface[2]],
+      },
+    );
+    this.frameStats?.alignment?.channelSegments.push(segment);
+
     ctx.fillStyle = flowing ? PALETTE.water : PALETTE.channelDry;
     ctx.strokeStyle = "rgba(29, 43, 34, 0.55)";
     ctx.lineWidth = 1;
-    polygon(ctx, [
-      { x: center.x - halfW, y: center.y - halfH },
-      { x: center.x + halfW, y: center.y + halfH },
-      { x: center.x + halfW - 7, y: center.y + halfH + 4 },
-      { x: center.x - halfW - 7, y: center.y - halfH + 4 },
-    ]);
+    polygon(ctx, surface);
     ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(surface[0].x, surface[0].y);
+    ctx.lineTo(surface[1].x, surface[1].y);
+    ctx.moveTo(surface[3].x, surface[3].y);
+    ctx.lineTo(surface[2].x, surface[2].y);
     ctx.stroke();
 
     if (!flowing) {
       ctx.strokeStyle = "rgba(43, 58, 51, 0.55)";
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.moveTo(center.x - 10, center.y - 2);
-      ctx.lineTo(center.x - 3, center.y + 2);
-      ctx.lineTo(center.x + 3, center.y - 1);
-      ctx.lineTo(center.x + 10, center.y + 4);
+      const dryCrack = [
+        this.project(x - 0.27, y - 0.02, elevation + 0.01),
+        this.project(x - 0.09, y + 0.05, elevation + 0.01),
+        this.project(x + 0.04, y - 0.04, elevation + 0.01),
+        this.project(x + 0.26, y + 0.03, elevation + 0.01),
+      ];
+      ctx.moveTo(dryCrack[0].x, dryCrack[0].y);
+      for (const point of dryCrack.slice(1)) ctx.lineTo(point.x, point.y);
       ctx.stroke();
       return;
     }
     const flow = this.reducedMotion ? 0.5 : ((timeMs / 850 + x * 0.21) % 1);
-    const start = this.project(x - 0.31 + flow * 0.42, y, 0.2);
+    const flowX = x - 0.34 + flow * 0.48;
+    const start = this.project(flowX, y - 0.04, elevation + 0.015);
+    const end = this.project(flowX + 0.18, y - 0.04, elevation + 0.015);
     ctx.strokeStyle = PALETTE.waterLight;
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(start.x - 8, start.y - 4);
-    ctx.lineTo(start.x + 4, start.y + 2);
+    ctx.moveTo(start.x, start.y);
+    ctx.lineTo(end.x, end.y);
     ctx.stroke();
+    const depthStart = this.project(x - 0.3, y + 0.07, elevation + 0.008);
+    const depthEnd = this.project(x + 0.3, y + 0.07, elevation + 0.008);
     ctx.strokeStyle = "rgba(25, 93, 116, 0.55)";
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(center.x - 14, center.y - 7);
-    ctx.lineTo(center.x + 13, center.y + 7);
+    ctx.moveTo(depthStart.x, depthStart.y);
+    ctx.lineTo(depthEnd.x, depthEnd.y);
     ctx.stroke();
   }
 
   drawChannelBanks(x, y) {
-    const stone = (x % 2 === 0)
-      ? { top: "#a0aa89", left: PALETTE.stoneLeft, right: PALETTE.stoneRight }
-      : { top: PALETTE.stoneTop, left: "#4d5a48", right: "#39463a" };
-    this.drawSmallCube(x - 0.31, y - 0.29, 0.27, 0.16, 0.11, stone);
-    this.drawSmallCube(x + 0.31, y + 0.29, 0.27, 0.16, 0.11, stone);
+    for (const side of [-1, 1]) {
+      for (const offset of [-0.25, 0.25]) {
+        const alternate = (x + (side > 0 ? 1 : 0) + (offset > 0 ? 1 : 0)) % 2 === 0;
+        const stone = alternate
+          ? { top: "#a0aa89", left: PALETTE.stoneLeft, right: PALETTE.stoneRight }
+          : { top: PALETTE.stoneTop, left: "#4d5a48", right: "#39463a" };
+        this.drawSmallCube(x + offset, y + side * 0.31, 0.27, 0.14, 0.11, stone);
+      }
+    }
   }
 
   drawSoilFurrows(x, y, state) {
@@ -808,39 +864,50 @@ export class FarmRenderer {
 
   drawFence(x, y, axis) {
     const ctx = this.context;
-    const p = this.project(x, y, 0.27);
-    const length = this.tileWidth * 0.39;
-    const dy = this.tileHeight * 0.2;
-    const postOffset = axis === "x" ? 0.38 : -0.38;
-    this.drawSmallCube(x - postOffset, y - Math.abs(postOffset) * 0.52, 0.72, 0.1, 0.52, {
-      top: "#ffe0a2",
-      left: "#b47a44",
-      right: "#865335",
+    const halfSpan = 0.5;
+    const startGrid = axis === "x" ? { x: x - halfSpan, y } : { x, y: y - halfSpan };
+    const endGrid = axis === "x" ? { x: x + halfSpan, y } : { x, y: y + halfSpan };
+    const railElevations = [0.64, 0.43];
+    const rails = railElevations.map((elevation) => ({
+      start: this.project(startGrid.x, startGrid.y, elevation),
+      end: this.project(endGrid.x, endGrid.y, elevation),
+    }));
+    const postStart = this.project(startGrid.x, startGrid.y, railElevations[0]);
+    const postEnd = this.project(endGrid.x, endGrid.y, railElevations[0]);
+    const segment = makeProjectedSegment(axis, startGrid, endGrid, rails[0].start, rails[0].end, {
+      renderedEdges: rails,
+      joinStart: rails.map((rail) => rail.start),
+      joinEnd: rails.map((rail) => rail.end),
+      postStart,
+      postEnd,
     });
-    this.drawSmallCube(x + postOffset, y + Math.abs(postOffset) * 0.52, 0.72, 0.1, 0.52, {
-      top: "#ffe0a2",
-      left: "#b47a44",
-      right: "#865335",
-    });
+    this.frameStats?.alignment?.fenceSegments.push(segment);
+
+    ctx.save();
+    ctx.lineCap = "butt";
     ctx.strokeStyle = PALETTE.ink;
     ctx.lineWidth = 7;
-    ctx.lineCap = "square";
     ctx.beginPath();
-    if (axis === "x") {
-      ctx.moveTo(p.x - length, p.y - dy - 7);
-      ctx.lineTo(p.x + length, p.y + dy - 7);
-      ctx.moveTo(p.x - length, p.y - dy + 2);
-      ctx.lineTo(p.x + length, p.y + dy + 2);
-    } else {
-      ctx.moveTo(p.x - length, p.y + dy - 7);
-      ctx.lineTo(p.x + length, p.y - dy - 7);
-      ctx.moveTo(p.x - length, p.y + dy + 2);
-      ctx.lineTo(p.x + length, p.y - dy + 2);
+    for (const rail of rails) {
+      ctx.moveTo(rail.start.x, rail.start.y);
+      ctx.lineTo(rail.end.x, rail.end.y);
     }
     ctx.stroke();
     ctx.strokeStyle = "#efcd8d";
     ctx.lineWidth = 4;
     ctx.stroke();
+    ctx.restore();
+
+    this.drawSmallCube(startGrid.x, startGrid.y, 0.72, 0.1, 0.52, {
+      top: "#ffe0a2",
+      left: "#b47a44",
+      right: "#865335",
+    });
+    this.drawSmallCube(endGrid.x, endGrid.y, 0.72, 0.1, 0.52, {
+      top: "#ffe0a2",
+      left: "#b47a44",
+      right: "#865335",
+    });
   }
 
   drawSign(x, y, label) {
@@ -1165,6 +1232,94 @@ function polygon(ctx, points) {
   ctx.moveTo(points[0].x, points[0].y);
   for (const point of points.slice(1)) ctx.lineTo(point.x, point.y);
   ctx.closePath();
+}
+
+function makeProjectedSegment(axis, gridStart, gridEnd, screenStart, screenEnd, evidence = {}) {
+  return {
+    axis,
+    gridStart: { ...gridStart },
+    gridEnd: { ...gridEnd },
+    screenStart: { ...screenStart },
+    screenEnd: { ...screenEnd },
+    ...evidence,
+  };
+}
+
+function summarizeProjectedSegments(segments, axes) {
+  const axisNames = [...new Set(segments.map((segment) => segment.axis))].sort();
+  let maxAxisErrorPx = 0;
+  let maxJoinGapPx = 0;
+  let maxRailPostGapPx = 0;
+  let joinedPairCount = 0;
+
+  for (const segment of segments) {
+    const gridDelta = subtractPoints(segment.gridEnd, segment.gridStart);
+    const expected = segment.axis === "x"
+      ? scalePoint(axes.x, gridDelta.x)
+      : scalePoint(axes.y, gridDelta.y);
+    const renderedEdges = segment.renderedEdges ?? [{ start: segment.screenStart, end: segment.screenEnd }];
+    for (const edge of renderedEdges) {
+      const actual = subtractPoints(edge.end, edge.start);
+      maxAxisErrorPx = Math.max(maxAxisErrorPx, pointDistance(actual, expected));
+    }
+    if (segment.postStart && segment.postEnd) {
+      maxRailPostGapPx = Math.max(
+        maxRailPostGapPx,
+        pointDistance(segment.screenStart, segment.postStart),
+        pointDistance(segment.screenEnd, segment.postEnd),
+      );
+    }
+  }
+
+  for (let leftIndex = 0; leftIndex < segments.length; leftIndex += 1) {
+    for (let rightIndex = leftIndex + 1; rightIndex < segments.length; rightIndex += 1) {
+      const left = segments[leftIndex];
+      const right = segments[rightIndex];
+      if (left.axis !== right.axis) continue;
+      const forwardJoin = pointDistance(left.gridEnd, right.gridStart) <= 0.0001;
+      const reverseJoin = pointDistance(right.gridEnd, left.gridStart) <= 0.0001;
+      if (!forwardJoin && !reverseJoin) continue;
+      joinedPairCount += 1;
+      const joinEnd = forwardJoin ? (left.joinEnd ?? [left.screenEnd]) : (right.joinEnd ?? [right.screenEnd]);
+      const joinStart = forwardJoin ? (right.joinStart ?? [right.screenStart]) : (left.joinStart ?? [left.screenStart]);
+      for (let index = 0; index < Math.min(joinEnd.length, joinStart.length); index += 1) {
+        maxJoinGapPx = Math.max(maxJoinGapPx, pointDistance(joinEnd[index], joinStart[index]));
+      }
+    }
+  }
+
+  return {
+    axes: axisNames,
+    segmentCount: segments.length,
+    joinedPairCount,
+    maxAxisErrorPx: roundMetric(maxAxisErrorPx),
+    maxJoinGapPx: roundMetric(maxJoinGapPx),
+    maxRailPostGapPx: roundMetric(maxRailPostGapPx),
+  };
+}
+
+function subtractPoints(left, right) {
+  return { x: left.x - right.x, y: left.y - right.y };
+}
+
+function scalePoint(point, scale) {
+  return { x: point.x * scale, y: point.y * scale };
+}
+
+function pointDistance(left, right) {
+  return Math.hypot(left.x - right.x, left.y - right.y);
+}
+
+function midpoint(left, right) {
+  return { x: (left.x + right.x) / 2, y: (left.y + right.y) / 2 };
+}
+
+function roundPoint(point) {
+  return { x: roundMetric(point.x), y: roundMetric(point.y) };
+}
+
+function roundMetric(value) {
+  return Math.round(value * 1000) / 1000;
 }
 
 function boundsForPoints(points) {

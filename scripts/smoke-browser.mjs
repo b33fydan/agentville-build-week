@@ -232,6 +232,27 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
       ),
       started.presentation?.farm,
     );
+    const gridAlignment = started.presentation?.farm?.gridAlignment;
+    check(
+      "irrigation water follows the joined projected map-X axis",
+      gridAlignment?.channel?.axes?.length === 1 &&
+        gridAlignment.channel.axes[0] === "x" &&
+        gridAlignment.channel.segmentCount === 9 &&
+        gridAlignment.channel.joinedPairCount === 8 &&
+        gridAlignment.channel.maxAxisErrorPx <= 0.001 &&
+        gridAlignment.channel.maxJoinGapPx <= 0.001,
+      gridAlignment,
+    );
+    check(
+      "fence rails and posts share the projected map axes",
+      gridAlignment?.fences?.axes?.join(",") === "x,y" &&
+        gridAlignment.fences.segmentCount === 6 &&
+        gridAlignment.fences.joinedPairCount === 3 &&
+        gridAlignment.fences.maxAxisErrorPx <= 0.001 &&
+        gridAlignment.fences.maxJoinGapPx <= 0.001 &&
+        gridAlignment.fences.maxRailPostGapPx <= 0.001,
+      gridAlignment,
+    );
     const startedCanvas = await page.getByTestId("farm-canvas").evaluate((node) => ({ height: node.clientHeight, width: node.clientWidth }));
     const farmBounds = started.presentation?.farm?.screenBounds;
     check(
