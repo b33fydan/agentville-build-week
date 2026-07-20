@@ -1,156 +1,145 @@
-import assert from "node:assert/strict";
 import test from "node:test";
+import assert from "node:assert/strict";
 
 import { compileProgram } from "../src/compiler.js";
 import { createLearningRecap } from "../src/debrief.js";
 import { runMission } from "../src/mission.js";
+import {
+  MISSION_IDS,
+  getMissionDefinition,
+} from "../src/mission-registry.js";
 
-const SYMPTOM_DECISION = "decide water the tomatoes when the beds are dry";
-const CAUSE_DECISION = "decide clear the blockage when the water is blocked";
-const program = (decision) =>
-  [
-    "observe the east channel",
-    decision,
-    "act on the decision",
-    "verify every tomato bed is watered",
-  ].join("\n");
-
-function run(decision, sessionId, state) {
-  return runMission(compileProgram(program(decision)), {
-    sessionId,
-    ...(state ? { state } : {}),
-  });
+function linesFor(mission, repaired = false) {
+  return mission.language.guidedProgram.map((command, index) =>
+    repaired && index === mission.language.repair.line - 1
+      ? mission.language.repair.to
+      : command,
+  );
 }
 
-function repairedReceipts() {
-  const sessionId = "AVBW-DEBRIEF-REPAIR";
-  const failure = run(SYMPTOM_DECISION, sessionId);
-  const success = run(CAUSE_DECISION, sessionId, failure.state);
-  return { failedReceipt: failure.receipt, receipt: success.receipt };
+function run(missionId, repaired, sessionId, state) {
+  const mission = getMissionDefinition(missionId);
+  return runMission(
+    compileProgram(linesFor(mission, repaired).join("\n"), { missionId }),
+    {
+      sessionId,
+      ...(state ? { state } : {}),
+    },
+  );
 }
 
-test("repair recap explains the line-2 decision change and actual execution", () => {
-  const { receipt, failedReceipt } = repairedReceipts();
-  const recap = createLearningRecap(receipt, { failedReceipt });
+test("every repair recap explains the actual single-line learner change", () => {
+  for (const missionId of MISSION_IDS) {
+    const mission = getMissionDefinition(missionId);
+    const sessionId = `RECAP-${missionId}`;
+    const failure = run(missionId, false, sessionId);
+    const success = run(missionId, true, sessionId);
+    const recap = createLearningRecap(success.receipt, {
+      failedReceipt: failure.receipt,
+    });
 
-  assert.equal(recap.path, "repair");
-  assert.equal(recap.title, "You changed the decision—and fixed the cause.");
-  assert.match(recap.summary, /repaired line 2/u);
-  assert.deepEqual(
-    recap.phases.map(({ phase }) => phase),
-    ["observe", "decide", "act", "verify"],
+    assert.equal(recap.missionId, missionId);
+    assert.equal(recap.path, "repair");
+    assert.equal(recap.learner.diagnosedFailure, true);
+    assert.equal(recap.learner.changedLine, mission.language.repair.line);
+    assert.equal(recap.learner.changedPhase, mission.language.repair.phase);
+    assert.equal(recap.learner.from, mission.language.repair.from);
+    assert.equal(recap.learner.to, mission.language.repair.to);
+    assert.equal(
+      recap.phases[mission.language.repair.line - 1].command,
+      mission.language.repair.to,
+    );
+    assert.deepEqual(
+      recap.phases.map(({ phase }) => phase),
+      ["observe", "decide", "act", "verify"],
+    );
+    assert.match(recap.summary, /Observe/u);
+    assert.match(recap.takeaway.title, /debugged an agent/u);
+    assert.equal(Object.isFrozen(recap), true);
+    assert.equal(Object.isFrozen(recap.phases), true);
+  }
+});
+
+test("direct success never invents a guided failure or repair", () => {
+  for (const missionId of MISSION_IDS) {
+    const mission = getMissionDefinition(missionId);
+    const receipt = run(missionId, true, `DIRECT-${missionId}`).receipt;
+    const recap = createLearningRecap(receipt);
+
+    assert.equal(recap.path, "direct");
+    assert.equal(recap.learner.diagnosedFailure, false);
+    assert.equal(recap.learner.changedLine, null);
+    assert.equal(recap.learner.from, null);
+    assert.equal(
+      recap.learner.to,
+      mission.language.repair.to,
+    );
+    assert.doesNotMatch(recap.summary, /failed attempt/u);
+  }
+});
+
+test("already-satisfied recaps explain false conditions and no action", () => {
+  for (const missionId of MISSION_IDS) {
+    const completed = run(missionId, true, `DONE-${missionId}`);
+    const rerun = run(
+      missionId,
+      true,
+      `DONE-${missionId}`,
+      completed.state,
+    );
+    const recap = createLearningRecap(rerun.receipt);
+
+    assert.equal(rerun.receipt.selectedAction, null);
+    assert.equal(rerun.receipt.executedAction, null);
+    assert.equal(recap.path, "already-satisfied");
+    assert.equal(recap.title, "The goal was already satisfied.");
+    assert.match(recap.summary, /condition was false/u);
+    assert.match(recap.phases[1].explanation, /false.*no response/u);
+    assert.match(recap.phases[2].explanation, /unchanged/u);
+    assert.equal(
+      recap.takeaway.title,
+      "You verified before changing anything.",
+    );
+  }
+});
+
+test("repair history requires the same mission, session, baseline, and programs", () => {
+  const eastFailure = run("repair-east-channel", false, "MATCH").receipt;
+  const eastSuccess = run("repair-east-channel", true, "MATCH").receipt;
+  const stormFailure = run("storm-watch", false, "MATCH").receipt;
+
+  assert.equal(
+    createLearningRecap(eastSuccess, { failedReceipt: stormFailure }).path,
+    "direct",
   );
   assert.equal(
-    recap.phases[0].explanation,
-    "Reported stopped water, visible debris, and 3 dry beds.",
+    createLearningRecap(eastSuccess, {
+      failedReceipt: { ...eastFailure, sessionId: "OTHER" },
+    }).path,
+    "direct",
   );
-  assert.equal(recap.phases[1].command, CAUSE_DECISION);
-  assert.match(recap.phases[1].explanation, /cause/u);
-  assert.equal(recap.phases[2].command, "act on the decision");
-  assert.match(recap.phases[2].explanation, /clearing debris/u);
   assert.equal(
-    recap.phases[3].explanation,
-    "Checked the farm: 3 of 3 beds watered.",
+    createLearningRecap(eastSuccess, {
+      failedReceipt: { ...eastFailure, beforeKey: "forged" },
+    }).path,
+    "direct",
   );
-  assert.equal(recap.takeaway.title, "You debugged an agent’s decision.");
-  assert.match(recap.takeaway.explanation, /changed Bert’s response/u);
-  assert.deepEqual(recap.learner, {
-    diagnosedFailure: true,
-    changedLine: 2,
-    from: SYMPTOM_DECISION,
-    to: CAUSE_DECISION,
-    preservedPhases: ["observe", "act", "verify"],
-  });
-  assert.deepEqual(recap.result, {
-    blockageBefore: true,
-    blockageAfter: false,
-    waterReleased: true,
-    tomatoBedsWateredBefore: 0,
-    tomatoBedsWateredAfter: 3,
-    tomatoBedsTotal: 3,
-  });
-  assert.equal(Object.isFrozen(recap), true);
-  assert.equal(Object.isFrozen(recap.phases), true);
-  assert.equal(Object.isFrozen(recap.phases[0]), true);
-});
-
-test("direct success recap never invents a failed first decision", () => {
-  const receipt = run(
-    CAUSE_DECISION,
-    "AVBW-DEBRIEF-DIRECT",
-  ).receipt;
-  const recap = createLearningRecap(receipt);
-
-  assert.equal(recap.path, "direct");
-  assert.equal(recap.title, "You chose the cause—and proved it.");
-  assert.doesNotMatch(recap.summary, /failed|repaired/u);
-  assert.equal(recap.takeaway.title, "You built a working agent loop.");
-  assert.equal(recap.learner.diagnosedFailure, false);
-  assert.equal(recap.learner.changedLine, null);
-  assert.equal(recap.learner.from, null);
-  assert.equal(recap.learner.to, CAUSE_DECISION);
-});
-
-test("already-satisfied recap truthfully explains a false condition and no action", () => {
-  const completed = run(CAUSE_DECISION, "AVBW-ALREADY-COMPLETE");
-  const rerun = run(
-    CAUSE_DECISION,
-    "AVBW-ALREADY-COMPLETE",
-    completed.state,
-  );
-  const recap = createLearningRecap(rerun.receipt);
-
-  assert.equal(rerun.receipt.selectedAction, null);
-  assert.equal(rerun.receipt.executedAction, null);
-  assert.equal(recap.path, "already-satisfied");
-  assert.equal(recap.title, "The goal was already satisfied.");
-  assert.match(recap.summary, /condition was false/u);
-  assert.doesNotMatch(JSON.stringify(recap), /by null/u);
-  assert.match(recap.phases[0].explanation, /already watered/u);
-  assert.match(recap.phases[1].explanation, /no response was selected/u);
-  assert.match(recap.phases[2].explanation, /left the farm unchanged/u);
   assert.equal(
-    recap.takeaway.title,
-    "You verified before changing anything.",
+    createLearningRecap(eastSuccess, {
+      failedReceipt: {
+        ...eastFailure,
+        program: [...eastFailure.program].reverse(),
+      },
+    }).path,
+    "direct",
   );
-  assert.equal(recap.learner.changedLine, null);
 });
 
-test("already-satisfied recap names the symptom decision's actual condition", () => {
-  const completed = run(CAUSE_DECISION, "AVBW-ALREADY-DRY-CHECK");
-  const rerun = run(
-    SYMPTOM_DECISION,
-    "AVBW-ALREADY-DRY-CHECK",
-    completed.state,
-  );
-  const recap = createLearningRecap(rerun.receipt);
-
-  assert.equal(rerun.receipt.selectedAction, null);
-  assert.equal(recap.path, "already-satisfied");
-  assert.match(recap.phases[1].explanation, /tomatoes dry/u);
-  assert.doesNotMatch(recap.phases[1].explanation, /irrigation blocked/u);
-});
-
-test("an unrelated failure receipt cannot invent a repair history", () => {
-  const receipt = run(CAUSE_DECISION, "AVBW-MATCH").receipt;
-  const failedReceipt = run(SYMPTOM_DECISION, "AVBW-OTHER").receipt;
-  const recap = createLearningRecap(receipt, { failedReceipt });
-
-  assert.equal(recap.path, "direct");
-  assert.equal(recap.learner.diagnosedFailure, false);
-
-  const wrongExecution = structuredClone(
-    run(SYMPTOM_DECISION, "AVBW-MATCH").receipt,
-  );
-  wrongExecution.executedAction = "clear blockage";
-  const stricterRecap = createLearningRecap(receipt, {
-    failedReceipt: wrongExecution,
-  });
-  assert.equal(stricterRecap.path, "direct");
-  assert.equal(stricterRecap.learner.diagnosedFailure, false);
-});
-
-test("learning recap renders only for a passing receipt", () => {
+test("learning recap renders only for a registry-backed PASS receipt", () => {
   assert.equal(createLearningRecap(null), null);
   assert.equal(createLearningRecap({ verdict: "FAIL" }), null);
+  assert.equal(
+    createLearningRecap({ verdict: "PASS", missionId: "unknown" }),
+    null,
+  );
 });

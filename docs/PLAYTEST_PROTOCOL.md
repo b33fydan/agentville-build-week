@@ -1,76 +1,165 @@
-# Five-minute Playtest Protocol
+# Five-minute-per-mission Playtest Protocol
 
-**Version:** 2026-07-19 Decide-selects / Act-executes lesson
+**Version:** 2026-07-20 three-mission course
 
-**Purpose:** Collect honest Education-track evidence for manual acceptance M1 without coaching the solution.
+**Purpose:** Collect honest Education-track evidence without coaching a solution, and test whether novice learners can distinguish a wrong response, a late trigger, and missing observation evidence.
+
+The local three-mission production browser smoke has passed. Do not begin formal sessions until the current three-mission deployment and public smoke also pass. Developer runs, automated runs, and the earlier single-mission public release do not count as human evidence.
 
 ## Test setup
 
 - Use the final deployed URL in a fresh Chromium profile at 1280×720 or larger.
-- Confirm no prior AgentVille local storage.
+- Confirm there is no prior AgentVille local storage for Mission 01 or the assigned receipt.
 - Do not show the tester source code or this protocol before the run.
-- Start a five-minute timer when the tester presses **Start mission**.
-- Do not explain the language, the failure, or the repair during the timed run.
+- Start a five-minute timer when the tester presses **Start mission** for the assigned lesson.
+- Stop the timer when that mission's PASS receipt becomes visible or at five minutes.
+- Do not explain the language, failure, Coach, repair, or answer during the timed run.
 - Record only observed behavior and the tester's own words.
+- If testing Mission 02 or Mission 03 in isolation, a facilitator may complete prerequisite missions before the tester arrives, then select and reset the assigned mission. Record that preparation and do not expose prerequisite solutions.
+- Open feedback only from the tested mission's receipt. Confirm both `mission_id` and `session_id`, not the session alone.
 
-## Run 1 — First-time comprehension
+## Session A — Mission 01: cause versus symptom
 
-1. Ask: “Please finish this lesson. Think aloud if you are comfortable.”
-2. Observe whether the player notices the **IRRIGATION** sign and dry tomato beds before the UI names the obstruction.
-3. Before Bert speaks, record whether the tester identifies him as a person/farmhand rather than an object, robot block, or UI marker; do not supply the answer.
-4. Record whether they enter `observe the east channel` before using **Hint this line**, whether Bert's walk/Aha helps them form Decide, and whether they understand that Decide chooses a response while Act carries it out.
-5. Record whether they understand that each accepted line is a rehearsal and that only **Run full program** can change the farm.
-6. After the first run, record whether they read verification before editing.
-7. Stop the timer when the PASS receipt becomes visible or at five minutes.
-8. Ask whether the interface felt like one game world or separate web panels, and whether any text or control was hard to read.
-9. Ask whether the Lesson 02 weather signal makes them want to continue; do not imply that Mission 01 failed.
-10. Open **Give feedback** and confirm the displayed session ID matches the receipt.
+Ask: “Please finish this farm lesson. Think aloud if you are comfortable.”
 
-## Run 2 — Repair clarity
+During the timed run, record:
 
-Repeat the same clean-browser setup with a different first-time tester. Focus observation on the failure-to-repair handoff:
+1. Whether the tester identifies Bert as a person or farmhand.
+2. Whether they notice the **IRRIGATION** sign and infer `observe the east channel` before opening **Hint this line**.
+3. Whether Bert's Observe walk and response make the stopped water, debris, and dry beds understandable.
+4. Whether they understand that Decide selects a response while `act on the decision` carries it out.
+5. Whether they distinguish successful compilation from successful verification.
+6. Whether they inspect the failed Verify evidence before editing.
+7. Whether they identify line 2 as the causal repair without verbal coaching.
+8. Whether they change only `decide water the tomatoes when the beds are dry` to `decide clear the blockage when the water is blocked`.
+9. Whether the cleared channel, flowing water, recovered beds, and PASS receipt feel like a satisfying payoff.
 
-1. Does the tester distinguish a compiler success from a mission success?
-2. Can they identify line 2 as the decision that caused the failed result without verbal help?
-3. Do they replace only the decision while preserving Observe, Act, and Verify?
-4. Can they explain why choosing blockage removal addresses the cause while choosing direct watering addresses only the symptom?
-5. Record time to FAIL and time from FAIL to repaired compile.
+After the timer, ask:
 
-## Run 3 — Proof and transfer
+1. “Why did watering the dry beds fail?”
+2. “What did Decide do that Act did not?”
+3. “What did Verify prove?”
 
-Repeat with a third first-time tester. After the PASS receipt, ask without prompting an answer:
+Do not count a paraphrase as correct unless it distinguishes the dry-bed symptom from the blocked-channel cause.
 
-1. “What did `verify` do that `act` did not?”
-2. “If the tomatoes were still dry, which evidence would you inspect first?”
-3. “Where else could observe, decide, act, and verify help?”
-4. Confirm they can find the receipt session ID and export feedback.
-5. “Who chose Bert's goal, tools, and limits in this mission?”
-6. “What do you think the weather signal will ask you to do next?”
+## Session B — Mission 02: leading versus lagging signals
+
+Prepare Storm Watch as described above, then ask the same neutral opening prompt.
+
+During the timed run, record:
+
+1. Whether the tester notices the **WEATHER** vane, clouds, uncovered seedlings, and covers by the shed.
+2. Whether they enter `observe the sky` before opening the hint.
+3. Whether they understand the initial evidence: clouds are gathering, but rain has not started.
+4. Whether the trace makes it clear that `rain falls` is a supported condition that is currently false.
+5. Whether they notice that Act has no selected response before the fixed storm event.
+6. Whether the storm and battered seedlings make the timing failure understandable.
+7. Whether they identify line 2, not Observe or Act, as the repair.
+8. Whether they change only `decide cover the beds when rain falls` to `decide cover the beds when clouds gather`.
+9. Whether seeing the beds covered before the identical storm makes the value of a leading signal clear.
+
+After the timer, ask:
+
+1. “Why was waiting for rain too late?”
+2. “What earlier evidence did you choose instead?”
+3. “Did Bert fail to follow the plan, or did the plan choose the wrong timing?”
+
+Do not count “the storm was random” as correct. Record whether the tester recognizes that the same scripted event occurs in both runs.
+
+## Session C — Mission 03: observation scope
+
+Prepare The Hungry Hens as described above, then ask the same neutral opening prompt.
+
+During the timed run, record:
+
+1. Whether the tester notices the **FEEDER** sign, full feeder, jammed chute, empty tray, and hens.
+2. Whether they enter `observe the feeder` before opening the hint.
+3. Whether they understand what the feeder observation did report.
+4. Whether the trace makes it clear that the observation did **not** establish whether the hens were hungry.
+5. Whether they distinguish missing evidence from evidence that says “not hungry.”
+6. Whether they identify line 1, not the Decide response, as the repair.
+7. Whether they change only `observe the feeder` to `observe the hens`.
+8. Whether the repaired observation, chute action, falling grain, fed hens, and PASS receipt form a clear causal chain.
+
+After the timer, ask:
+
+1. “Why could Bert not use the hunger condition after observing the feeder?”
+2. “Was the condition false, or was the evidence missing?”
+3. “What new fact did observing the hens provide?”
+
+Count the second answer as correct only if the learner says, in their own words, that line 1 had not supplied hunger evidence.
+
+## Session D — Course transfer and unlock chain
+
+Use a separate consenting tester or a returning tester. This is an untimed course-level probe and does not replace the five-minute-per-mission samples.
+
+1. Start from a fresh profile and verify only Mission 01 is unlocked.
+2. Complete Mission 01 and confirm its PASS exposes a real **Start Storm Watch** action.
+3. Complete Mission 02 and confirm its PASS unlocks **The Hungry Hens**.
+4. Complete Mission 03 and confirm the UI reports all three field missions verified.
+5. Ask the tester to compare the failures:
+   - Mission 01 chose the wrong response to available evidence.
+   - Mission 02 chose a signal that became true too late.
+   - Mission 03 never observed the fact its decision needed.
+6. Ask: “Who defined Bert's goals, tools, allowed responses, and success checks?”
+7. Ask: “What did `verify` do that `act` did not?”
+8. Open feedback from each available receipt and confirm that mission and session identity never cross.
+
+## Interface and accessibility probes
+
+For every session, record:
+
+- whether the farm, Workbench, trace, Coach, and receipt felt like one game rather than disconnected panels;
+- whether any learner text, evidence, control, clue, or Bert reaction was hard to see or understand;
+- whether the active repair line stayed visible when Coach appeared;
+- whether the tester could navigate the editor, actions, debrief, next-mission control, and feedback route with their preferred input;
+- whether any world animation appeared to contradict the text trace or receipt.
+
+## Feedback identity check
+
+From the tested receipt:
+
+1. Record `receipt.missionId` and `receipt.sessionId`.
+2. Activate **Give feedback**.
+3. Confirm the URL contains both `mission_id=<missionId>` and `session_id=<sessionId>`.
+4. Confirm the page displays the same mission ID, mission name, session ID, and matching receipt verdict.
+5. Save one response and export JSON.
+6. Confirm the export schema is `agentville.feedback.v2` and both IDs match the receipt exactly.
+
+Do not repair or manually combine a partial identity. A missing or mismatched ID is a product failure.
 
 ## Evidence record template
 
-Save one consented record as `artifacts/evidence/playtest-YYYY-MM-DD-<tester-code>.json`:
+Save one consented record as `artifacts/evidence/playtest-YYYY-MM-DD-<tester-code>-<mission-id>.json`:
 
 ```json
 {
-  "schema": "agentville.playtest.v1",
+  "schema": "agentville.playtest.v2",
   "testerCode": "T01",
+  "missionId": "repair-east-channel",
+  "missionName": "Repair the East Channel",
+  "prerequisitesPreparedByFacilitator": false,
   "startedAt": "ISO-8601",
   "completedAt": "ISO-8601 or null",
   "receiptSessionId": "AVBW-... or null",
+  "receiptMissionIdMatched": false,
+  "feedbackIdentityMatched": false,
   "completedWithinFiveMinutes": false,
   "secondsToFirstFailure": null,
   "secondsFailureToRepair": null,
-  "noticedIrrigationSign": false,
   "recognizedBertAsFarmhand": false,
-  "interfaceFeltLikeOneGame": false,
-  "authoredObserveBeforeDraftHint": false,
-  "usedDraftHint": false,
+  "noticedMissionClue": false,
+  "authoredObserveBeforeHint": false,
+  "usedHint": false,
   "understoodRehearsalVsExecution": false,
   "understoodDecideVsAct": false,
-  "repairedDecisionLineOnly": false,
+  "readVerifyBeforeEditing": false,
+  "repairedDeclaredLineOnly": false,
+  "explainedMissionFailure": false,
+  "distinguishedUnsupportedFromFalse": null,
+  "understoodDeterministicEvent": null,
   "explainedHumanAgentBoundary": false,
-  "wantedLessonTwo": false,
+  "interfaceFeltLikeOneGame": false,
   "visualConfusions": [],
   "verbalCoachingGiven": false,
   "observations": [],
@@ -79,6 +168,11 @@ Save one consented record as `artifacts/evidence/playtest-YYYY-MM-DD-<tester-cod
 }
 ```
 
-## Pass rule
+Use `null` for probes that do not apply to the assigned mission. Preserve the learner's wording in `observations` rather than translating it into a stronger claim.
 
-M1 passes only if at least two of three first-time testers reach the PASS receipt within five minutes without verbal coaching. A missing time, coached run, developer run, or fabricated record does not count.
+## Pass rules
+
+- A mission's novice gate passes only if at least two of three first-time testers complete that assigned mission within five minutes without verbal coaching.
+- Course transfer passes only if a tester follows the PASS-only unlock chain and can distinguish all three failure types in their own words.
+- A missing time, coached run, developer run, automated run, prior exposure to the solution, fabricated record, or absent evidence consent does not count.
+- Human evidence does not replace the production browser smoke, and automation does not replace human comprehension evidence.

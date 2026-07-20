@@ -16,52 +16,312 @@ const EVIDENCE_DIR = resolve(ROOT, "artifacts", "evidence");
 const REPORT_PATH = resolve(EVIDENCE_DIR, "latest-smoke.json");
 const PUBLIC_REPORT_PATH = resolve(EVIDENCE_DIR, "latest-public-smoke.json");
 const PLAYWRIGHT_VERSION = createRequire(import.meta.url)("playwright/package.json").version;
+const FIXED_TICK_MS = 1000 / 60;
+const EXECUTION_END_TICK = 225;
+const SHARED_ACT_COMMAND = "act on the decision";
+const TEST_SEED = "three-mission-smoke-v1";
 
-const DRAFT_PROGRAM = [
-  "observe the east channel",
-  "decide water the tomatoes when the beds are dry",
-  "act on the decision",
-  "verify every tomato bed is watered",
-].join("\n");
+// These expectations are deliberately independent of the runtime mission registry.
+// A registry regression must fail this smoke instead of rewriting its own oracle.
+const MISSION_CASES = Object.freeze([
+  Object.freeze({
+    key: "m01",
+    id: "repair-east-channel",
+    name: "Repair the East Channel",
+    sessionId: "AVBW-TEST-0001",
+    sceneId: "east-channel",
+    clue: "IRRIGATION",
+    landmarkId: "irrigation-sign",
+    entityType: "tomatoBeds",
+    entityCount: 3,
+    guidedProgram: Object.freeze([
+      "observe the east channel",
+      "decide water the tomatoes when the beds are dry",
+      SHARED_ACT_COMMAND,
+      "verify every tomato bed is watered",
+    ]),
+    repairedProgram: Object.freeze([
+      "observe the east channel",
+      "decide clear the blockage when the water is blocked",
+      SHARED_ACT_COMMAND,
+      "verify every tomato bed is watered",
+    ]),
+    repairLine: 2,
+    repairSuggestion: "decide clear the blockage when the water is blocked",
+    invalidProgram: Object.freeze([
+      "observe the east channel",
+      "decide sing to the crops when bells ring",
+      SHARED_ACT_COMMAND,
+      "verify every tomato bed is watered",
+    ]),
+    invalidLine: 2,
+    invalidCode: "DECISION_NOT_ALLOWED",
+    foreignProgram: Object.freeze([
+      "observe the sky",
+      "decide cover the beds when rain falls",
+      SHARED_ACT_COMMAND,
+      "verify the seedlings are safe",
+    ]),
+    guided: Object.freeze({
+      observeOutcome: "BLOCKED",
+      decideOutcome: "SYMPTOM_SELECTED",
+      conditionSupported: true,
+      conditionMet: true,
+      selectedAction: "water tomatoes",
+      actOutcome: "NO_CHANGE",
+      executedAction: "water tomatoes",
+      worldChanges: false,
+    }),
+    progressive: Object.freeze({
+      observeBert:
+        "Aha! East Channel water stops at visible debris; 3 tomato beds are dry.",
+      decideBert:
+        "Condition supported: The East Channel observation found dry tomato beds. I selected water tomatoes.",
+      decideCue: "💡",
+      decideTone: "idea",
+      decideSemantics: "supported-true",
+    }),
+    repaired: Object.freeze({
+      decideOutcome: "CAUSE_SELECTED",
+      selectedAction: "clear blockage",
+      actOutcome: "WORLD_CHANGED",
+    }),
+    coachTitle: "Treat the cause, not only the symptom.",
+    coachMessage:
+      "The plan chose dry beds, but direct watering cannot pass the blockage stopping the channel.",
+    initialState: Object.freeze({
+      missionId: "repair-east-channel",
+      irrigation: Object.freeze({ channel: "East Channel", blocked: true, waterReleased: false }),
+      tomatoBeds: Object.freeze([
+        Object.freeze({ id: "tomato-bed-1", crop: "tomatoes", watered: false }),
+        Object.freeze({ id: "tomato-bed-2", crop: "tomatoes", watered: false }),
+        Object.freeze({ id: "tomato-bed-3", crop: "tomatoes", watered: false }),
+      ]),
+    }),
+    alreadySatisfiedState: Object.freeze({
+      missionId: "repair-east-channel",
+      irrigation: Object.freeze({ channel: "East Channel", blocked: false, waterReleased: true }),
+      tomatoBeds: Object.freeze([
+        Object.freeze({ id: "tomato-bed-1", crop: "tomatoes", watered: true }),
+        Object.freeze({ id: "tomato-bed-2", crop: "tomatoes", watered: true }),
+        Object.freeze({ id: "tomato-bed-3", crop: "tomatoes", watered: true }),
+      ]),
+    }),
+    nextMissionId: "storm-watch",
+  }),
+  Object.freeze({
+    key: "m02",
+    id: "storm-watch",
+    name: "Storm Watch",
+    sessionId: "AVBW-TEST-0002",
+    sceneId: "storm-watch",
+    clue: "WEATHER",
+    landmarkId: "weather-sign",
+    entityType: "seedlingBeds",
+    entityCount: 3,
+    guidedProgram: Object.freeze([
+      "observe the sky",
+      "decide cover the beds when rain falls",
+      SHARED_ACT_COMMAND,
+      "verify the seedlings are safe",
+    ]),
+    repairedProgram: Object.freeze([
+      "observe the sky",
+      "decide cover the beds when clouds gather",
+      SHARED_ACT_COMMAND,
+      "verify the seedlings are safe",
+    ]),
+    repairLine: 2,
+    repairSuggestion: "decide cover the beds when clouds gather",
+    invalidProgram: Object.freeze([
+      "observe the sky",
+      "decide hide in the shed when thunder sings",
+      SHARED_ACT_COMMAND,
+      "verify the seedlings are safe",
+    ]),
+    invalidLine: 2,
+    invalidCode: "DECISION_NOT_ALLOWED",
+    foreignProgram: Object.freeze([
+      "observe the feeder",
+      "decide unjam the chute when the hens are hungry",
+      SHARED_ACT_COMMAND,
+      "verify every hen has eaten",
+    ]),
+    guided: Object.freeze({
+      observeOutcome: "CLOUDS_GATHERING",
+      decideOutcome: "CONDITION_NOT_MET",
+      conditionSupported: true,
+      conditionMet: false,
+      selectedAction: null,
+      actOutcome: "NO_ACTION_SELECTED",
+      executedAction: null,
+      worldChanges: true,
+    }),
+    progressive: Object.freeze({
+      observeBert: "Aha! Dark clouds are gathering, but rain has not started.",
+      decideBert:
+        "Condition checked: The sky observation shows that rain has not started. That would select no response yet.",
+      decideCue: "?",
+      decideTone: "question",
+      decideSemantics: "supported-false",
+    }),
+    repaired: Object.freeze({
+      decideOutcome: "RESPONSE_SELECTED",
+      selectedAction: "cover beds",
+      actOutcome: "WORLD_CHANGED",
+    }),
+    coachTitle: "Choose a signal that arrives before the harm.",
+    coachMessage:
+      "The rain trigger fired after the harm: the uncovered seedlings were battered before Bert could protect them.",
+    initialState: Object.freeze({
+      missionId: "storm-watch",
+      weather: Object.freeze({ cloudsGathering: true, rainFalling: false, stormArrived: false }),
+      covers: Object.freeze({ location: "shed", available: true, deployed: false }),
+      seedlingBeds: Object.freeze([
+        Object.freeze({ id: "seedling-bed-1", crop: "seedlings", covered: false, battered: false }),
+        Object.freeze({ id: "seedling-bed-2", crop: "seedlings", covered: false, battered: false }),
+        Object.freeze({ id: "seedling-bed-3", crop: "seedlings", covered: false, battered: false }),
+      ]),
+    }),
+    alreadySatisfiedState: Object.freeze({
+      missionId: "storm-watch",
+      weather: Object.freeze({ cloudsGathering: false, rainFalling: true, stormArrived: true }),
+      covers: Object.freeze({ location: "shed", available: true, deployed: true }),
+      seedlingBeds: Object.freeze([
+        Object.freeze({ id: "seedling-bed-1", crop: "seedlings", covered: true, battered: false }),
+        Object.freeze({ id: "seedling-bed-2", crop: "seedlings", covered: true, battered: false }),
+        Object.freeze({ id: "seedling-bed-3", crop: "seedlings", covered: true, battered: false }),
+      ]),
+    }),
+    nextMissionId: "hungry-hens",
+  }),
+  Object.freeze({
+    key: "m03",
+    id: "hungry-hens",
+    name: "The Hungry Hens",
+    sessionId: "AVBW-TEST-0003",
+    sceneId: "hungry-hens",
+    clue: "FEEDER",
+    landmarkId: "feeder-sign",
+    entityType: "hens",
+    entityCount: 3,
+    guidedProgram: Object.freeze([
+      "observe the feeder",
+      "decide unjam the chute when the hens are hungry",
+      SHARED_ACT_COMMAND,
+      "verify every hen has eaten",
+    ]),
+    repairedProgram: Object.freeze([
+      "observe the hens",
+      "decide unjam the chute when the hens are hungry",
+      SHARED_ACT_COMMAND,
+      "verify every hen has eaten",
+    ]),
+    repairLine: 1,
+    repairSuggestion: "observe the hens",
+    invalidProgram: Object.freeze([
+      "observe the moon",
+      "decide unjam the chute when the hens are hungry",
+      SHARED_ACT_COMMAND,
+      "verify every hen has eaten",
+    ]),
+    invalidLine: 1,
+    invalidCode: "SYNTAX",
+    foreignProgram: Object.freeze([
+      "observe the east channel",
+      "decide clear the blockage when the water is blocked",
+      SHARED_ACT_COMMAND,
+      "verify every tomato bed is watered",
+    ]),
+    guided: Object.freeze({
+      observeOutcome: "FEEDER_OBSERVED",
+      decideOutcome: "EVIDENCE_UNAVAILABLE",
+      conditionSupported: false,
+      conditionMet: null,
+      selectedAction: null,
+      actOutcome: "NO_ACTION_SELECTED",
+      executedAction: null,
+      worldChanges: false,
+    }),
+    progressive: Object.freeze({
+      observeBert:
+        "Aha! The feeder is full, but its chute is jammed and the tray is empty.",
+      decideBert:
+        "I cannot use that condition yet. The feeder observation has no evidence about whether the hens are hungry; observe the hens first.",
+      decideCue: "?",
+      decideTone: "question",
+      decideSemantics: "unsupported",
+    }),
+    repaired: Object.freeze({
+      decideOutcome: "RESPONSE_SELECTED",
+      selectedAction: "unjam chute",
+      actOutcome: "WORLD_CHANGED",
+    }),
+    coachTitle: "Observe the evidence your decision needs.",
+    coachMessage:
+      "You looked in the wrong place: the feeder showed a jam, but it gave no evidence that the hens were hungry.",
+    initialState: Object.freeze({
+      missionId: "hungry-hens",
+      feeder: Object.freeze({ full: true, chuteJammed: true }),
+      tray: Object.freeze({ grainDelivered: 0, grainRemaining: 0 }),
+      hens: Object.freeze([
+        Object.freeze({ id: "hen-1", hungry: true, eaten: false }),
+        Object.freeze({ id: "hen-2", hungry: true, eaten: false }),
+        Object.freeze({ id: "hen-3", hungry: true, eaten: false }),
+      ]),
+    }),
+    alreadySatisfiedState: Object.freeze({
+      missionId: "hungry-hens",
+      feeder: Object.freeze({ full: true, chuteJammed: false }),
+      tray: Object.freeze({ grainDelivered: 3, grainRemaining: 0 }),
+      hens: Object.freeze([
+        Object.freeze({ id: "hen-1", hungry: false, eaten: true }),
+        Object.freeze({ id: "hen-2", hungry: false, eaten: true }),
+        Object.freeze({ id: "hen-3", hungry: false, eaten: true }),
+      ]),
+    }),
+    nextMissionId: null,
+  }),
+]);
 
-const REPAIR_DECISION = "decide clear the blockage when the water is blocked";
-const REPAIRED_PROGRAM = DRAFT_PROGRAM.replace(
-  "decide water the tomatoes when the beds are dry",
-  REPAIR_DECISION,
-);
-
-const ARTIFACTS = Object.freeze({
-  welcome: "artifacts/screenshots/agentville-build-week-welcome.png",
-  hero: "artifacts/screenshots/agentville-build-week-hero.png",
-  irrigationCue1280: "artifacts/screenshots/agentville-build-week-irrigation-cue-1280.png",
-  observeError1280: "artifacts/screenshots/agentville-build-week-observe-error-1280.png",
-  observeSuccess1280: "artifacts/screenshots/agentville-build-week-observe-success-1280.png",
-  bertDetail: "artifacts/screenshots/agentville-build-week-bert-detail.png",
-  bertTeaching: "artifacts/screenshots/agentville-build-week-bert-teaching.png",
-  decideAha1280: "artifacts/screenshots/agentville-build-week-decide-aha-1280.png",
-  grandPayoff1280: "artifacts/screenshots/agentville-build-week-grand-payoff-1280.png",
-  compilerError: "artifacts/screenshots/agentville-build-week-compiler-error.png",
-  failure: "artifacts/screenshots/agentville-build-week-failure.png",
-  receipt: "artifacts/screenshots/agentville-build-week-receipt.png",
-  debrief1280: "artifacts/screenshots/agentville-build-week-debrief-1280.png",
-  feedback: "artifacts/screenshots/agentville-build-week-feedback.png",
-  feedbackMobile390: "artifacts/screenshots/agentville-build-week-feedback-mobile-390.png",
-  mobile390: "artifacts/screenshots/agentville-build-week-mobile-390.png",
-  debug: "artifacts/screenshots/agentville-build-week-smoke-error.png",
-  report: "artifacts/evidence/latest-smoke.json",
+const SCREENSHOTS = Object.freeze({
+  welcome: "agentville-build-week-course-selector-1280.png",
+  wide1600: "agentville-build-week-responsive-1600x900.png",
+  short1280: "agentville-build-week-responsive-1280x720.png",
+  mobile390: "agentville-build-week-responsive-390x844.png",
+  m01Authoring: "agentville-build-week-m01-authoring-1280.png",
+  m01Failure: "agentville-build-week-m01-failure-1280.png",
+  m01Pass: "agentville-build-week-m01-pass-1280.png",
+  m02Authoring: "agentville-build-week-m02-authoring-1280.png",
+  m02Failure: "agentville-build-week-m02-failure-1280.png",
+  m02Pass: "agentville-build-week-m02-pass-1280.png",
+  m03Authoring: "agentville-build-week-m03-authoring-1280.png",
+  m03Failure: "agentville-build-week-m03-failure-1280.png",
+  m03Pass: "agentville-build-week-m03-pass-1280.png",
+  m03Reset: "agentville-build-week-m03-reset-1280.png",
+  feedback: "agentville-build-week-feedback-m03-1280.png",
+  debug: "agentville-build-week-smoke-error-1280.png",
 });
 
 export function parseSmokeArgs(argv = process.argv.slice(2)) {
-  const urlFlag = argv.find((argument) => argument.startsWith("--url="));
+  const inlineUrl = argv.find((argument) => argument.startsWith("--url="));
   const urlIndex = argv.indexOf("--url");
   return {
     dist: argv.includes("--dist"),
     headless: !argv.includes("--headed"),
-    url: urlFlag?.slice("--url=".length) || (urlIndex >= 0 ? argv[urlIndex + 1] : null) || null,
+    url:
+      inlineUrl?.slice("--url=".length) ||
+      (urlIndex >= 0 ? argv[urlIndex + 1] : null) ||
+      null,
   };
 }
 
-export async function runBrowserSmoke({ dist = false, headless = true, invocation = "smoke", url = null } = {}) {
+export async function runBrowserSmoke({
+  dist = false,
+  headless = true,
+  invocation = "smoke",
+  url = null,
+} = {}) {
   const startedAt = new Date();
   const assertions = [];
   const diagnostics = {
@@ -72,13 +332,18 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
     responseErrors: [],
     dialogs: [],
   };
-  const stateSummary = {};
+  const stateSummary = { missions: {} };
   const screenshotPaths = Object.fromEntries(
-    Object.entries(ARTIFACTS)
-      .filter(([name]) => name !== "report")
-      .map(([name, relativePath]) => [name, resolve(ROOT, relativePath)]),
+    Object.entries(SCREENSHOTS).map(([key, filename]) => [
+      key,
+      resolve(SCREENSHOT_DIR, filename),
+    ]),
   );
+  const capturedScreenshots = new Set();
   const reportPath = url ? PUBLIC_REPORT_PATH : REPORT_PATH;
+  const reportRelativePath = url
+    ? "artifacts/evidence/latest-public-smoke.json"
+    : "artifacts/evidence/latest-smoke.json";
 
   let browser = null;
   let context = null;
@@ -94,11 +359,10 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
 
   const check = (name, condition, details = {}) => {
     const passed = Boolean(condition);
-    const safeDetails = jsonSafe(details);
-    assertions.push({ name, passed, details: safeDetails });
+    assertions.push({ name, passed, details: jsonSafe(details) });
     if (!passed) {
       const error = new Error(
-        `Smoke assertion failed: ${name} · ${JSON.stringify(safeDetails)}`,
+        `Smoke assertion failed: ${name} · ${JSON.stringify(jsonSafe(details))}`,
       );
       error.isSmokeAssertion = true;
       throw error;
@@ -107,6 +371,18 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
 
   const equal = (name, actual, expected) => {
     check(name, Object.is(actual, expected), { actual, expected });
+  };
+
+  const deepEqual = (name, actual, expected) => {
+    check(name, JSON.stringify(actual) === JSON.stringify(expected), {
+      actual,
+      expected,
+    });
+  };
+
+  const capture = async (targetPage, key, options = {}) => {
+    await captureViewport(targetPage, screenshotPaths[key], options);
+    capturedScreenshots.add(key);
   };
 
   try {
@@ -120,12 +396,11 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
         existsSync(resolve(serveRoot, "index.html")),
         { root: serveRoot },
       );
-
       server = await startStaticServer(serveRoot);
-      baseUrl = server.baseUrl;
+      baseUrl = normalizeBaseUrl(server.baseUrl);
     }
-    const allowedOrigin = new URL(baseUrl).origin;
 
+    const allowedOrigin = new URL(baseUrl).origin;
     browser = await chromium.launch({
       headless,
       args: ["--use-gl=angle", "--use-angle=swiftshader"],
@@ -136,17 +411,21 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
       deviceScaleFactor: 1,
       locale: "en-US",
       reducedMotion: "reduce",
-      screen: { width: 1600, height: 900 },
+      screen: { width: 1280, height: 900 },
       serviceWorkers: "block",
       timezoneId: "UTC",
-      viewport: { width: 1600, height: 900 },
+      viewport: { width: 1280, height: 900 },
     });
 
     await context.route("**/*", async (route) => {
       const request = route.request();
-      const url = request.url();
-      if (!isAllowedUrl(url, allowedOrigin)) {
-        diagnostics.externalRequests.push({ method: request.method(), resourceType: request.resourceType(), url });
+      const requestUrl = request.url();
+      if (!isAllowedUrl(requestUrl, allowedOrigin)) {
+        diagnostics.externalRequests.push({
+          method: request.method(),
+          resourceType: request.resourceType(),
+          url: requestUrl,
+        });
         await route.abort("blockedbyclient");
         return;
       }
@@ -166,34 +445,45 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
         diagnostics.pageErrors.push({ page: label, text: String(error) });
       });
       targetPage.on("requestfailed", (request) => {
-        const url = request.url();
-        if (diagnostics.externalRequests.some((entry) => entry.url === url)) return;
+        const requestUrl = request.url();
+        if (diagnostics.externalRequests.some((entry) => entry.url === requestUrl)) return;
         diagnostics.requestFailures.push({
           page: label,
           error: request.failure()?.errorText ?? "unknown request failure",
-          url,
+          url: requestUrl,
         });
       });
       targetPage.on("response", (response) => {
         if (response.status() >= 400) {
-          diagnostics.responseErrors.push({ page: label, status: response.status(), url: response.url() });
+          diagnostics.responseErrors.push({
+            page: label,
+            status: response.status(),
+            url: response.url(),
+          });
         }
       });
       targetPage.on("dialog", async (dialog) => {
-        diagnostics.dialogs.push({ page: label, message: dialog.message(), type: dialog.type() });
+        diagnostics.dialogs.push({
+          page: label,
+          message: dialog.message(),
+          type: dialog.type(),
+        });
         await dialog.dismiss();
       });
       targetPage.on("websocket", (socket) => {
         if (!isAllowedUrl(socket.url(), allowedOrigin)) {
-          diagnostics.externalRequests.push({ method: "WEBSOCKET", resourceType: "websocket", url: socket.url() });
+          diagnostics.externalRequests.push({
+            method: "WEBSOCKET",
+            resourceType: "websocket",
+            url: socket.url(),
+          });
         }
       });
     };
 
     page = await context.newPage();
     attachGuards(page, "mission");
-
-    const missionUrl = new URL("./?test=1&seed=east-channel-v1", normalizeBaseUrl(baseUrl)).href;
+    const missionUrl = new URL(`./?test=1&seed=${TEST_SEED}`, baseUrl).href;
     await page.goto(missionUrl, { waitUntil: "networkidle" });
     await page.waitForFunction(() => {
       const app = document.querySelector('[data-testid="app-ready"]');
@@ -202,982 +492,472 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
 
     const welcome = await readTextState(page, "welcome", check);
     equal("app reports ready", welcome.ready, true);
-    equal("deterministic seed is active", welcome.seed, "east-channel-v1");
-    equal("mission starts at welcome", welcome.mode, "welcome");
-    const welcomeCanvas = await measureCanvasPresentation(page);
-    check("welcome renders the farm before Start is clicked", welcomeCanvas.nonDarkRatio >= 0.7, welcomeCanvas);
-    check("welcome farm preview has rich color variation", welcomeCanvas.uniqueColorBuckets >= 24, welcomeCanvas);
-    const welcomeComposite = await measureCompositedScene(page);
-    check("welcome overlay keeps the composited farm visibly lit", welcomeComposite.edgeAverageLuminance >= 45, welcomeComposite);
-    check("welcome overlay keeps farm color variation outside the start card", welcomeComposite.edgeColorBuckets >= 20, welcomeComposite);
-    check("welcome scrim stays translucent enough to see the diorama", welcomeComposite.overlayAlpha <= 0.35, welcomeComposite);
-    await captureViewport(page, screenshotPaths.welcome);
-
-    await page.getByTestId("start-mission").click();
-    await waitForMode(page, "authoring");
-    const started = await readTextState(page, "started mission", check);
-    stateSummary.initial = summarizeMission(started);
-    equal("start creates first deterministic session", started.session.id, "AVBW-TEST-0001");
-    equal("start restores blocked irrigation", started.world.blockage, "debris-present");
-    equal("start keeps channel stopped", started.world.eastChannel, "blocked");
-    equal("start restores three dry beds", started.world.tomatoBeds.watered, 0);
-    equal("farm renderer reports the layered voxel style", started.presentation?.style, "layered-voxel-farm");
-    equal("farm renderer reports two terrain elevation layers", started.presentation?.farm?.elevationLayers, 2);
-    check("refined farm renders at least 240 voxel forms", started.presentation?.farm?.voxelCount >= 240, started.presentation?.farm);
-    check("refined farm includes at least 24 authored props", started.presentation?.farm?.propCount >= 24, started.presentation?.farm);
-    check(
-      "refined farm exposes the approved agricultural prop families",
-      ["bridge", "crate", "crop", "flowers", "hay", "pump", "reservoir", "shed", "sign", "tree"].every((family) =>
-        started.presentation?.farm?.propFamilies?.includes(family),
-      ),
-      started.presentation?.farm,
+    equal("course starts on Mission 01", welcome.mission.id, "repair-east-channel");
+    deepEqual("only Mission 01 starts unlocked", welcome.course.unlockedMissionIds, [
+      "repair-east-channel",
+    ]);
+    deepEqual("no mission starts complete", welcome.course.completedMissionIds, []);
+    await assertWelcomeRoster(page, check, equal);
+    await assertShellAndCanvas(page, welcome, check, equal);
+    await capture(page, "welcome");
+    await assertResponsiveViewport(
+      page,
+      { width: 1600, height: 900, key: "wide1600", label: "1600x900" },
+      capture,
+      check,
+      equal,
     );
-    const gridAlignment = started.presentation?.farm?.gridAlignment;
-    check(
-      "irrigation water follows the joined projected map-X axis",
-      gridAlignment?.channel?.axes?.length === 1 &&
-        gridAlignment.channel.axes[0] === "x" &&
-        gridAlignment.channel.segmentCount === 9 &&
-        gridAlignment.channel.joinedPairCount === 8 &&
-        gridAlignment.channel.maxAxisErrorPx <= 0.001 &&
-        gridAlignment.channel.maxJoinGapPx <= 0.001,
-      gridAlignment,
+    await assertResponsiveViewport(
+      page,
+      { width: 1280, height: 720, key: "short1280", label: "1280x720" },
+      capture,
+      check,
+      equal,
     );
-    check(
-      "fence rails and posts share the projected map axes",
-      gridAlignment?.fences?.axes?.join(",") === "x,y" &&
-        gridAlignment.fences.segmentCount === 6 &&
-        gridAlignment.fences.joinedPairCount === 3 &&
-        gridAlignment.fences.maxAxisErrorPx <= 0.001 &&
-        gridAlignment.fences.maxJoinGapPx <= 0.001 &&
-        gridAlignment.fences.maxRailPostGapPx <= 0.001,
-      gridAlignment,
+    await assertResponsiveViewport(
+      page,
+      { width: 390, height: 844, key: "mobile390", label: "390x844" },
+      capture,
+      check,
+      equal,
     );
-    const startedCanvas = await page.getByTestId("farm-canvas").evaluate((node) => ({ height: node.clientHeight, width: node.clientWidth }));
-    const farmBounds = started.presentation?.farm?.screenBounds;
-    check(
-      "renderer-derived farm bounds stay inside the canvas",
-      farmBounds?.left >= 0 && farmBounds?.top >= 0 && farmBounds?.right <= startedCanvas.width && farmBounds?.bottom <= startedCanvas.height,
-      { canvas: startedCanvas, farmBounds },
-    );
-    check(
-      "voxel farm occupies a substantial part of the scene",
-      farmBounds?.width >= startedCanvas.width * 0.6 && farmBounds?.height >= startedCanvas.height * 0.45,
-      { canvas: startedCanvas, farmBounds },
-    );
-    equal("Bert renderer reports a humanoid farmhand silhouette", started.presentation?.bert?.silhouette, "humanoid-farmhand");
-    check(
-      "Bert actually renders a head, face, torso, paired arms, hands, legs, and boots",
-      [
-        "head",
-        "face",
-        "torso",
-        "left-arm",
-        "right-arm",
-        "left-hand",
-        "right-hand",
-        "left-leg",
-        "right-leg",
-        "left-boot",
-        "right-boot",
-      ].every((part) => started.presentation?.bert?.renderedParts?.includes(part)),
-      started.presentation?.bert,
-    );
-    check(
-      "Bert's projected silhouette is large enough to read at normal zoom",
-      started.presentation?.bert?.screenBounds?.right - started.presentation?.bert?.screenBounds?.left >= 46 &&
-        started.presentation?.bert?.screenBounds?.bottom - started.presentation?.bert?.screenBounds?.top >= 72,
-      started.presentation?.bert?.screenBounds,
-    );
-    equal("Bert begins in an idle visual pose", started.presentation?.bert?.pose, "idle");
-    const irrigationSign = started.world.landmarks?.find(({ id }) => id === "irrigation-sign");
-    equal("farm exposes the irrigation sign", irrigationSign?.label, "IRRIGATION");
-    equal("irrigation sign points to the East Channel", irrigationSign?.pointsTo, "East Channel");
-    check(
-      "canvas description names the visible irrigation clue",
-      (await page.getByTestId("farm-canvas").getAttribute("aria-label"))?.includes("IRRIGATION sign"),
-    );
-    await captureViewport(page, screenshotPaths.hero);
-
-    await page.setViewportSize({ width: 1280, height: 720 });
-    await waitForPaint(page);
-    const authoringLayout = await page.evaluate(() => ({
-      canvas: {
-        height: document.querySelector("#farm-canvas").getBoundingClientRect().height,
-        width: document.querySelector("#farm-canvas").getBoundingClientRect().width,
-      },
-      document: {
-        height: document.documentElement.scrollHeight,
-        width: document.documentElement.scrollWidth,
-      },
-      rig: {
-        actionHeight: document.querySelector("#compile-button").getBoundingClientRect().height,
-        editorFontSize: parseFloat(getComputedStyle(document.querySelector("#program-editor")).fontSize),
-        editorHelpFontSize: parseFloat(getComputedStyle(document.querySelector("#editor-help")).fontSize),
-        hintHeight: document.querySelector("#hint-button").getBoundingClientRect().height,
-        languageDescriptionFontSize: parseFloat(getComputedStyle(document.querySelector("#language-reference li span")).fontSize),
-        motionHeight: document.querySelector("#motion-toggle").getBoundingClientRect().height,
-        promptFontSize: parseFloat(getComputedStyle(document.querySelector("#lesson-copy")).fontSize),
-        sceneRadius: parseFloat(getComputedStyle(document.querySelector(".scene-card")).borderTopLeftRadius),
-        sceneBorder: parseFloat(getComputedStyle(document.querySelector(".scene-card")).borderTopWidth),
-        workbenchBorder: parseFloat(getComputedStyle(document.querySelector(".workbench")).borderTopWidth),
-      },
-    }));
-    check(
-      "1280 irrigation clue keeps a visible farm canvas",
-      authoringLayout.canvas.width >= 700 && authoringLayout.canvas.height >= 500,
-      authoringLayout,
-    );
-    check(
-      "1280 authoring view has no document overflow",
-      authoringLayout.document.width <= 1280 && authoringLayout.document.height <= 720,
-      authoringLayout,
-    );
-    check("Voxel Field Rig uses square scene geometry", authoringLayout.rig.sceneRadius <= 1, authoringLayout.rig);
-    check(
-      "Voxel Field Rig mounts both main panels in substantial frames",
-      authoringLayout.rig.sceneBorder >= 4 && authoringLayout.rig.workbenchBorder >= 4,
-      authoringLayout.rig,
-    );
-    check("Workbench code remains at least 13px", authoringLayout.rig.editorFontSize >= 13, authoringLayout.rig);
-    check("Workbench actions remain at least 44px tall", authoringLayout.rig.actionHeight >= 44, authoringLayout.rig);
-    check(
-      "learner-facing hint and motion controls remain at least 44px tall",
-      authoringLayout.rig.hintHeight >= 44 && authoringLayout.rig.motionHeight >= 44,
-      authoringLayout.rig,
-    );
-    check(
-      "lesson prompt and editor guidance remain at least 12px",
-      authoringLayout.rig.promptFontSize >= 12 && authoringLayout.rig.editorHelpFontSize >= 12,
-      authoringLayout.rig,
-    );
-    check(
-      "safe-language descriptions remain at least 10px",
-      authoringLayout.rig.languageDescriptionFontSize >= 10,
-      authoringLayout.rig,
-    );
-    await captureViewport(page, screenshotPaths.irrigationCue1280);
-    await page.setViewportSize({ width: 1600, height: 900 });
+    await page.setViewportSize({ width: 1280, height: 900 });
     await waitForPaint(page);
 
-    const initialWorldHash = started.world.worldHash;
-    const initialWorldRevision = started.world.revision;
-    const editor = page.getByTestId("program-editor");
-    const compileButton = page.getByTestId("compile-program");
-    const runButton = page.getByTestId("run-program");
+    for (let index = 0; index < MISSION_CASES.length; index += 1) {
+      const missionCase = MISSION_CASES[index];
+      if (index === 0) {
+        await page.getByTestId("start-mission").click();
+      } else {
+        const priorUrl = page.url();
+        await page.getByTestId("start-next-mission").click();
+        equal(`${missionCase.id} transition stays on the same page`, page.url(), priorUrl);
+      }
+      await waitForMode(page, "authoring");
 
-    equal("progressive lesson starts at Observe", started.lesson.currentPhase, "observe");
-    equal("progressive lesson starts with no accepted commands", started.lesson.acceptedCommands.length, 0);
-    equal("initial blockage evidence is hidden", started.lesson.evidenceLevel, 0);
-    check("Bert waits silently until the learner needs help", await page.getByTestId("bert-speech").isHidden());
-    check("initial canvas description does not disclose debris", !(await page.getByTestId("farm-canvas").getAttribute("aria-label"))?.includes("debris"));
-    check("initial blockage callout is hidden", await page.locator("#blockage-callout").isHidden());
-    check("full-program run starts disabled", await runButton.isDisabled());
-    await page.locator("#hint-button").click();
-    const currentHint = (await page.locator("#language-reference").textContent()) ?? "";
-    check("line hint reveals the East Channel clue", currentHint.includes("east channel"));
-    check(
-      "line hint is included in the accessible phase name",
-      (await page.locator('[data-phase="observe"]').getAttribute("aria-label"))?.includes("east channel"),
-    );
-    check(
-      "line hint does not reveal Decide, Act, or Verify commands",
-      !currentHint.includes("when the beds are dry") &&
-        !currentHint.includes("act on the decision") &&
-        !currentHint.includes("every tomato bed is watered"),
-    );
-    equal("hint never writes source for the learner", await editor.inputValue(), "");
+      const initial = await readTextState(page, `${missionCase.id} initial`, check);
+      assertMissionInitial(initial, missionCase, index, equal, deepEqual, check);
+      await assertMissionPresentation(page, initial, missionCase, check, equal);
 
-    await editor.fill("observe tomatoes");
-    await compileButton.click();
-    const invalid = await readTextState(page, "invalid Observe", check);
-    stateSummary.invalid = summarizeMission(invalid);
-    equal("invalid Observe is rejected by the lesson checker", invalid.program.lessonCheck.ok, false);
-    equal("invalid Observe points to line 1", invalid.program.lessonCheck.error?.line, 1);
-    equal("invalid Observe reports exact syntax", invalid.program.lessonCheck.error?.code, "SYNTAX");
-    equal("a partial lesson never reports a full compile", invalid.program.compile.ok, null);
-    equal("invalid Observe cannot change world hash", invalid.world.worldHash, initialWorldHash);
-    equal("invalid Observe cannot increment world revision", invalid.world.revision, initialWorldRevision);
-    equal("invalid Observe cannot create a plan", invalid.program.plan.length, 0);
-    equal("invalid Observe cannot create a receipt", invalid.receipt, null);
-    check(
-      "compiler error is visibly tied to line 1",
-      (await page.getByTestId("compiler-trace").textContent())?.includes("LINE 1"),
-    );
-    check("Bert responds with a visible question", await page.getByTestId("bert-speech").isVisible());
-    check(
-      "Bert asks what to inspect without disclosing the repair",
-      (await page.getByTestId("bert-speech").textContent())?.toLowerCase().includes("what farm system") &&
-        !(await page.getByTestId("bert-speech").textContent())?.toLowerCase().includes("clear blockage"),
-    );
-    await page.waitForFunction(() => document.activeElement?.id === "program-editor");
-    equal("invalid Observe returns focus to line 1", await page.evaluate(() => document.activeElement?.id), "program-editor");
-    await captureViewport(page, screenshotPaths.compilerError);
+      const engineBoundary = await runEngineBoundaryChecks(page, missionCase);
+      equal(`${missionCase.id} foreign mission source is rejected`, engineBoundary.foreign.ok, false);
+      check(
+        `${missionCase.id} foreign mission compile returns no plan`,
+        engineBoundary.foreign.hasPlan === false,
+        engineBoundary.foreign,
+      );
+      equal(`${missionCase.id} already-satisfied run passes`, engineBoundary.satisfied.verdict, "PASS");
+      equal(
+        `${missionCase.id} already-satisfied run selects no action`,
+        engineBoundary.satisfied.selectedAction,
+        null,
+      );
+      equal(
+        `${missionCase.id} already-satisfied Act reports no action`,
+        engineBoundary.satisfied.actOutcome,
+        "NO_ACTION_SELECTED",
+      );
+      equal(
+        `${missionCase.id} already-satisfied run preserves the world key`,
+        engineBoundary.satisfied.afterKey,
+        engineBoundary.satisfied.beforeKey,
+      );
 
-    await page.setViewportSize({ width: 1280, height: 720 });
-    await waitForPaint(page);
-    await captureViewport(page, screenshotPaths.observeError1280);
+      if (missionCase.id === "repair-east-channel") {
+        await assertInvalidProgressiveObserve(
+          page,
+          initial,
+          missionCase,
+          check,
+          equal,
+          deepEqual,
+        );
+      }
+      await exerciseProgressivePrefixes(
+        page,
+        initial,
+        missionCase,
+        check,
+        equal,
+        deepEqual,
+      );
 
-    await editor.fill("observe fetch");
-    await compileButton.click();
-    const unsafePrefix = await readTextState(page, "unsafe Observe", check);
-    equal("unsafe prefix reports a forbidden token", unsafePrefix.program.lessonCheck.error?.code, "FORBIDDEN_TOKEN");
-    equal("unsafe prefix stays non-executable", unsafePrefix.program.plan.length, 0);
-    equal("unsafe prefix keeps world revision stable", unsafePrefix.world.revision, initialWorldRevision);
+      const guidedSource = missionCase.guidedProgram.join("\n");
+      await page.getByTestId("program-editor").fill(guidedSource);
+      const authoring = await readTextState(page, `${missionCase.id} authoring`, check);
+      deepEqual(
+        `${missionCase.id} displays the exact four guided lines`,
+        authoring.program.sourceLines,
+        [...missionCase.guidedProgram],
+      );
+      equal(
+        `${missionCase.id} uses the shared Act instruction`,
+        authoring.program.sourceLines[2],
+        SHARED_ACT_COMMAND,
+      );
+      await assertEditorContainment(page, `${missionCase.id} authoring`, check);
+      await capture(page, `${missionCase.key}Authoring`);
 
-    await editor.fill(DRAFT_PROGRAM.split("\n").slice(0, 2).join("\n"));
-    await compileButton.click();
-    const lockedPrefix = await readTextState(page, "locked multi-line prefix", check);
-    equal("two unchecked lines cannot skip the Observe rehearsal", lockedPrefix.program.lessonCheck.error?.code, "LINE_LOCKED");
-    equal("locked multi-line prefix accepts no commands", lockedPrefix.lesson.acceptedCommands.length, 0);
-    equal("locked multi-line prefix creates no plan", lockedPrefix.program.plan.length, 0);
-    equal("locked multi-line prefix leaves world revision stable", lockedPrefix.world.revision, initialWorldRevision);
+      const invalidBaseline = projectImmutableUiState(authoring);
+      await page
+        .getByTestId("program-editor")
+        .fill(missionCase.invalidProgram.join("\n"));
+      await page.getByTestId("compile-program").click();
+      await waitForCompileResult(page, false);
+      const rejected = await readTextState(page, `${missionCase.id} rejected line`, check);
+      equal(
+        `${missionCase.id} rejects the nonallowlisted line number`,
+        rejected.program.compile.error.line,
+        missionCase.invalidLine,
+      );
+      equal(
+        `${missionCase.id} rejects the nonallowlisted line with the expected code`,
+        rejected.program.compile.error.code,
+        missionCase.invalidCode,
+      );
+      deepEqual(
+        `${missionCase.id} rejection cannot mint a plan`,
+        rejected.program.plan,
+        invalidBaseline.plan,
+      );
+      equal(
+        `${missionCase.id} rejection cannot change the world`,
+        rejected.world.worldHash,
+        invalidBaseline.worldHash,
+      );
+      equal(
+        `${missionCase.id} rejection cannot advance world revision`,
+        rejected.world.revision,
+        invalidBaseline.worldRevision,
+      );
+      equal(
+        `${missionCase.id} rejection cannot issue a receipt`,
+        rejected.receipt,
+        invalidBaseline.receipt,
+      );
+      equal(
+        `${missionCase.id} rejection leaves Run disabled`,
+        await page.getByTestId("run-program").isDisabled(),
+        true,
+      );
 
-    await waitForPaint(page);
-    await editor.fill("observe the east channel");
-    await page.waitForFunction(() => document.querySelector("#program-editor")?.value === "observe the east channel");
-    await compileButton.click();
-    const observing = await readTextState(page, "Observe rehearsal", check);
-    equal("accepted Observe enters a rehearsal", observing.lesson.status, "rehearsing");
-    equal("Observe is the rehearsal phase", observing.lesson.rehearsal?.phase, "observe");
-    equal("Observe prefix does not compile a plan", observing.program.compile.ok, null);
-    equal("Run remains disabled during Observe rehearsal", await runButton.isDisabled(), true);
-    await advanceTime(page, 700);
-    const observingMidway = await readTextState(page, "moving Observe rehearsal", check);
-    check("Bert walks toward irrigation during Observe", observingMidway.crew.bert.moving, observingMidway.crew.bert);
-    equal("renderer exposes Bert's walking pose during Observe", observingMidway.presentation?.bert?.pose, "walk");
-    check(
-      "Bert leaves his starting tile during Observe",
-      observingMidway.crew.bert.position.x !== started.crew.bert.position.x ||
-        observingMidway.crew.bert.position.y !== started.crew.bert.position.y,
-      { before: started.crew.bert.position, after: observingMidway.crew.bert.position },
-    );
-    equal("Observe rehearsal cannot change world hash", observingMidway.world.worldHash, initialWorldHash);
-    equal("Observe rehearsal cannot increment world revision", observingMidway.world.revision, initialWorldRevision);
-    await advanceTime(page, 800);
-    const observed = await readTextState(page, "accepted Observe", check);
-    equal("Observe becomes the first accepted command", observed.lesson.acceptedCommands.join(","), "observe the east channel");
-    equal("Decide unlocks after Observe", observed.lesson.currentPhase, "decide");
-    equal("Observe reveals stopped-flow evidence", observed.lesson.evidenceLevel, 1);
-    check("Observe produces Bert's Aha response", observed.lesson.bertMessage?.text.startsWith("Aha!"));
-    equal("renderer exposes Bert's inspect pose after Observe", observed.presentation?.bert?.pose, "inspect");
-    equal("accepted Observe leaves the authoritative world unchanged", observed.world.worldHash, initialWorldHash);
-    check("stopped-flow callout appears after Observe", await page.locator("#blockage-callout").isVisible());
-    await page.waitForFunction(() => document.activeElement?.id === "program-editor");
-    await waitForPaint(page);
-    const observeBertVisibility = await measureBertOverlayVisibility(page, observed.presentation?.bert?.screenBounds);
-    check(
-      "Observe teaching overlays leave Bert's humanoid silhouette unobscured",
-      observeBertVisibility.visibleRatio >= 0.9,
-      observeBertVisibility,
-    );
-    await captureViewport(page, screenshotPaths.observeSuccess1280);
-    await captureBertDetail(page, screenshotPaths.bertDetail, observed.presentation?.bert?.screenBounds);
-    await captureBertTeachingComposite(page, screenshotPaths.bertTeaching, observed.presentation?.bert?.screenBounds);
+      await page.getByTestId("program-editor").fill(guidedSource);
+      await page.getByTestId("compile-program").click();
+      await waitForMode(page, "compiled");
+      const guidedCompiled = await readTextState(
+        page,
+        `${missionCase.id} guided compiled`,
+        check,
+      );
+      equal(`${missionCase.id} guided program compiles`, guidedCompiled.program.compile.ok, true);
+      deepEqual(
+        `${missionCase.id} compiled plan preserves exact lines`,
+        guidedCompiled.program.plan.map((step) => step.command),
+        [...missionCase.guidedProgram],
+      );
+      equal(
+        `${missionCase.id} compilation does not change the world`,
+        guidedCompiled.world.worldHash,
+        initial.world.worldHash,
+      );
+      equal(`${missionCase.id} compilation does not issue a receipt`, guidedCompiled.receipt, null);
 
-    await editor.fill(DRAFT_PROGRAM.split("\n").slice(0, 2).join("\n"));
-    await compileButton.click();
-    await advanceTime(page, 1000);
-    const decided = await readTextState(page, "accepted Decide", check);
-    equal(
-      "Observe and Decide remain accepted in order",
-      decided.lesson.acceptedCommands.join(","),
-      "observe the east channel,decide water the tomatoes when the beds are dry",
-    );
-    equal("Act unlocks after Decide", decided.lesson.currentPhase, "act");
-    equal("Decide keeps the discovered evidence visible", decided.lesson.evidenceLevel, 2);
-    check(
-      "Decide visibly records the symptom response",
-      decided.lesson.bertMessage?.text.includes("water the dry beds"),
-    );
-    equal("decision teaching boundary becomes visible", decided.lesson.conceptVisible, true);
-    equal("renderer exposes Bert's thinking pose after Decide", decided.presentation?.bert?.pose, "think");
-    check("lightbulb cue appears with Bert's decision", (await page.getByTestId("bert-cue").textContent())?.includes("💡"));
-    check("agent-boundary note is visible", await page.getByTestId("agent-boundary-note").isVisible());
-    check(
-      "agent-boundary note accurately names human limits",
-      (await page.getByTestId("agent-boundary-note").textContent())?.includes("goal, tools, limits, and success check"),
-    );
-    equal("Decide rehearsal cannot change world hash", decided.world.worldHash, initialWorldHash);
-    equal("Decide rehearsal cannot increment world revision", decided.world.revision, initialWorldRevision);
-    check(
-      "Bert teaching copy remains readable at 1280",
-      await page.getByTestId("bert-speech").evaluate((node) => parseFloat(getComputedStyle(node.querySelector("p")).fontSize) >= 12),
-    );
-    const teachingLayout = await page.evaluate(() => {
-      const rect = (selector) => {
-        const bounds = document.querySelector(selector).getBoundingClientRect();
-        return {
-          bottom: bounds.bottom,
-          left: bounds.left,
-          right: bounds.right,
-          top: bounds.top,
-        };
-      };
-      const scene = rect(".scene-card");
-      return {
-        scene,
-        bubble: rect("#bert-speech"),
-        concept: rect("#agent-boundary-note"),
-        document: {
-          height: document.documentElement.scrollHeight,
-          width: document.documentElement.scrollWidth,
-        },
-      };
-    });
-    check(
-      "1280 Bert bubble stays inside the farm",
-      teachingLayout.bubble.left >= teachingLayout.scene.left &&
-        teachingLayout.bubble.right <= teachingLayout.scene.right &&
-        teachingLayout.bubble.top >= teachingLayout.scene.top &&
-        teachingLayout.bubble.bottom <= teachingLayout.scene.bottom,
-      teachingLayout,
-    );
-    check(
-      "1280 agent-boundary note stays inside the farm",
-      teachingLayout.concept.left >= teachingLayout.scene.left &&
-        teachingLayout.concept.right <= teachingLayout.scene.right &&
-        teachingLayout.concept.top >= teachingLayout.scene.top &&
-        teachingLayout.concept.bottom <= teachingLayout.scene.bottom,
-      teachingLayout,
-    );
-    check(
-      "1280 progressive teaching has no document overflow",
-      teachingLayout.document.width <= 1280 && teachingLayout.document.height <= 720,
-      teachingLayout,
-    );
-    const decideBertVisibility = await measureBertOverlayVisibility(page, decided.presentation?.bert?.screenBounds);
-    check(
-      "Decide teaching overlays leave Bert's humanoid silhouette unobscured",
-      decideBertVisibility.visibleRatio >= 0.9,
-      decideBertVisibility,
-    );
-    await captureViewport(page, screenshotPaths.decideAha1280);
+      await page.getByTestId("run-program").click();
+      await waitForMode(page, "running");
+      if (missionCase.id === "repair-east-channel") {
+        await assertExecutionMilestones(page, check, equal);
+      } else if (missionCase.id === "storm-watch") {
+        await assertStormEventBoundary(page, "guided failure", "HARM_OCCURRED", false, check, equal);
+      }
+      await advanceExecutionToEnd(page);
+      await waitForMode(page, "failure");
+      const failed = await readTextState(page, `${missionCase.id} guided failure`, check);
+      assertGuidedFailure(failed, missionCase, equal, deepEqual, check);
+      await assertCoachPresentation(page, missionCase, check, equal);
+      await assertEditorContainment(page, `${missionCase.id} failure`, check);
+      await capture(page, `${missionCase.key}Failure`);
 
-    await editor.fill(DRAFT_PROGRAM.split("\n").slice(0, 3).join("\n"));
-    await compileButton.click();
-    await advanceTime(page, 1000);
-    const acted = await readTextState(page, "accepted Act", check);
-    equal("Act becomes the shared execution command", acted.lesson.acceptedCommands[2], "act on the decision");
-    equal("Verify unlocks after Act", acted.lesson.currentPhase, "verify");
-    equal("Act rehearsal cannot change world hash", acted.world.worldHash, initialWorldHash);
-    equal("Act rehearsal cannot increment world revision", acted.world.revision, initialWorldRevision);
-    equal("Act rehearsal cannot issue a receipt", acted.receipt, null);
+      const repairedDiff = changedLineNumbers(
+        missionCase.guidedProgram,
+        missionCase.repairedProgram,
+      );
+      deepEqual(
+        `${missionCase.id} repair changes exactly its declared line`,
+        repairedDiff,
+        [missionCase.repairLine],
+      );
+      await page
+        .getByTestId("program-editor")
+        .fill(missionCase.repairedProgram.join("\n"));
+      await page.getByTestId("compile-program").click();
+      await waitForMode(page, "repair-ready");
+      const repairCompiled = await readTextState(
+        page,
+        `${missionCase.id} repair compiled`,
+        check,
+      );
+      deepEqual(
+        `${missionCase.id} repair plan preserves the other three lines`,
+        repairCompiled.program.plan.map((step) => step.command),
+        [...missionCase.repairedProgram],
+      );
+      equal(
+        `${missionCase.id} repair compilation does not mutate the visible failed world`,
+        repairCompiled.world.worldHash,
+        failed.world.worldHash,
+      );
+      await assertEditorContainment(page, `${missionCase.id} repair-ready`, check);
 
-    await editor.fill(
-      DRAFT_PROGRAM.split("\n")
-        .slice(0, 2)
-        .join("\n")
-        .replace("decide water the tomatoes when the beds are dry", REPAIR_DECISION),
-    );
-    const rewoundDecision = await readTextState(page, "edited accepted Decide", check);
-    equal("editing accepted Decide rewinds later lesson steps", rewoundDecision.lesson.acceptedCommands.length, 1);
-    equal("editing accepted Decide returns focus to line 2", rewoundDecision.lesson.currentPhase, "decide");
-    equal("editing accepted Decide hides the prior concept reward", rewoundDecision.lesson.conceptVisible, false);
-    equal("editing accepted Decide cannot preserve a plan", rewoundDecision.program.plan.length, 0);
-    equal("editing accepted Decide leaves the farm unchanged", rewoundDecision.world.worldHash, initialWorldHash);
+      await page.getByTestId("run-program").click();
+      await waitForMode(page, "running");
+      if (missionCase.id === "storm-watch") {
+        await assertStormEventBoundary(page, "repaired pass", "PROTECTED", true, check, equal);
+      }
+      await advanceExecutionToEnd(page);
+      await waitForMode(page, "proof");
+      const passed = await readTextState(page, `${missionCase.id} repaired pass`, check);
+      assertRepairedPass(passed, missionCase, equal, deepEqual, check);
+      await assertPassPresentation(page, passed, missionCase, check, equal);
+      await assertReceiptDom(page, passed, missionCase, check, equal);
+      await capture(page, `${missionCase.key}Pass`, {
+        preserveScroll: true,
+      });
 
-    await editor.fill(DRAFT_PROGRAM.split("\n").slice(0, 2).join("\n"));
-    await compileButton.click();
-    await advanceTime(page, 1000);
-    await editor.fill(DRAFT_PROGRAM.split("\n").slice(0, 3).join("\n"));
-    await compileButton.click();
-    await advanceTime(page, 1000);
+      stateSummary.missions[missionCase.id] = summarizeMissionCase(
+        initial,
+        failed,
+        passed,
+        engineBoundary,
+      );
 
-    await editor.fill(DRAFT_PROGRAM);
-    await compileButton.click();
-    const compiledDraft = await readTextState(page, "compiled water draft", check);
-    stateSummary.compiledDraft = summarizeMission(compiledDraft);
-    equal("valid draft compiles", compiledDraft.program.compile.ok, true);
-    equal("valid draft exposes four plan steps", compiledDraft.program.plan.length, 4);
-    equal(
-      "compiled draft binds the line-2 decision",
-      compiledDraft.program.binding?.decisionCommand,
-      "decide water the tomatoes when the beds are dry",
-    );
-    equal(
-      "compiled draft binds the selected response",
-      compiledDraft.program.binding?.selectedAction,
-      "water tomatoes",
-    );
-    equal(
-      "compiled Act remains the generic executor",
-      compiledDraft.program.binding?.actCommand,
-      "act on the decision",
-    );
-    equal(
-      "compiled phases preserve observe-decide-act-verify order",
-      compiledDraft.program.plan.map((step) => step.phase).join(","),
-      "observe,decide,act,verify",
-    );
-    equal("compile leaves world unchanged", compiledDraft.world.worldHash, initialWorldHash);
-    equal("all four lesson commands are accepted", compiledDraft.lesson.acceptedCommands.length, 4);
-    equal("complete lesson has no pending phase", compiledDraft.lesson.currentPhase, null);
-    equal("final compile cannot increment world revision", compiledDraft.world.revision, initialWorldRevision);
-    await page.waitForFunction(() => document.activeElement?.id === "run-button");
-    equal(
-      "four planned steps are visible",
-      await page.locator('[data-testid="compiler-trace"] .trace-item').count(),
-      4,
-    );
+      if (missionCase.nextMissionId) {
+        equal(
+          `${missionCase.id} unlocks the real next mission`,
+          passed.nextMission.id,
+          missionCase.nextMissionId,
+        );
+        equal(
+          `${missionCase.id} next mission status is unlocked`,
+          passed.nextMission.status,
+          "UNLOCKED",
+        );
+        equal(
+          `${missionCase.nextMissionId} selector is enabled after PASS`,
+          await page
+            .getByTestId(`select-mission-${missionCase.nextMissionId}`)
+            .isEnabled(),
+          true,
+        );
+        equal(
+          `${missionCase.id} exposes a real next-mission button`,
+          await page.getByTestId("start-next-mission").isVisible(),
+          true,
+        );
+      } else {
+        equal("final mission reports course complete", passed.nextMission.status, "COURSE_COMPLETE");
+        deepEqual("all three missions are complete", passed.course.completedMissionIds, [
+          "repair-east-channel",
+          "storm-watch",
+          "hungry-hens",
+        ]);
+        equal(
+          "course-complete debrief hides the next-mission button",
+          await page.getByTestId("start-next-mission").isHidden(),
+          true,
+        );
 
-    await page.setViewportSize({ width: 1600, height: 900 });
-    await waitForPaint(page);
+        const resetUrl = page.url();
+        await page.getByTestId("reset-mission").click();
+        await waitForMode(page, "authoring");
+        const reset = await readTextState(page, "Mission 03 replay reset", check);
+        equal("Replay reset stays on the same browser page", page.url(), resetUrl);
+        equal("Replay reset keeps Mission 03 active", reset.mission.id, "hungry-hens");
+        equal("Replay reset creates the next deterministic session", reset.session.id, "AVBW-TEST-0004");
+        deepEqual("Replay reset clears all source lines", reset.program.sourceLines, []);
+        deepEqual("Replay reset clears the compiled plan", reset.program.plan, []);
+        equal("Replay reset clears the visible receipt", reset.receipt, null);
+        equal("Replay reset returns verification to NOT_RUN", reset.verification.status, "NOT_RUN");
+        equal("Replay reset returns to the initial Mission 03 world", reset.world.worldHash, initial.world.worldHash);
+        equal("Replay reset starts with zero attempts", reset.session.attemptCount, 0);
+        deepEqual("Replay reset preserves completed course progress", reset.course.completedMissionIds, [
+          "repair-east-channel",
+          "storm-watch",
+          "hungry-hens",
+        ]);
+        equal("Replay reset re-enables the editor", await page.getByTestId("program-editor").isEnabled(), true);
+        equal("Replay reset hides the debrief panel", await page.getByTestId("receipt").isHidden(), true);
+        await capture(page, "m03Reset");
+      }
+    }
 
-    await runButton.click();
-    const runningDraft = await readTextState(page, "running water draft", check);
-    equal("first draft enters running mode", runningDraft.mode, "running");
-    await advanceTime(page, 1000);
-    const movingDraft = await readTextState(page, "moving water draft", check);
-    check("Bert visibly moves during execution", movingDraft.crew.bert.moving, movingDraft.crew.bert);
-    check(
-      "Bert leaves the starting position",
-      movingDraft.crew.bert.position.x !== started.crew.bert.position.x ||
-        movingDraft.crew.bert.position.y !== started.crew.bert.position.y,
-      { before: started.crew.bert.position, after: movingDraft.crew.bert.position },
-    );
-    check("execution trace advances before completion", movingDraft.trace.length > 0, {
-      traceLength: movingDraft.trace.length,
-    });
-    await advanceTime(page, 4300);
-
-    const failed = await readTextState(page, "failed water draft", check);
-    stateSummary.failure = summarizeMission(failed);
-    equal("first accepted draft reaches FAIL", failed.verification.status, "FAIL");
-    equal("failed draft keeps blockage present", failed.world.blockage, "debris-present");
-    equal("failed draft releases no water", failed.world.eastChannel, "blocked");
-    equal("failed draft waters zero beds", failed.world.tomatoBeds.watered, 0);
-    equal("failed draft leaves world hash unchanged", failed.world.worldHash, initialWorldHash);
-    equal("failure trace records the symptom decision", failed.trace[1]?.selectedAction, "water tomatoes");
-    equal("generic Act executes the symptom decision", failed.trace[2]?.executedAction, "water tomatoes");
-    equal("Verify owns the failed verdict", failed.trace[3]?.outcome, "FAIL");
-    equal("failure receipt preserves the wrong decision", failed.failureReceipt?.decision, "decide water the tomatoes when the beds are dry");
-    equal("failure receipt preserves the generic Act command", failed.failureReceipt?.action, "act on the decision");
-    equal("failure receipt records the executed symptom response", failed.failureReceipt?.executedAction, "water tomatoes");
-    equal("failure coach focuses line 2", failed.coach?.focusLine, 2);
-    equal("failure coach renders after Verify", failed.coach?.insertAfterLine, 4);
-    equal("failure coach recommends the allowlisted decision repair", failed.coach?.suggestion, REPAIR_DECISION);
-    equal("failure returns the lesson to Decide repair", failed.lesson.currentPhase, "decide");
-    check(
-      "Bert explains that the chosen response failed",
-      failed.lesson.bertMessage?.text.includes("carried out the choice"),
-    );
-    check(
-      "failure coach is visible",
-      await page.getByTestId("coach-message").isVisible(),
-    );
-    equal(
-      "Act is visibly labeled NO CHANGE rather than FAIL",
-      (await page.locator('.trace-item.is-no-change[data-line="3"] .trace-state').textContent())?.trim(),
-      "NO CHANGE",
-    );
-    equal(
-      "Verify is the only trace row carrying the FAIL verdict",
-      await page.locator('.trace-item.is-fail[data-line="4"]').count(),
-      1,
-    );
-    await page.setViewportSize({ width: 1280, height: 720 });
-    await waitForPaint(page);
-    const failureTraceVisibility = await measureFailureTraceVisibility(page);
-    const failureEditorContainment = await measureEditorContainment(page);
-    check("failure trace marks line 2 as the coached cause", failureTraceVisibility.causeMarked, failureTraceVisibility);
-    check("failure trace auto-follows Verify and Coach", failureTraceVisibility.scrollTop > 0, failureTraceVisibility);
-    check(
-      "failed Verify evidence is inside the visible trace viewport",
-      failureTraceVisibility.failedVisibleRatio >= 0.98,
-      failureTraceVisibility,
-    );
-    check(
-      "Codex Coach repair guidance is inside the visible trace viewport",
-      failureTraceVisibility.coachVisibleRatio >= 0.98,
-      failureTraceVisibility,
-    );
-    check("failure trace guidance remains at least 10px", failureTraceVisibility.detailFontSize >= 10, failureTraceVisibility);
-    check(
-      "four-line editor stays inside its allocated area at 1280x720",
-      failureEditorContainment.editorInsideArea,
-      failureEditorContainment,
-    );
-    check(
-      "all four program lines fit without editor scrolling at 1280x720",
-      failureEditorContainment.allSourceVisible,
-      failureEditorContainment,
-    );
-    equal(
-      "redundant editor help collapses for a complete compact program",
-      failureEditorContainment.helpDisplay,
-      "none",
-    );
-    await captureViewport(page, screenshotPaths.failure);
-    await page.setViewportSize({ width: 1600, height: 900 });
-    await waitForPaint(page);
-
-    await editor.fill(REPAIRED_PROGRAM);
-    await compileButton.click();
-    const compiledRepair = await readTextState(page, "compiled repair", check);
-    equal("repair compiles", compiledRepair.program.compile.ok, true);
-    equal("repair changes only the decision command", compiledRepair.program.plan[1]?.command, REPAIR_DECISION);
-    equal("repair preserves the generic Act command", compiledRepair.program.plan[2]?.command, "act on the decision");
-    equal("repair binding selects blockage removal", compiledRepair.program.binding?.selectedAction, "clear blockage");
-    equal("repair compile still leaves world unchanged", compiledRepair.world.worldHash, initialWorldHash);
-    equal("repair compile cannot increment world revision", compiledRepair.world.revision, initialWorldRevision);
-    equal("repair compile cannot issue a passing receipt", compiledRepair.receipt, null);
-    check("Bert recognizes that the repair targets the cause", compiledRepair.lesson.bertMessage?.text.includes("targets the cause"));
-
-    await editor.fill(DRAFT_PROGRAM);
-    const restoredFailure = await readTextState(page, "restored failed source", check);
-    equal("restoring the known-bad source returns to failure mode", restoredFailure.mode, "failure");
-    equal("editing a compiled repair clears its executable plan", restoredFailure.program.plan.length, 0);
-    equal("restored failed source returns verification to FAIL", restoredFailure.verification.status, "FAIL");
-    check("restored failed source restores Bert's failure explanation", restoredFailure.lesson.bertMessage?.text.includes("carried out the choice"));
-    check("restored failed source disables Run", await runButton.isDisabled());
-
-    await editor.fill(REPAIRED_PROGRAM);
-    await compileButton.click();
-    const recompiledRepair = await readTextState(page, "recompiled repair", check);
-    equal("repair recompiles after the stale-plan guard", recompiledRepair.program.plan[1]?.command, REPAIR_DECISION);
-
-    await runButton.click();
-    await advanceTime(page, 3300);
-    const repairing = await readTextState(page, "active blockage repair", check);
-    equal("renderer exposes Bert's active clear pose during repair", repairing.presentation?.bert?.pose, "clear");
-    equal("active repair keeps Bert's clear action", repairing.presentation?.bert?.action, "clear");
-    equal("active generic Act executes blockage removal", repairing.trace[2]?.executedAction, "clear blockage");
-    check("Bert visibly carries his tool during repair", repairing.presentation?.bert?.renderedParts?.includes("tool"), repairing.presentation?.bert);
-    await advanceTime(page, 1200);
-    const grandPayoff = await readTextState(page, "grand payoff", check);
-    equal("grand payoff remains visible before the receipt", grandPayoff.mode, "running");
-    equal("grand payoff has already cleared the blockage", grandPayoff.world.blockage, "cleared");
-    equal("grand payoff visibly waters all three beds", grandPayoff.world.visibleTomatoBedsWatered, 3);
-    equal("grand payoff has completed all four trace entries", grandPayoff.trace.length, 4);
-    equal("grand payoff does not issue proof before the hold completes", grandPayoff.receipt, null);
-    equal("grand payoff keeps Bert's repair action active", grandPayoff.presentation?.bert?.action, "clear");
-    equal("grand payoff celebrates the verified visible result", grandPayoff.presentation?.bert?.pose, "verify");
-    await page.setViewportSize({ width: 1280, height: 720 });
-    await waitForPaint(page);
-    await captureViewport(page, screenshotPaths.grandPayoff1280);
-    await page.setViewportSize({ width: 1600, height: 900 });
-    await waitForPaint(page);
-    await advanceTime(page, 800);
-    const passed = await readTextState(page, "passing repair", check);
-    stateSummary.success = summarizeMission(passed);
-    equal("repair reaches PASS", passed.verification.status, "PASS");
-    equal("completed lesson has no pending authoring phase", passed.lesson.currentPhase, null);
-    equal("repair clears the blockage", passed.world.blockage, "cleared");
-    equal("repair releases East Channel water", passed.world.eastChannel, "flowing");
-    equal("repair waters all tomato beds", passed.world.tomatoBeds.watered, 3);
-    equal("PASS settles Bert into a verify pose", passed.presentation?.bert?.pose, "verify");
-    check("repair changes authoritative world hash", passed.world.worldHash !== initialWorldHash, {
-      before: initialWorldHash,
-      after: passed.world.worldHash,
-    });
-    equal("receipt verdict is PASS", passed.receipt?.verdict, "PASS");
-    equal("receipt preserves mission session", passed.receipt?.sessionId, started.session.id);
-    equal("receipt records the repaired decision", passed.receipt?.decision, REPAIR_DECISION);
-    equal("receipt records the selected response", passed.receipt?.selectedAction, "clear blockage");
-    equal("receipt preserves the generic Act instruction", passed.receipt?.action, "act on the decision");
-    equal("receipt records the executed repair", passed.receipt?.executedAction, "clear blockage");
-    equal("receipt before state is blocked", passed.receipt?.before?.irrigationBlocked, true);
-    equal("receipt after state is clear", passed.receipt?.after?.irrigationBlocked, false);
-    equal("receipt after state releases water", passed.receipt?.after?.waterReleased, true);
-    equal("receipt after state proves three watered beds", passed.receipt?.after?.tomatoBedsWatered, 3);
-    check("receipt panel is visible", await page.getByTestId("receipt").isVisible());
-    check("learning recap is exposed in automation state", passed.learningRecap !== null);
-    equal("learning recap records the repair path", passed.learningRecap?.path, "repair");
-    equal("learning recap names the learner accomplishment", passed.learningRecap?.title, "You changed the decision—and fixed the cause.");
-    equal(
-      "learning recap keeps the four phase order",
-      passed.learningRecap?.phases.map(({ phase }) => phase).join(","),
-      "observe,decide,act,verify",
-    );
-    equal("learning recap explains the repaired decision", passed.learningRecap?.phases[1]?.command, REPAIR_DECISION);
-    equal("learning recap preserves the generic Act instruction", passed.learningRecap?.phases[2]?.command, "act on the decision");
-    equal("learning recap reports the verified crop total", passed.learningRecap?.result.tomatoBedsWateredAfter, 3);
-    equal("learning recap credits an observed failure", passed.learningRecap?.learner.diagnosedFailure, true);
-    equal("learning recap identifies the changed line", passed.learningRecap?.learner.changedLine, 2);
-    equal("learning recap preserves the failed decision", passed.learningRecap?.learner.from, "decide water the tomatoes when the beds are dry");
-    equal("learning recap preserves the repaired decision", passed.learningRecap?.learner.to, REPAIR_DECISION);
-    check("learning recap tile is visible", await page.getByTestId("learning-recap").isVisible());
-    equal("learning recap renders four visible phase cards", await page.locator("[data-recap-phase]:visible").count(), 4);
-    check(
-      "learning takeaway tells the player they debugged an agent",
-      (await page.getByTestId("learning-takeaway").textContent())?.includes("You debugged an agent’s decision."),
-    );
-    equal("PASS unlocks only a Lesson 02 teaser", passed.nextLesson?.status, "TEASER");
-    check("Lesson 02 weather signal appears after proof", await page.getByTestId("lesson-alert").isVisible());
-    check(
-      "Lesson 02 teaser names a coherent planting weather window",
-      (await page.getByTestId("lesson-alert").textContent())?.includes("Rain reaches AgentVille soon") &&
-        (await page.getByTestId("lesson-alert").textContent())?.includes("Plant the east field"),
-    );
-    await page.waitForFunction(() => document.activeElement?.id === "receipt-panel");
-    equal("keyboard focus moves to the mission debrief", await page.evaluate(() => document.activeElement?.id), "receipt-panel");
-    check(
-      "background controls become inert behind the debrief",
-      await page.evaluate(() => [".topbar", ".stage-rail", ".workspace"].every((selector) => document.querySelector(selector)?.inert)),
-    );
-    check(
-      "learning explanation uses readable body type",
-      await page.getByTestId("recap-observe").locator("[data-recap-copy]").evaluate((node) => parseFloat(getComputedStyle(node).fontSize) >= 12),
-    );
-    equal(
-      "visible receipt session matches state",
-      (await page.getByTestId("receipt-session-id").textContent())?.trim(),
-      passed.receipt.sessionId,
-    );
-    equal(
-      "visible debrief Decide command matches text state",
-      (await page.getByTestId("recap-decide").locator("[data-recap-command]").textContent())?.trim(),
-      passed.learningRecap.phases[1].command,
-    );
-    equal(
-      "visible debrief Act command matches text state",
-      (await page.getByTestId("recap-act").locator("[data-recap-command]").textContent())?.trim(),
-      passed.learningRecap.phases[2].command,
-    );
-    equal(
-      "visible debrief title matches text state",
-      (await page.locator("#receipt-title").textContent())?.trim(),
-      passed.learningRecap.title,
-    );
-    equal(
-      "visible receipt action matches executed response and causal line",
-      (await page.locator("#receipt-action").textContent())?.trim(),
-      `${passed.receipt.executedAction} · selected on line 2`,
-    );
-
-    const feedbackUrl = new URL(passed.feedbackHref);
-    equal("feedback link stays on the game origin", feedbackUrl.origin, allowedOrigin);
-    equal(
-      "feedback link uses the feedback route",
-      feedbackUrl.pathname,
-      new URL("./feedback/", normalizeBaseUrl(baseUrl)).pathname,
-    );
-    equal("feedback link carries exact receipt ID", feedbackUrl.searchParams.get("session_id"), passed.receipt.sessionId);
-    equal(
-      "visible Give feedback href matches state",
-      await page.getByTestId("give-feedback").evaluate((node) => node.href),
-      passed.feedbackHref,
-    );
-    await captureViewport(page, screenshotPaths.receipt);
-
-    await page.setViewportSize({ width: 1280, height: 720 });
-    await waitForPaint(page);
-    const debriefLayout = await page.evaluate(() => {
-      const rect = (selector) => {
-        const node = document.querySelector(selector);
-        const bounds = node.getBoundingClientRect();
-        return {
-          bottom: bounds.bottom,
-          height: bounds.height,
-          left: bounds.left,
-          right: bounds.right,
-          top: bounds.top,
-          width: bounds.width,
-        };
-      };
-      const hitTest = (selector) => {
-        const target = document.querySelector(selector);
-        const bounds = target.getBoundingClientRect();
-        const hit = document.elementFromPoint(bounds.left + bounds.width / 2, bounds.top + bounds.height / 2);
-        return Boolean(hit && (hit === target || target.contains(hit)));
-      };
-      const tile = document.querySelector("#receipt-panel");
-      return {
-        document: {
-          height: document.documentElement.scrollHeight,
-          width: document.documentElement.scrollWidth,
-        },
-        tile: rect("#receipt-panel"),
-        recap: rect('[data-testid="learning-recap"]'),
-        lessonAlert: rect('[data-testid="lesson-alert"]'),
-        actions: rect(".receipt-actions"),
-        tileOverflow: {
-          horizontal: tile.scrollWidth > tile.clientWidth,
-          vertical: tile.scrollHeight > tile.clientHeight,
-        },
-        actionHeights: ["#copy-receipt", "#feedback-link", "#reset-button"].map((selector) => rect(selector).height),
-        actionHitTests: ["#copy-receipt", "#feedback-link", "#reset-button"].map(hitTest),
-        receiptValues: [...document.querySelectorAll(".receipt-grid dd")].map((node) => ({
-          clientHeight: node.clientHeight,
-          clientWidth: node.clientWidth,
-          scrollHeight: node.scrollHeight,
-          scrollWidth: node.scrollWidth,
-          text: node.textContent.trim(),
-        })),
-      };
-    });
-    check(
-      "1280 debrief stays fully inside the viewport",
-      debriefLayout.tile.left >= 0 &&
-        debriefLayout.tile.top >= 0 &&
-        debriefLayout.tile.right <= 1280 &&
-        debriefLayout.tile.bottom <= 720,
-      debriefLayout,
-    );
-    check(
-      "1280 page has no hidden document overflow",
-      debriefLayout.document.width <= 1280 && debriefLayout.document.height <= 720,
-      debriefLayout.document,
-    );
-    check(
-      "1280 debrief needs no internal scrolling",
-      !debriefLayout.tileOverflow.horizontal && !debriefLayout.tileOverflow.vertical,
-      debriefLayout.tileOverflow,
-    );
-    check(
-      "explanation remains above the receipt actions",
-      debriefLayout.recap.bottom <= debriefLayout.actions.top,
-      { recap: debriefLayout.recap, actions: debriefLayout.actions },
-    );
-    check(
-      "Lesson 02 teaser stays between the recap and actions",
-      debriefLayout.recap.bottom <= debriefLayout.lessonAlert.top &&
-        debriefLayout.lessonAlert.bottom <= debriefLayout.actions.top,
-      debriefLayout,
-    );
-    check("all debrief actions remain hit-testable", debriefLayout.actionHitTests.every(Boolean), debriefLayout.actionHitTests);
-    check("all debrief actions remain at least 44px tall", debriefLayout.actionHeights.every((height) => height >= 44), debriefLayout.actionHeights);
-    check(
-      "receipt evidence values wrap without clipping",
-      debriefLayout.receiptValues.every(
-        (value) => value.scrollWidth <= value.clientWidth && value.scrollHeight <= value.clientHeight,
-      ),
-      debriefLayout.receiptValues,
-    );
-    await captureViewport(page, screenshotPaths.debrief1280);
-
+    const finalMission = stateSummary.missions["hungry-hens"];
     feedbackPage = await context.newPage();
     attachGuards(feedbackPage, "feedback");
-    await feedbackPage.goto(passed.feedbackHref, { waitUntil: "networkidle" });
-    await feedbackPage.getByTestId("feedback-session-id").waitFor({ state: "visible" });
-    const feedbackBefore = await readTextState(feedbackPage, "feedback continuity", check);
-    equal("feedback page preserves query session", feedbackBefore.sessionId, passed.receipt.sessionId);
-    equal("feedback page matches stored PASS receipt", feedbackBefore.receiptMatched, true);
-    equal(
-      "visible feedback session matches receipt",
-      (await feedbackPage.getByTestId("feedback-session-id").textContent())?.trim(),
-      passed.receipt.sessionId,
+    await feedbackPage.goto(finalMission.feedbackHref, { waitUntil: "networkidle" });
+    await feedbackPage.waitForFunction(
+      () => typeof window.render_game_to_text === "function",
     );
-    const feedbackBackLink = await measureControlContrast(feedbackPage, ".back-link");
-    check("feedback return control remains at least 44px tall", feedbackBackLink.height >= 44, feedbackBackLink);
-    check("feedback return control has readable contrast", feedbackBackLink.contrastRatio >= 4.5, feedbackBackLink);
+    const feedbackInitial = await readTextState(
+      feedbackPage,
+      "Mission 03 feedback initial",
+      check,
+    );
+    equal("feedback query preserves Mission 03 id", feedbackInitial.missionId, "hungry-hens");
+    equal(
+      "feedback query preserves Mission 03 session",
+      feedbackInitial.sessionId,
+      "AVBW-TEST-0003",
+    );
+    equal("feedback page matches its composite receipt", feedbackInitial.receiptMatched, true);
+    equal("feedback page displays the PASS receipt", feedbackInitial.receiptVerdict, "PASS");
+    equal(
+      "feedback UI displays Mission 03 id",
+      await feedbackPage.getByTestId("feedback-mission-id").textContent(),
+      "hungry-hens",
+    );
+    equal(
+      "feedback UI displays Mission 03 session",
+      await feedbackPage.getByTestId("feedback-session-id").textContent(),
+      "AVBW-TEST-0003",
+    );
+    const storedReceipt = await feedbackPage.evaluate(() =>
+      JSON.parse(
+        localStorage.getItem(
+          "agentville:receipt:hungry-hens:AVBW-TEST-0003",
+        ) ?? "null",
+      ),
+    );
+    equal("composite receipt storage preserves mission id", storedReceipt?.missionId, "hungry-hens");
+    equal(
+      "composite receipt storage preserves session id",
+      storedReceipt?.sessionId,
+      "AVBW-TEST-0003",
+    );
+    equal("composite receipt storage preserves PASS", storedReceipt?.verdict, "PASS");
 
-    await feedbackPage.locator('label:has(input[name="clarity"][value="5"])').click();
-    await feedbackPage.locator("#learned").fill("Verification checks the changed farm, not just Bert's intention.");
-    await feedbackPage.locator("#friction").fill("I paused at line 2 before choosing the blockage.");
-    await feedbackPage.locator("#evidence-consent").check();
-    await feedbackPage.locator("#submit-feedback").click();
-    await feedbackPage.locator("#feedback-confirmation").waitFor({ state: "visible" });
-
-    const feedbackAfter = await readTextState(feedbackPage, "saved feedback", check);
-    equal("feedback state reports saved", feedbackAfter.feedbackSaved, true);
-    const savedFeedback = await feedbackPage.evaluate((sessionId) => {
-      return JSON.parse(localStorage.getItem(`agentville:feedback:${sessionId}`) ?? "null");
-    }, passed.receipt.sessionId);
-    equal("saved feedback preserves session ID", savedFeedback?.sessionId, passed.receipt.sessionId);
-    equal("saved feedback carries PASS verdict", savedFeedback?.receiptVerdict, "PASS");
-    equal("saved feedback preserves rating", savedFeedback?.clarity, 5);
-    equal("saved feedback preserves evidence consent", savedFeedback?.evidenceConsent, true);
+    await feedbackPage
+      .locator('label:has(input[name="clarity"][value="5"])')
+      .click();
+    equal(
+      "feedback rating 5 is selected through its visible label",
+      await feedbackPage.locator('input[name="clarity"][value="5"]').isChecked(),
+      true,
+    );
+    await feedbackPage
+      .locator('#learned')
+      .fill("I learned that Observe controls what evidence Decide is allowed to use.");
+    await feedbackPage
+      .locator('#friction')
+      .fill("I first inspected the feeder instead of the hens.");
+    await feedbackPage.locator('#evidence-consent').check();
+    await feedbackPage.locator('#submit-feedback').click();
+    const feedbackSaved = await readTextState(
+      feedbackPage,
+      "Mission 03 feedback saved",
+      check,
+    );
+    equal("feedback render state reports saved evidence", feedbackSaved.feedbackSaved, true);
+    const savedRecord = await feedbackPage.evaluate(() =>
+      JSON.parse(
+        localStorage.getItem(
+          "agentville:feedback:hungry-hens:AVBW-TEST-0003",
+        ) ?? "null",
+      ),
+    );
+    equal("saved feedback uses v2 schema", savedRecord?.schema, "agentville.feedback.v2");
+    equal("saved feedback preserves mission id", savedRecord?.missionId, "hungry-hens");
+    equal("saved feedback preserves session id", savedRecord?.sessionId, "AVBW-TEST-0003");
+    equal("saved feedback preserves receipt verdict", savedRecord?.receiptVerdict, "PASS");
+    equal("saved feedback preserves consent", savedRecord?.evidenceConsent, true);
 
     const downloadPromise = feedbackPage.waitForEvent("download");
     await feedbackPage.getByTestId("feedback-export").click();
     const download = await downloadPromise;
-    const downloadedPath = await download.path();
-    check("feedback export produces a local download", typeof downloadedPath === "string", { downloadedPath });
-    const exportedFeedback = JSON.parse(await readFile(downloadedPath, "utf8"));
-    equal("feedback export preserves exact receipt ID", exportedFeedback.sessionId, passed.receipt.sessionId);
-    equal("feedback export uses evidence schema", exportedFeedback.schema, "agentville.feedback.v1");
-    stateSummary.feedback = {
-      feedbackSaved: feedbackAfter.feedbackSaved,
-      receiptMatched: feedbackAfter.receiptMatched,
-      sessionId: feedbackAfter.sessionId,
-    };
-    await feedbackPage.evaluate(() => window.scrollTo(0, 0));
-    await captureViewport(feedbackPage, screenshotPaths.feedback, { preserveScroll: true });
-
-    await feedbackPage.setViewportSize({ width: 390, height: 844 });
-    await waitForPaint(feedbackPage);
-    const mobileFeedback = await feedbackPage.evaluate(() => {
-      const labels = [...document.querySelectorAll(".rating-row label")];
-      const captions = [...document.querySelectorAll(".rating-row small")];
-      const consent = document.querySelector(".consent-row");
-      return {
-        captionDisplays: captions.map((node) => getComputedStyle(node).display),
-        captionFontSizes: captions.map((node) => parseFloat(getComputedStyle(node).fontSize)),
-        consentFontSize: parseFloat(getComputedStyle(consent).fontSize),
-        consentHeight: consent.getBoundingClientRect().height,
-        documentWidth: document.documentElement.scrollWidth,
-        labelHeights: labels.map((node) => node.getBoundingClientRect().height),
-        viewportWidth: window.innerWidth,
-      };
-    });
-    check("390px feedback has no horizontal document overflow", mobileFeedback.documentWidth <= mobileFeedback.viewportWidth, mobileFeedback);
-    check("mobile feedback rating targets remain at least 44px tall", mobileFeedback.labelHeights.every((height) => height >= 44), mobileFeedback);
-    check(
-      "mobile rating captions remain visible and readable",
-      mobileFeedback.captionDisplays.every((display) => display !== "none") &&
-        mobileFeedback.captionFontSizes.every((fontSize) => fontSize >= 9),
-      mobileFeedback,
-    );
-    check(
-      "mobile feedback consent remains a readable 44px target",
-      mobileFeedback.consentHeight >= 44 && mobileFeedback.consentFontSize >= 12,
-      mobileFeedback,
-    );
-    await feedbackPage.locator(".rating-row").scrollIntoViewIfNeeded();
-    await captureViewport(feedbackPage, screenshotPaths.feedbackMobile390, { preserveScroll: true });
-    await feedbackPage.close();
-    feedbackPage = null;
-
-    await page.bringToFront();
-    const pageToken = await page.evaluate(() => {
-      window.__agentvilleSmokePageToken = "same-document-reset";
-      return window.__agentvilleSmokePageToken;
-    });
-    const navigationCount = await page.evaluate(() => performance.getEntriesByType("navigation").length);
-    await page.getByTestId("reset-mission").click();
-    await waitForMode(page, "authoring");
-    const reset = await readTextState(page, "reset mission", check);
-    stateSummary.reset = summarizeMission(reset);
-    equal("reset stays in the same page instance", await page.evaluate(() => window.__agentvilleSmokePageToken), pageToken);
     equal(
-      "reset does not create a navigation entry",
-      await page.evaluate(() => performance.getEntriesByType("navigation").length),
-      navigationCount,
+      "feedback export filename carries mission and session",
+      download.suggestedFilename(),
+      "agentville-feedback-hungry-hens-AVBW-TEST-0003.json",
     );
-    check("reset creates a new session", reset.session.id !== passed.session.id, {
-      before: passed.session.id,
-      after: reset.session.id,
+    const downloadedPath = await download.path();
+    check("feedback export writes a downloadable JSON file", Boolean(downloadedPath), {
+      downloadedPath,
     });
-    equal("reset restores initial world hash", reset.world.worldHash, initialWorldHash);
-    equal("reset restores blockage", reset.world.blockage, "debris-present");
-    equal("reset restores three dry beds", reset.world.tomatoBeds.watered, 0);
-    equal("reset clears attempts", reset.session.attemptCount, 0);
-    equal("reset clears the program", reset.program.sourceLines.length, 0);
-    equal("reset clears the receipt", reset.receipt, null);
-    equal("reset clears the learning recap", reset.learningRecap, null);
-    equal("reset clears the Lesson 02 teaser state", reset.nextLesson, null);
-    equal("reset clears accepted lesson commands", reset.lesson.acceptedCommands.length, 0);
-    equal("reset returns the lesson to Observe", reset.lesson.currentPhase, "observe");
-    equal("reset hides discovered evidence", reset.lesson.evidenceLevel, 0);
-    equal("reset clears Bert's teaching bubble", reset.lesson.bertMessage, null);
-    equal("reset returns verification to NOT_RUN", reset.verification.status, "NOT_RUN");
-    check("reset hides the mission debrief", await page.getByTestId("receipt").isHidden());
-    check(
-      "reset restores background controls to the focus order",
-      await page.evaluate(() => [".topbar", ".stage-rail", ".workspace"].every((selector) => !document.querySelector(selector)?.inert)),
+    const downloadedRecord = JSON.parse(await readFile(downloadedPath, "utf8"));
+    equal("feedback export JSON preserves mission id", downloadedRecord.missionId, "hungry-hens");
+    equal(
+      "feedback export JSON preserves session id",
+      downloadedRecord.sessionId,
+      "AVBW-TEST-0003",
     );
-    await page.waitForFunction(() => document.activeElement?.id === "program-editor");
-    equal("reset returns focus to the program editor", await page.evaluate(() => document.activeElement?.id), "program-editor");
-
-    await page.setViewportSize({ width: 390, height: 844 });
-    await waitForPaint(page);
-    const mobileLayout = await page.evaluate(() => {
-      const rect = (selector) => document.querySelector(selector).getBoundingClientRect();
-      const languageItems = [...document.querySelectorAll("#language-reference li")].map((node) => node.getBoundingClientRect());
-      const stageLabel = document.querySelector('.stage-rail [data-stage="program"] b');
-      return {
-        documentWidth: document.documentElement.scrollWidth,
-        viewportWidth: window.innerWidth,
-        stageLabelDisplay: getComputedStyle(stageLabel).display,
-        stageLabelFontSize: parseFloat(getComputedStyle(stageLabel).fontSize),
-        stageLabelText: stageLabel.textContent.trim(),
-        actionHeights: [rect("#compile-button").height, rect("#run-button").height],
-        languageTops: languageItems.map((bounds) => Math.round(bounds.top)),
-        workbench: { left: rect(".workbench").left, right: rect(".workbench").right },
-      };
+    await capture(feedbackPage, "feedback", {
+      preserveScroll: true,
     });
-    check("390px layout has no horizontal document overflow", mobileLayout.documentWidth <= mobileLayout.viewportWidth, mobileLayout);
-    check(
-      "mobile mission rail retains its stage label",
-      mobileLayout.stageLabelDisplay !== "none" && mobileLayout.stageLabelText === "Program" && mobileLayout.stageLabelFontSize >= 9,
-      mobileLayout,
-    );
-    check("mobile action blocks remain at least 44px tall", mobileLayout.actionHeights.every((height) => height >= 44), mobileLayout);
-    check(
-      "mobile safe-language slots form two rows",
-      mobileLayout.languageTops[0] === mobileLayout.languageTops[1] && mobileLayout.languageTops[2] > mobileLayout.languageTops[0],
-      mobileLayout,
-    );
-    check(
-      "mobile Workbench remains inside the viewport",
-      mobileLayout.workbench.left >= 0 && mobileLayout.workbench.right <= mobileLayout.viewportWidth,
-      mobileLayout,
-    );
-    await page.evaluate(() => document.querySelector(".workbench").scrollIntoView({ block: "start" }));
-    await captureViewport(page, screenshotPaths.mobile390, { preserveScroll: true });
+    stateSummary.feedback = {
+      missionId: feedbackSaved.missionId,
+      sessionId: feedbackSaved.sessionId,
+      receiptMatched: feedbackSaved.receiptMatched,
+      feedbackSaved: feedbackSaved.feedbackSaved,
+      storageKey: "agentville:feedback:hungry-hens:AVBW-TEST-0003",
+      exportFilename: download.suggestedFilename(),
+    };
 
-    equal("browser emitted no console errors", diagnostics.consoleErrors.length, 0);
-    equal("browser emitted no uncaught page errors", diagnostics.pageErrors.length, 0);
-    equal("browser made no non-same-origin requests", diagnostics.externalRequests.length, 0);
-    equal("browser had no failed same-origin requests", diagnostics.requestFailures.length, 0);
-    equal("browser received no error responses", diagnostics.responseErrors.length, 0);
-    equal("browser opened no unexpected dialogs", diagnostics.dialogs.length, 0);
-
+    for (const [kind, entries] of Object.entries(diagnostics)) {
+      equal(`browser diagnostics contain no ${kind}`, entries.length, 0);
+    }
     status = "PASS";
   } catch (error) {
     runnerError = serializeError(error);
-    if (!error?.isSmokeAssertion) {
-      assertions.push({
-        name: "browser smoke completed without runner exception",
-        passed: false,
-        details: runnerError,
-      });
-    }
-    const debugPage = feedbackPage && !feedbackPage.isClosed() ? feedbackPage : page;
-    if (debugPage && !debugPage.isClosed()) {
+    if (page && !page.isClosed()) {
       try {
-        await captureViewport(debugPage, screenshotPaths.debug, { preserveScroll: true });
-      } catch (screenshotError) {
-        runnerError.debugScreenshotError = String(screenshotError);
+        await capture(page, "debug", { preserveScroll: true });
+      } catch {
+        // The report still contains the original failure and browser diagnostics.
       }
     }
   } finally {
-    for (const [label, resource] of [
-      ["feedback page", feedbackPage],
-      ["browser", browser],
-    ]) {
-      if (!resource) continue;
-      try {
-        if (label === "feedback page" && !resource.isClosed()) await resource.close();
-        if (label === "browser") await resource.close();
-      } catch (error) {
-        diagnostics.pageErrors.push({ page: "teardown", text: `${label}: ${String(error)}` });
-        status = "FAIL";
-      }
-    }
-
-    if (server) {
-      try {
-        await server.stop();
-      } catch (error) {
-        diagnostics.pageErrors.push({ page: "server teardown", text: String(error) });
-        status = "FAIL";
-      }
-    }
+    if (feedbackPage && !feedbackPage.isClosed()) await feedbackPage.close();
+    if (page && !page.isClosed()) await page.close();
+    if (context) await context.close();
+    if (browser) await browser.close();
+    if (server) await server.stop();
 
     const finishedAt = new Date();
+    stateSummary.assertionCount = assertions.length;
     const report = {
-      schema: "agentville.browser-smoke.v1",
+      schema: "agentville.browser-smoke.v3",
+      product: "AgentVille: Build Week Edition",
       status,
       invocation,
       startedAt: startedAt.toISOString(),
       finishedAt: finishedAt.toISOString(),
       durationMs: finishedAt.getTime() - startedAt.getTime(),
-      target: url ? "public" : dist ? "dist" : "source",
-      baseUrl,
-      browser: {
-        engine: "chromium",
-        headless,
-        playwrightVersion: PLAYWRIGHT_VERSION,
-        viewport: { width: 1600, height: 900 },
+      target: {
+        baseUrl,
+        kind: url ? "public" : dist ? "dist" : "source",
+        root: server?.root ?? null,
       },
-      assertions,
+      runtime: {
+        node: process.version,
+        playwright: PLAYWRIGHT_VERSION,
+        viewport: { width: 1280, height: 900 },
+      },
+      assertions: {
+        count: assertions.length,
+        passed: assertions.filter((assertion) => assertion.passed).length,
+        failed: assertions.filter((assertion) => !assertion.passed).length,
+        items: assertions,
+      },
       stateSummary,
       artifacts: {
-        ...ARTIFACTS,
-        report: url ? "artifacts/evidence/latest-public-smoke.json" : ARTIFACTS.report,
+        screenshots: Object.fromEntries(
+          Object.entries(SCREENSHOTS)
+            .filter(([key]) => capturedScreenshots.has(key))
+            .map(([key, filename]) => [
+            key,
+            `artifacts/screenshots/${filename}`,
+            ]),
+        ),
+        report: reportRelativePath,
       },
       diagnostics: {
         ...diagnostics,
@@ -1196,284 +976,794 @@ export async function runBrowserSmoke({ dist = false, headless = true, invocatio
 
   return {
     ok: status === "PASS",
+    assertionCount: assertions.length,
     reportPath,
     runnerError,
     status,
   };
 }
 
-async function readTextState(page, label, check) {
-  const raw = await page.evaluate(() => {
-    return typeof window.render_game_to_text === "function" ? window.render_game_to_text() : null;
+function assertMissionInitial(state, missionCase, index, equal, deepEqual, check) {
+  equal(`${missionCase.id} is the active mission`, state.mission.id, missionCase.id);
+  equal(`${missionCase.id} uses the expected mission name`, state.mission.name, missionCase.name);
+  equal(`${missionCase.id} starts in authoring mode`, state.mode, "authoring");
+  equal(`${missionCase.id} starts a deterministic session`, state.session.id, missionCase.sessionId);
+  equal(`${missionCase.id} session carries mission id`, state.session.missionId, missionCase.id);
+  equal(`${missionCase.id} starts with no attempts`, state.session.attemptCount, 0);
+  deepEqual(`${missionCase.id} transition resets source`, state.program.sourceLines, []);
+  deepEqual(`${missionCase.id} transition resets plan`, state.program.plan, []);
+  equal(`${missionCase.id} transition resets receipt`, state.receipt, null);
+  equal(`${missionCase.id} transition resets verification`, state.verification.status, "NOT_RUN");
+  equal(`${missionCase.id} carries the deterministic test seed`, state.seed, TEST_SEED);
+  equal(`${missionCase.id} course active id matches`, state.course.activeMissionId, missionCase.id);
+  check(
+    `${missionCase.id} course keeps the completed prefix`,
+    state.course.completedMissionIds.length === index,
+    state.course,
+  );
+}
+
+async function assertInvalidProgressiveObserve(
+  page,
+  initial,
+  missionCase,
+  check,
+  equal,
+  deepEqual,
+) {
+  await page.getByTestId("program-editor").fill("observe the pond");
+  equal(
+    "Mission 01 invalid Observe uses the real Check line control",
+    await page.getByTestId("compile-program").locator("span").textContent(),
+    "Check line",
+  );
+  await page.getByTestId("compile-program").click();
+  await waitForLessonCheck(page, false);
+  const rejected = await readTextState(
+    page,
+    "Mission 01 invalid progressive Observe",
+    check,
+  );
+  equal("Mission 01 invalid progressive Observe stays in authoring", rejected.mode, "authoring");
+  equal("Mission 01 invalid progressive Observe reports line 1", rejected.program.lessonCheck.error.line, 1);
+  equal("Mission 01 invalid progressive Observe reports SYNTAX", rejected.program.lessonCheck.error.code, "SYNTAX");
+  equal("Mission 01 invalid progressive Observe does not run full compilation", rejected.program.compile.ok, null);
+  deepEqual("Mission 01 invalid progressive Observe accepts no commands", rejected.lesson.acceptedCommands, []);
+  equal("Mission 01 invalid progressive Observe keeps Observe active", rejected.lesson.currentPhase, "observe");
+  equal(
+    "Mission 01 invalid Observe gives Bert a clue-specific question",
+    rejected.lesson.bertMessage.text,
+    "What visible farm clue should I inspect? Look for IRRIGATION.",
+  );
+  equal(
+    "Mission 01 invalid Observe question is visible over Bert",
+    await page.getByTestId("bert-speech").locator("p").textContent(),
+    "What visible farm clue should I inspect? Look for IRRIGATION.",
+  );
+  deepEqual("Mission 01 invalid progressive Observe cannot mint a plan", rejected.program.plan, []);
+  equal("Mission 01 invalid progressive Observe cannot issue a receipt", rejected.receipt, null);
+  equal("Mission 01 invalid progressive Observe cannot issue a failure receipt", rejected.failureReceipt, null);
+  equal("Mission 01 invalid progressive Observe preserves world hash", rejected.world.worldHash, initial.world.worldHash);
+  equal("Mission 01 invalid progressive Observe preserves world revision", rejected.world.revision, initial.world.revision);
+  deepEqual("Mission 01 invalid progressive Observe preserves unlocks", rejected.course.unlockedMissionIds, initial.course.unlockedMissionIds);
+  deepEqual("Mission 01 invalid progressive Observe preserves completion", rejected.course.completedMissionIds, initial.course.completedMissionIds);
+  equal("Mission 01 invalid progressive Observe leaves Run disabled", await page.getByTestId("run-program").isDisabled(), true);
+  equal("Mission 01 invalid progressive Observe stays on its mission", rejected.mission.id, missionCase.id);
+}
+
+async function exerciseProgressivePrefixes(
+  page,
+  initial,
+  missionCase,
+  check,
+  equal,
+  deepEqual,
+) {
+  const nextPhases = ["decide", "act", "verify"];
+  const rehearsalDurations = [1300, 850, 850];
+  const actAuthorityMessage =
+    "Action ready. Line 3 will execute whatever Decide selects during the full run.";
+
+  for (let prefixLength = 1; prefixLength <= 3; prefixLength += 1) {
+    const prefix = missionCase.guidedProgram.slice(0, prefixLength);
+    await page.getByTestId("program-editor").fill(prefix.join("\n"));
+    equal(
+      `${missionCase.id} progressive line ${prefixLength} uses Check line`,
+      await page.getByTestId("compile-program").locator("span").textContent(),
+      "Check line",
+    );
+    await page.getByTestId("compile-program").click();
+    await waitForLessonStatus(page, "rehearsing");
+    const rehearsing = await readTextState(
+      page,
+      `${missionCase.id} line ${prefixLength} rehearsal`,
+      check,
+    );
+    equal(
+      `${missionCase.id} line ${prefixLength} rehearses the correct phase`,
+      rehearsing.lesson.currentPhase,
+      ["observe", "decide", "act"][prefixLength - 1],
+    );
+    equal(
+      `${missionCase.id} line ${prefixLength} rehearsal stays mission-scoped`,
+      rehearsing.mission.id,
+      missionCase.id,
+    );
+    equal(
+      `${missionCase.id} line ${prefixLength} rehearsal cannot enable Run`,
+      await page.getByTestId("run-program").isDisabled(),
+      true,
+    );
+
+    await advanceTime(page, rehearsalDurations[prefixLength - 1]);
+    await waitForLessonStatus(page, "prompt");
+    const accepted = await readTextState(
+      page,
+      `${missionCase.id} progressive prefix ${prefixLength} accepted`,
+      check,
+    );
+    deepEqual(
+      `${missionCase.id} progressive prefix ${prefixLength} records exact accepted commands`,
+      accepted.lesson.acceptedCommands,
+      [...prefix],
+    );
+    equal(
+      `${missionCase.id} progressive prefix ${prefixLength} unlocks the correct next phase`,
+      accepted.lesson.currentPhase,
+      nextPhases[prefixLength - 1],
+    );
+    equal(
+      `${missionCase.id} progressive prefix ${prefixLength} remains on the active mission`,
+      accepted.mission.id,
+      missionCase.id,
+    );
+    equal(
+      `${missionCase.id} progressive prefix ${prefixLength} passes prefix validation`,
+      accepted.program.lessonCheck.ok,
+      true,
+    );
+    equal(
+      `${missionCase.id} progressive prefix ${prefixLength} does not invoke full compilation`,
+      accepted.program.compile.ok,
+      null,
+    );
+    deepEqual(
+      `${missionCase.id} progressive prefix ${prefixLength} cannot mint a complete plan`,
+      accepted.program.plan,
+      [],
+    );
+    equal(
+      `${missionCase.id} progressive prefix ${prefixLength} cannot issue a receipt`,
+      accepted.receipt,
+      null,
+    );
+    equal(
+      `${missionCase.id} progressive prefix ${prefixLength} cannot issue a failure receipt`,
+      accepted.failureReceipt,
+      null,
+    );
+    equal(
+      `${missionCase.id} progressive prefix ${prefixLength} preserves authoritative world hash`,
+      accepted.world.worldHash,
+      initial.world.worldHash,
+    );
+    equal(
+      `${missionCase.id} progressive prefix ${prefixLength} preserves authoritative world revision`,
+      accepted.world.revision,
+      initial.world.revision,
+    );
+    deepEqual(
+      `${missionCase.id} progressive prefix ${prefixLength} preserves course unlocks`,
+      accepted.course.unlockedMissionIds,
+      initial.course.unlockedMissionIds,
+    );
+    deepEqual(
+      `${missionCase.id} progressive prefix ${prefixLength} preserves course completion`,
+      accepted.course.completedMissionIds,
+      initial.course.completedMissionIds,
+    );
+    equal(
+      `${missionCase.id} progressive prefix ${prefixLength} keeps Run disabled`,
+      await page.getByTestId("run-program").isDisabled(),
+      true,
+    );
+
+    if (prefixLength === 1) {
+      equal(
+        `${missionCase.id} Observe rehearsal gives mission-specific Bert feedback`,
+        accepted.lesson.bertMessage.text,
+        missionCase.progressive.observeBert,
+      );
+      equal(
+        `${missionCase.id} Observe feedback is visibly rendered`,
+        await page.getByTestId("bert-speech").locator("p").textContent(),
+        missionCase.progressive.observeBert,
+      );
+    } else if (prefixLength === 2) {
+      equal(
+        `${missionCase.id} Decide rehearsal visibly explains ${missionCase.progressive.decideSemantics} evidence`,
+        accepted.lesson.bertMessage.text,
+        missionCase.progressive.decideBert,
+      );
+      equal(
+        `${missionCase.id} Decide rehearsal uses the expected Bert cue`,
+        accepted.lesson.bertMessage.cue,
+        missionCase.progressive.decideCue,
+      );
+      equal(
+        `${missionCase.id} Decide rehearsal uses the expected feedback tone`,
+        accepted.lesson.bertMessage.tone,
+        missionCase.progressive.decideTone,
+      );
+      equal(
+        `${missionCase.id} Decide evidence is visibly rendered`,
+        await page.getByTestId("bert-speech").locator("p").textContent(),
+        missionCase.progressive.decideBert,
+      );
+    } else {
+      equal(
+        `${missionCase.id} Act rehearsal names full-run authority`,
+        accepted.lesson.bertMessage.text,
+        actAuthorityMessage,
+      );
+      equal(
+        `${missionCase.id} Act rehearsal visibly names full-run authority`,
+        await page.getByTestId("bert-speech").locator("p").textContent(),
+        actAuthorityMessage,
+      );
+      equal(
+        `${missionCase.id} Act rehearsal explicitly keeps the world unchanged`,
+        accepted.verification.message,
+        "Line 3 is safe teaching input. The world has not changed.",
+      );
+    }
+  }
+}
+
+async function assertWelcomeRoster(page, check, equal) {
+  const roster = await page.locator("#mission-roster").evaluate((node) =>
+    [...node.querySelectorAll("[data-mission-id]")].map((item) => ({
+      id: item.dataset.missionId,
+      state: item.dataset.state,
+      disabled: item.querySelector("button").disabled,
+      status: item.querySelector("small").textContent,
+    })),
+  );
+  equal("welcome roster has three missions", roster.length, 3);
+  equal("Mission 01 is available in the welcome roster", roster[0].disabled, false);
+  equal("Mission 02 is locked in the welcome roster", roster[1].disabled, true);
+  equal("Mission 03 is locked in the welcome roster", roster[2].disabled, true);
+  check("welcome roster labels Mission 01 available", /Available/u.test(roster[0].status), roster[0]);
+  check("welcome roster labels Mission 02 locked", /Locked/u.test(roster[1].status), roster[1]);
+  check("welcome roster labels Mission 03 locked", /Locked/u.test(roster[2].status), roster[2]);
+}
+
+async function assertShellAndCanvas(page, state, check, equal) {
+  equal("app shell is visible", await page.getByTestId("app-ready").isVisible(), true);
+  equal("farm canvas is visible", await page.getByTestId("farm-canvas").isVisible(), true);
+  equal("Agent Workbench is visible", await page.locator(".workbench").isVisible(), true);
+  const layout = await page.evaluate(() => {
+    const rect = (selector) => {
+      const box = document.querySelector(selector).getBoundingClientRect();
+      return {
+        left: box.left,
+        right: box.right,
+        top: box.top,
+        bottom: box.bottom,
+        width: box.width,
+        height: box.height,
+      };
+    };
+    return {
+      viewport: { width: window.innerWidth, height: window.innerHeight },
+      documentWidth: document.documentElement.scrollWidth,
+      workspace: rect(".workspace"),
+      scene: rect(".scene-card"),
+      workbench: rect(".workbench"),
+      canvas: rect("#farm-canvas"),
+    };
   });
-  check(`${label} exposes render_game_to_text`, typeof raw === "string", { type: typeof raw });
+  equal("smoke viewport is exactly 1280 pixels wide", layout.viewport.width, 1280);
+  check("1280 layout has no horizontal document overflow", layout.documentWidth <= 1281, layout);
+  check("scene stays inside the 1280 viewport", horizontallyContained(layout.scene, 1280), layout.scene);
+  check(
+    "Workbench stays inside the 1280 viewport",
+    horizontallyContained(layout.workbench, 1280),
+    layout.workbench,
+  );
+  check("farm canvas has a substantial visible surface", layout.canvas.width > 500 && layout.canvas.height > 400, layout.canvas);
+  check("scene and Workbench do not overlap", layout.scene.right <= layout.workbench.left + 1, layout);
+  const canvas = await measureCanvasPresentation(page);
+  check("voxel canvas is visibly painted", canvas.nonDarkRatio >= 0.7, canvas);
+  check("voxel canvas has rich color variation", canvas.uniqueColorBuckets >= 24, canvas);
+  equal("welcome presentation uses a voxel farm", state.presentation.style, "layered-voxel-farm");
+}
+
+async function assertResponsiveViewport(
+  page,
+  viewport,
+  capture,
+  check,
+  equal,
+) {
+  await page.setViewportSize({ width: viewport.width, height: viewport.height });
+  await page.evaluate(() => window.dispatchEvent(new Event("resize")));
+  await waitForPaint(page);
+  const state = await readTextState(page, `${viewport.label} responsive state`, check);
+  equal(`${viewport.label} resize keeps the welcome state`, state.mode, "welcome");
+  equal(`${viewport.label} resize keeps the farm renderer active`, state.presentation.style, "layered-voxel-farm");
+  const layout = await page.evaluate(() => {
+    const rect = (selector) => {
+      const node = document.querySelector(selector);
+      const box = node.getBoundingClientRect();
+      return {
+        left: box.left,
+        right: box.right,
+        top: box.top,
+        bottom: box.bottom,
+        width: box.width,
+        height: box.height,
+      };
+    };
+    return {
+      viewport: { width: window.innerWidth, height: window.innerHeight },
+      documentWidth: document.documentElement.scrollWidth,
+      app: rect("#app"),
+      scene: rect(".scene-card"),
+      workbench: rect(".workbench"),
+      canvas: rect("#farm-canvas"),
+      startCard: rect(".start-card"),
+    };
+  });
+  equal(`${viewport.label} viewport width is exact`, layout.viewport.width, viewport.width);
+  equal(`${viewport.label} viewport height is exact`, layout.viewport.height, viewport.height);
+  check(`${viewport.label} has no horizontal document overflow`, layout.documentWidth <= viewport.width + 1, layout);
+  check(`${viewport.label} app stays horizontally contained`, horizontallyContained(layout.app, viewport.width), layout.app);
+  check(`${viewport.label} scene stays horizontally contained`, horizontallyContained(layout.scene, viewport.width), layout.scene);
+  check(`${viewport.label} Workbench stays horizontally contained`, horizontallyContained(layout.workbench, viewport.width), layout.workbench);
+  check(`${viewport.label} start card stays horizontally contained`, horizontallyContained(layout.startCard, viewport.width), layout.startCard);
+  check(`${viewport.label} canvas keeps a usable size`, layout.canvas.width >= Math.min(350, viewport.width - 28) && layout.canvas.height >= 300, layout.canvas);
+  const pixels = await measureCanvasPresentation(page);
+  check(`${viewport.label} canvas remains painted`, pixels.nonDarkRatio >= 0.7, pixels);
+  check(`${viewport.label} canvas retains color variation`, pixels.uniqueColorBuckets >= 20, pixels);
+  await capture(page, viewport.key);
+}
+
+async function assertMissionPresentation(page, state, missionCase, check, equal) {
+  equal(`${missionCase.id} renderer selects its scene`, state.presentation.sceneId, missionCase.sceneId);
+  equal(`${missionCase.id} automation exposes one clue landmark`, state.world.landmarks.length, 1);
+  equal(`${missionCase.id} landmark id is stable`, state.world.landmarks[0].id, missionCase.landmarkId);
+  equal(`${missionCase.id} landmark label is visible`, state.world.landmarks[0].label, missionCase.clue);
+  equal(`${missionCase.id} renderer landmark label matches`, state.presentation.landmarks.items[0].label, missionCase.clue);
+  equal(
+    `${missionCase.id} renderer exposes expected farm entities`,
+    state.presentation.entities.byType[missionCase.entityType],
+    missionCase.entityCount,
+  );
+  const canvasLabel = await page.getByTestId("farm-canvas").getAttribute("aria-label");
+  check(`${missionCase.id} canvas description names ${missionCase.clue}`, canvasLabel.includes(missionCase.clue), {
+    canvasLabel,
+  });
+}
+
+function assertGuidedFailure(state, missionCase, equal, deepEqual, check) {
+  equal(`${missionCase.id} guided attempt reaches failure mode`, state.mode, "failure");
+  equal(`${missionCase.id} guided Verify honestly fails`, state.verification.status, "FAIL");
+  equal(`${missionCase.id} guided failure has no PASS receipt`, state.receipt, null);
+  equal(`${missionCase.id} keeps an honest failure receipt`, state.failureReceipt.verdict, "FAIL");
+  equal(`${missionCase.id} failure receipt carries mission id`, state.failureReceipt.missionId, missionCase.id);
+  equal(`${missionCase.id} failure receipt carries session id`, state.failureReceipt.sessionId, missionCase.sessionId);
+  deepEqual(`${missionCase.id} failure receipt preserves guided source`, state.failureReceipt.program, [...missionCase.guidedProgram]);
+  equal(`${missionCase.id} observation outcome is mission-specific`, state.trace[0].outcome, missionCase.guided.observeOutcome);
+  equal(`${missionCase.id} decision outcome is mission-specific`, state.trace[1].outcome, missionCase.guided.decideOutcome);
+  equal(`${missionCase.id} decision support is honest`, state.trace[1].conditionSupported, missionCase.guided.conditionSupported);
+  equal(`${missionCase.id} decision result is honest`, state.trace[1].conditionMet, missionCase.guided.conditionMet);
+  equal(`${missionCase.id} guided selected action is honest`, state.trace[1].selectedAction, missionCase.guided.selectedAction);
+  equal(`${missionCase.id} guided Act outcome is honest`, state.trace[2].outcome, missionCase.guided.actOutcome);
+  equal(`${missionCase.id} guided executed action is honest`, state.trace[2].executedAction, missionCase.guided.executedAction);
+  equal(`${missionCase.id} Verify trace reports FAIL`, state.trace[3].outcome, "FAIL");
+  equal(`${missionCase.id} Coach focuses the causal line`, state.coach.focusLine, missionCase.repairLine);
+  equal(`${missionCase.id} Coach gives the exact one-line suggestion`, state.coach.suggestion, missionCase.repairSuggestion);
+  equal(`${missionCase.id} Coach title is mission-specific`, state.coach.title, missionCase.coachTitle);
+  equal(`${missionCase.id} Coach explanation is causal`, state.coach.message, missionCase.coachMessage);
+  equal(
+    `${missionCase.id} guided world-change evidence is honest`,
+    state.failureReceipt.beforeKey !== state.failureReceipt.afterKey,
+    missionCase.guided.worldChanges,
+  );
+
+  if (missionCase.id === "repair-east-channel") {
+    equal("Mission 01 guided failure leaves blockage in place", state.failureReceipt.after.irrigationBlocked, true);
+    equal("Mission 01 guided failure waters zero beds", state.failureReceipt.after.tomatoBedsWatered, 0);
+  } else if (missionCase.id === "storm-watch") {
+    equal("Mission 02 failure records one fixed scripted event", state.failureReceipt.scriptedEvents.length, 1);
+    equal("Mission 02 storm occurs at tick 150", state.failureReceipt.scriptedEvents[0].tick, 150);
+    equal("Mission 02 storm records harm", state.failureReceipt.scriptedEvents[0].outcome, "HARM_OCCURRED");
+    equal("Mission 02 failure batters all seedlings", state.failureReceipt.after.seedlingBedsBattered, 3);
+    check("Mission 02 Coach explains that the trigger fired after harm", state.coach.message.includes("trigger fired after the harm"), state.coach);
+  } else {
+    equal("Mission 03 decision is unsupported by feeder evidence", state.failureReceipt.conditionSupported, false);
+    equal("Mission 03 failure observation scope is feeder", state.failureReceipt.observationScope, "feeder");
+    equal("Mission 03 failure feeds zero hens", state.failureReceipt.after.hensFed, 0);
+    check("Mission 03 Coach explains that Bert looked in the wrong place", state.coach.message.includes("looked in the wrong place"), state.coach);
+  }
+}
+
+async function assertCoachPresentation(page, missionCase, check, equal) {
+  equal(
+    `${missionCase.id} failure lesson visibly names the diagnosis`,
+    await page.locator("#prompt-title").textContent(),
+    missionCase.coachTitle,
+  );
+  const presentation = await page.locator('[data-testid="coach-message"]').evaluate((node) => {
+    const trace = document.querySelector("#trace-output");
+    const nodeRect = node.getBoundingClientRect();
+    const traceRect = trace.getBoundingClientRect();
+    const width = Math.max(0, Math.min(nodeRect.right, traceRect.right) - Math.max(nodeRect.left, traceRect.left));
+    const height = Math.max(0, Math.min(nodeRect.bottom, traceRect.bottom) - Math.max(nodeRect.top, traceRect.top));
+    return {
+      text: node.textContent,
+      visibleRatio: (width * height) / Math.max(1, nodeRect.width * nodeRect.height),
+      horizontallyContained: nodeRect.left >= traceRect.left - 1 && nodeRect.right <= traceRect.right + 1,
+      traceHorizontalOverflow: trace.scrollWidth - trace.clientWidth,
+      viewportWidth: window.innerWidth,
+    };
+  });
+  check(`${missionCase.id} Coach explanation is visible in the trace`, presentation.text.includes(missionCase.coachMessage), presentation);
+  check(`${missionCase.id} Coach suggestion is visible in the trace`, presentation.text.includes(missionCase.repairSuggestion), presentation);
+  check(`${missionCase.id} Coach stays visible at 1280`, presentation.visibleRatio >= 0.98, presentation);
+  check(`${missionCase.id} Coach stays horizontally contained at 1280`, presentation.horizontallyContained, presentation);
+  check(`${missionCase.id} Coach trace has no horizontal overflow`, presentation.traceHorizontalOverflow <= 1, presentation);
+}
+
+function assertRepairedPass(state, missionCase, equal, deepEqual, check) {
+  equal(`${missionCase.id} repaired run reaches proof mode`, state.mode, "proof");
+  equal(`${missionCase.id} repaired Verify passes`, state.verification.status, "PASS");
+  equal(`${missionCase.id} PASS receipt carries mission id`, state.receipt.missionId, missionCase.id);
+  equal(`${missionCase.id} PASS receipt carries session id`, state.receipt.sessionId, missionCase.sessionId);
+  equal(`${missionCase.id} PASS receipt has verdict PASS`, state.receipt.verdict, "PASS");
+  deepEqual(`${missionCase.id} PASS receipt preserves repaired source`, state.receipt.program, [...missionCase.repairedProgram]);
+  equal(`${missionCase.id} repaired Decide selects expected response`, state.receipt.selectedAction, missionCase.repaired.selectedAction);
+  equal(`${missionCase.id} repaired Act executes expected response`, state.receipt.executedAction, missionCase.repaired.selectedAction);
+  equal(`${missionCase.id} repaired Decide trace is causal`, state.trace[1].outcome, missionCase.repaired.decideOutcome);
+  equal(`${missionCase.id} repaired Act changes the world`, state.trace[2].outcome, missionCase.repaired.actOutcome);
+  check(`${missionCase.id} PASS receipt proves a changed world`, state.receipt.beforeKey !== state.receipt.afterKey, state.receipt);
+  equal(
+    `${missionCase.id} repaired execution replays from the original starting world`,
+    state.receipt.beforeKey,
+    state.failureReceipt.beforeKey,
+  );
+  equal(`${missionCase.id} debrief carries exact mission id`, state.learningRecap.missionId, missionCase.id);
+  equal(`${missionCase.id} debrief recognizes repair path`, state.learningRecap.path, "repair");
+  equal(`${missionCase.id} debrief records changed line`, state.learningRecap.learner.changedLine, missionCase.repairLine);
+  deepEqual(`${missionCase.id} debrief explains exact four commands`, state.learningRecap.phases.map((phase) => phase.command), [...missionCase.repairedProgram]);
+  const feedbackUrl = new URL(state.feedbackHref);
+  equal(`${missionCase.id} feedback href carries mission_id`, feedbackUrl.searchParams.get("mission_id"), missionCase.id);
+  equal(`${missionCase.id} feedback href carries session_id`, feedbackUrl.searchParams.get("session_id"), missionCase.sessionId);
+}
+
+async function assertPassPresentation(page, state, missionCase, check, equal) {
+  equal(`${missionCase.id} PASS scene remains mission-specific`, state.presentation.sceneId, missionCase.sceneId);
+  equal(`${missionCase.id} PASS renderer keeps expected entity count`, state.presentation.entities.byType[missionCase.entityType], missionCase.entityCount);
+  if (missionCase.id === "repair-east-channel") {
+    const alignment = state.presentation.farm.gridAlignment;
+    check("Mission 01 renderer emits channel alignment evidence", alignment.channel.segmentCount > 0, alignment.channel);
+    check("Mission 01 renderer emits fence alignment evidence", alignment.fences.segmentCount > 0, alignment.fences);
+    equal("Mission 01 channel has zero isometric axis error", alignment.channel.maxAxisErrorPx, 0);
+    equal("Mission 01 channel has zero join gap", alignment.channel.maxJoinGapPx, 0);
+    equal("Mission 01 fences have zero isometric axis error", alignment.fences.maxAxisErrorPx, 0);
+    equal("Mission 01 fences have zero join gap", alignment.fences.maxJoinGapPx, 0);
+    equal("Mission 01 fences have zero rail/post gap", alignment.fences.maxRailPostGapPx, 0);
+    equal("Mission 01 PASS clears the visual blockage", state.world.visualState.blocked, false);
+    equal("Mission 01 PASS visually waters all beds", state.world.visualState.cropsWatered, 3);
+  } else if (missionCase.id === "storm-watch") {
+    equal("Mission 02 PASS covers all three beds", state.world.activeState.seedlingBedsCovered, 3);
+    equal("Mission 02 PASS leaves zero battered beds", state.world.activeState.seedlingBedsBattered, 0);
+    equal("Mission 02 PASS visually covers seedlings", state.world.visualState.seedlingsCovered, true);
+    equal("Mission 02 PASS visual avoids battered seedlings", state.world.visualState.seedlingsBattered, false);
+    equal("Mission 02 renderer marks beds covered", state.presentation.entities.state.seedlingBeds.covered, true);
+    equal("Mission 02 renderer marks beds protected", state.presentation.entities.state.seedlingBeds.battered, false);
+    equal("Mission 02 fixed event records protection", state.timeline.visibleEvent.outcome, "PROTECTED");
+  } else {
+    equal("Mission 03 PASS feeds all three hens", state.world.activeState.hensFed, 3);
+    equal("Mission 03 PASS clears the chute", state.world.activeState.chuteJammed, false);
+    equal("Mission 03 PASS drops three grain portions", state.world.activeState.grainDelivered, 3);
+    equal("Mission 03 PASS visually feeds the hens", state.world.visualState.hensFed, true);
+    equal("Mission 03 PASS visually shows grain", state.world.visualState.grainVisible, true);
+    equal("Mission 03 renderer includes three hens", state.presentation.entities.byType.hens, 3);
+    equal("Mission 03 renderer marks all hens fed", state.presentation.entities.state.hens.fed, true);
+  }
+  const pixels = await measureCanvasPresentation(page);
+  check(`${missionCase.id} PASS canvas remains visibly painted`, pixels.nonDarkRatio >= 0.7, pixels);
+  check(`${missionCase.id} PASS canvas retains voxel color variation`, pixels.uniqueColorBuckets >= 24, pixels);
+}
+
+async function assertReceiptDom(page, state, missionCase, check, equal) {
+  equal(`${missionCase.id} PASS receipt panel is visible`, await page.getByTestId("receipt").isVisible(), true);
+  equal(`${missionCase.id} receipt DOM displays session`, await page.getByTestId("receipt-session-id").textContent(), missionCase.sessionId);
+  equal(`${missionCase.id} receipt DOM displays PASS`, (await page.getByTestId("verification-status").textContent()).trim(), "✓PASS");
+  const layout = await page.getByTestId("receipt").evaluate((node) => {
+    const rect = node.getBoundingClientRect();
+    return {
+      left: rect.left,
+      right: rect.right,
+      width: rect.width,
+      viewportWidth: window.innerWidth,
+      documentWidth: document.documentElement.scrollWidth,
+    };
+  });
+  check(`${missionCase.id} debrief remains horizontally contained at 1280`, horizontallyContained(layout, layout.viewportWidth), layout);
+  check(`${missionCase.id} debrief creates no horizontal page overflow`, layout.documentWidth <= layout.viewportWidth + 1, layout);
+  equal(`${missionCase.id} receipt snapshot session matches DOM`, state.receipt.sessionId, missionCase.sessionId);
+}
+
+async function assertStormEventBoundary(page, label, expectedOutcome, coveredBeforeStorm, check, equal) {
+  await advanceExecutionToTick(page, 149);
+  const before = await readTextState(page, `Storm Watch ${label} tick 149`, check);
+  equal(`Storm Watch ${label} reaches tick 149`, before.timeline.executionTick, 149);
+  equal(`Storm Watch ${label} hides event before tick 150`, before.timeline.visibleEvent, null);
+  equal(`Storm Watch ${label} has no rain before tick 150`, before.world.activeState.rainFalling, false);
+  equal(`Storm Watch ${label} cover state is causal before the storm`, before.world.activeState.seedlingBedsCovered === 3, coveredBeforeStorm);
+
+  await advanceExecutionToTick(page, 150);
+  const atEvent = await readTextState(page, `Storm Watch ${label} tick 150`, check);
+  equal(`Storm Watch ${label} reaches tick 150`, atEvent.timeline.executionTick, 150);
+  equal(`Storm Watch ${label} reveals the event at tick 150`, atEvent.timeline.visibleEvent.tick, 150);
+  equal(`Storm Watch ${label} event outcome is deterministic`, atEvent.timeline.visibleEvent.outcome, expectedOutcome);
+  equal(`Storm Watch ${label} begins rain at tick 150`, atEvent.world.activeState.rainFalling, true);
+  equal(`Storm Watch ${label} event visibility matches world state`, atEvent.world.activeState.stormArrived, true);
+}
+
+async function assertExecutionMilestones(page, check, equal) {
+  await advanceExecutionToTick(page, 45);
+  const observed = await readTextState(page, "Mission 01 Observe milestone", check);
+  equal("execution tick 45 exposes only Observe evidence", observed.trace.length, 1);
+  equal("execution tick 45 trace phase is Observe", observed.trace[0].phase, "observe");
+  check(
+    "execution tick 45 Bert speech matches Observe evidence",
+    observed.lesson.bertMessage.text.startsWith("observe:"),
+    observed.lesson.bertMessage,
+  );
+
+  await advanceExecutionToTick(page, 90);
+  const decided = await readTextState(page, "Mission 01 Decide milestone", check);
+  equal("execution tick 90 exposes Observe and Decide", decided.trace.length, 2);
+  equal("execution tick 90 latest trace phase is Decide", decided.trace[1].phase, "decide");
+  check(
+    "execution tick 90 Bert speech matches Decide evidence",
+    decided.lesson.bertMessage.text.startsWith("decide:"),
+    decided.lesson.bertMessage,
+  );
+}
+
+async function runEngineBoundaryChecks(page, missionCase) {
+  return page.evaluate(async (input) => {
+    const compiler = await import(new URL("./src/compiler.js", window.location.href));
+    const simulator = await import(new URL("./src/mission.js", window.location.href));
+    const repairedSource = input.repairedProgram.join("\n");
+    const compileResult = compiler.compileProgram(repairedSource, {
+      missionId: input.id,
+    });
+    if (!compileResult.ok) {
+      return { compileError: compileResult.errors };
+    }
+    const result = simulator.runMission(compileResult, {
+      missionId: input.id,
+      sessionId: `ENGINE-${input.id}`,
+      state: structuredClone(input.alreadySatisfiedState),
+    });
+    const foreign = compiler.compileProgram(input.foreignProgram.join("\n"), {
+      missionId: input.id,
+    });
+    return {
+      foreign: {
+        ok: foreign.ok,
+        hasPlan: Boolean(foreign.plan),
+        errors: foreign.errors?.map(({ line, code }) => ({ line, code })) ?? [],
+      },
+      satisfied: {
+        verdict: result.receipt.verdict,
+        selectedAction: result.receipt.selectedAction,
+        executedAction: result.receipt.executedAction,
+        beforeKey: result.receipt.beforeKey,
+        afterKey: result.receipt.afterKey,
+        actOutcome: result.trace[2].outcome,
+        scriptedEvents: result.receipt.scriptedEvents,
+      },
+    };
+  }, {
+    id: missionCase.id,
+    repairedProgram: [...missionCase.repairedProgram],
+    foreignProgram: [...missionCase.foreignProgram],
+    alreadySatisfiedState: missionCase.alreadySatisfiedState,
+  });
+}
+
+function projectImmutableUiState(state) {
+  return {
+    plan: state.program.plan,
+    receipt: state.receipt,
+    worldHash: state.world.worldHash,
+    worldRevision: state.world.revision,
+  };
+}
+
+function changedLineNumbers(before, after) {
+  const count = Math.max(before.length, after.length);
+  return Array.from({ length: count }, (_, index) => index + 1).filter(
+    (line) => before[line - 1] !== after[line - 1],
+  );
+}
+
+function summarizeMissionCase(initial, failed, passed, engineBoundary) {
+  return {
+    missionId: passed.mission.id,
+    sessionId: passed.session.id,
+    initialWorldHash: initial.world.worldHash,
+    failure: {
+      verdict: failed.failureReceipt.verdict,
+      worldHash: failed.world.worldHash,
+      observationScope: failed.failureReceipt.observationScope,
+      conditionSupported: failed.failureReceipt.conditionSupported,
+      conditionMet: failed.failureReceipt.conditionMet,
+      selectedAction: failed.failureReceipt.selectedAction,
+      executedAction: failed.failureReceipt.executedAction,
+      coachLine: failed.coach.focusLine,
+      suggestion: failed.coach.suggestion,
+      scriptedEvents: failed.failureReceipt.scriptedEvents,
+    },
+    pass: {
+      verdict: passed.receipt.verdict,
+      worldHash: passed.world.worldHash,
+      changedLine: passed.learningRecap.learner.changedLine,
+      selectedAction: passed.receipt.selectedAction,
+      executedAction: passed.receipt.executedAction,
+      scriptedEvents: passed.receipt.scriptedEvents,
+    },
+    alreadySatisfied: engineBoundary.satisfied,
+    feedbackHref: passed.feedbackHref,
+  };
+}
+
+async function readTextState(page, label, check) {
+  const raw = await page.evaluate(() =>
+    typeof window.render_game_to_text === "function"
+      ? window.render_game_to_text()
+      : null,
+  );
+  check(`${label} exposes render_game_to_text`, typeof raw === "string", {
+    type: typeof raw,
+  });
   try {
     return JSON.parse(raw);
   } catch (error) {
-    check(`${label} returns valid JSON state`, false, { error: String(error), raw });
+    check(`${label} returns valid JSON state`, false, {
+      error: String(error),
+      raw,
+    });
     return null;
   }
 }
 
-async function waitForMode(page, mode) {
-  await page.waitForFunction((expectedMode) => {
+async function waitForMode(page, expectedMode) {
+  await page.waitForFunction((mode) => {
     if (typeof window.render_game_to_text !== "function") return false;
     try {
-      return JSON.parse(window.render_game_to_text()).mode === expectedMode;
+      return JSON.parse(window.render_game_to_text()).mode === mode;
     } catch {
       return false;
     }
-  }, mode);
+  }, expectedMode);
+}
+
+async function waitForCompileResult(page, expectedOk) {
+  await page.waitForFunction((ok) => {
+    if (typeof window.render_game_to_text !== "function") return false;
+    try {
+      return JSON.parse(window.render_game_to_text()).program.compile.ok === ok;
+    } catch {
+      return false;
+    }
+  }, expectedOk);
+}
+
+async function waitForLessonCheck(page, expectedOk) {
+  await page.waitForFunction((ok) => {
+    if (typeof window.render_game_to_text !== "function") return false;
+    try {
+      return JSON.parse(window.render_game_to_text()).program.lessonCheck.ok === ok;
+    } catch {
+      return false;
+    }
+  }, expectedOk);
+}
+
+async function waitForLessonStatus(page, expectedStatus) {
+  await page.waitForFunction((status) => {
+    if (typeof window.render_game_to_text !== "function") return false;
+    try {
+      return JSON.parse(window.render_game_to_text()).lesson.status === status;
+    } catch {
+      return false;
+    }
+  }, expectedStatus);
+}
+
+async function advanceExecutionToTick(page, targetTick) {
+  const currentTick = await page.evaluate(() => {
+    const state = JSON.parse(window.render_game_to_text());
+    return state.timeline.executionTick;
+  });
+  if (currentTick > targetTick) {
+    throw new Error(`Execution already passed tick ${targetTick}: ${currentTick}`);
+  }
+  const tickDelta = targetTick - currentTick;
+  if (tickDelta === 0) return;
+  await advanceTime(page, tickDelta * FIXED_TICK_MS + 0.001);
+}
+
+async function advanceExecutionToEnd(page) {
+  const state = await page.evaluate(() => JSON.parse(window.render_game_to_text()));
+  const currentTick = state.timeline.executionTick;
+  const remainingTicks = Math.max(0, EXECUTION_END_TICK - currentTick);
+  await advanceTime(page, remainingTicks * FIXED_TICK_MS + 1);
 }
 
 async function advanceTime(page, milliseconds) {
   await page.evaluate(async (amount) => {
-    if (typeof window.advanceTime !== "function") throw new Error("window.advanceTime is unavailable");
+    if (typeof window.advanceTime !== "function") {
+      throw new Error("window.advanceTime is unavailable");
+    }
     await window.advanceTime(amount);
   }, milliseconds);
+}
+
+async function assertEditorContainment(page, label, check) {
+  const layout = await page.locator(".editor-area").evaluate((area) => {
+    const editor = area.querySelector("#program-editor");
+    const areaRect = area.getBoundingClientRect();
+    const editorRect = editor.getBoundingClientRect();
+    const lineHeight = Number.parseFloat(getComputedStyle(editor).lineHeight);
+    return {
+      area: { left: areaRect.left, right: areaRect.right, top: areaRect.top, bottom: areaRect.bottom },
+      editor: { left: editorRect.left, right: editorRect.right, top: editorRect.top, bottom: editorRect.bottom },
+      lineHeight,
+      clientHeight: editor.clientHeight,
+      scrollHeight: editor.scrollHeight,
+      sourceFitsVertically: editor.scrollHeight <= editor.clientHeight + 1,
+      horizontalOverflow: editor.scrollWidth - editor.clientWidth,
+    };
+  });
+  check(`${label} shows all four source lines without vertical clipping`, layout.sourceFitsVertically, layout);
+  check(`${label} editor stays inside its workbench area`, layout.editor.left >= layout.area.left - 1 && layout.editor.right <= layout.area.right + 1 && layout.editor.top >= layout.area.top - 1 && layout.editor.bottom <= layout.area.bottom + 1, layout);
+  check(`${label} editor has no horizontal overflow`, layout.horizontalOverflow <= 1, layout);
 }
 
 async function captureViewport(page, path, { preserveScroll = false } = {}) {
   if (!preserveScroll) await page.evaluate(() => window.scrollTo(0, 0));
   let lastBuffer = null;
-  let lastBlackRatio = null;
-
-  for (let attempt = 1; attempt <= 4; attempt += 1) {
-    if (attempt > 1) {
-      await page.evaluate(() => window.dispatchEvent(new Event("resize")));
-    }
+  let blackRatio = 1;
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    if (attempt > 0) await page.evaluate(() => window.dispatchEvent(new Event("resize")));
     await waitForPaint(page);
-    lastBuffer = await page.screenshot({
-      caret: "hide",
-      fullPage: false,
-      type: "png",
-    });
-    lastBlackRatio = await measureBlackPixelRatio(page, lastBuffer);
-    if (lastBlackRatio < 0.08) {
+    lastBuffer = await page.screenshot({ caret: "hide", fullPage: false, type: "png" });
+    blackRatio = await measureBlackPixelRatio(page, lastBuffer);
+    if (blackRatio < 0.08) {
       await writeFile(path, lastBuffer);
       return;
     }
   }
-
   if (lastBuffer) await writeFile(path, lastBuffer);
   throw new Error(
-    `Screenshot compositor remained incomplete after 4 attempts (${(lastBlackRatio * 100).toFixed(1)}% black pixels): ${path}`,
+    `Screenshot compositor remained incomplete (${(blackRatio * 100).toFixed(1)}% black pixels): ${path}`,
   );
 }
 
-async function captureBertDetail(page, path, bounds) {
-  if (!bounds) throw new Error("Bert detail capture requires renderer bounds.");
-  const dataUrl = await page.evaluate((bertBounds) => {
-    const source = document.querySelector("#farm-canvas");
-    const sourceRect = source.getBoundingClientRect();
-    const scaleX = source.width / sourceRect.width;
-    const scaleY = source.height / sourceRect.height;
-    const padding = 22;
-    const left = Math.max(0, bertBounds.left - padding);
-    const top = Math.max(0, bertBounds.top - padding);
-    const right = Math.min(sourceRect.width, bertBounds.right + padding);
-    const bottom = Math.min(sourceRect.height, bertBounds.bottom + padding);
-    const width = Math.max(1, right - left);
-    const height = Math.max(1, bottom - top);
-    const output = document.createElement("canvas");
-    output.width = Math.round(width * 2);
-    output.height = Math.round(height * 2);
-    const context = output.getContext("2d", { alpha: false });
-    context.imageSmoothingEnabled = false;
-    context.drawImage(
-      source,
-      left * scaleX,
-      top * scaleY,
-      width * scaleX,
-      height * scaleY,
-      0,
-      0,
-      output.width,
-      output.height,
-    );
-    return output.toDataURL("image/png");
-  }, bounds);
-  await writeFile(path, Buffer.from(dataUrl.split(",")[1], "base64"));
-}
-
-async function captureBertTeachingComposite(page, path, bounds) {
-  if (!bounds) throw new Error("Bert teaching capture requires renderer bounds.");
-  await waitForPaint(page);
-  const clip = await page.evaluate((bertBounds) => {
-    const canvas = document.querySelector("#farm-canvas").getBoundingClientRect();
-    const bert = {
-      left: canvas.left + bertBounds.left,
-      top: canvas.top + bertBounds.top,
-      right: canvas.left + bertBounds.right,
-      bottom: canvas.top + bertBounds.bottom,
-    };
-    const visibleOverlays = ["#bert-speech", "#blockage-callout", "#agent-boundary-note"]
-      .map((selector) => document.querySelector(selector))
-      .filter((node) => node && !node.hidden)
-      .map((node) => node.getBoundingClientRect());
-    const left = Math.max(0, Math.min(bert.left, ...visibleOverlays.map((rect) => rect.left)) - 18);
-    const top = Math.max(0, Math.min(bert.top, ...visibleOverlays.map((rect) => rect.top)) - 18);
-    const right = Math.min(window.innerWidth, Math.max(bert.right, ...visibleOverlays.map((rect) => rect.right)) + 18);
-    const bottom = Math.min(window.innerHeight, Math.max(bert.bottom, ...visibleOverlays.map((rect) => rect.bottom)) + 18);
-    return { x: left, y: top, width: Math.max(1, right - left), height: Math.max(1, bottom - top) };
-  }, bounds);
-  const buffer = await page.screenshot({ caret: "hide", clip, type: "png" });
-  await writeFile(path, buffer);
-}
-
-async function measureBertOverlayVisibility(page, bounds) {
-  if (!bounds) throw new Error("Bert overlay measurement requires renderer bounds.");
-  return page.evaluate((bertBounds) => {
-    const canvas = document.querySelector("#farm-canvas").getBoundingClientRect();
-    const bert = {
-      left: canvas.left + bertBounds.left,
-      top: canvas.top + bertBounds.top,
-      right: canvas.left + bertBounds.right,
-      bottom: canvas.top + bertBounds.bottom,
-    };
-    const area = Math.max(1, (bert.right - bert.left) * (bert.bottom - bert.top));
-    const overlays = ["#bert-speech", "#blockage-callout", "#agent-boundary-note"]
-      .map((selector) => ({ selector, node: document.querySelector(selector) }))
-      .filter(({ node }) => node && !node.hidden)
-      .map(({ selector, node }) => {
-        const rect = node.getBoundingClientRect();
-        const width = Math.max(0, Math.min(bert.right, rect.right) - Math.max(bert.left, rect.left));
-        const height = Math.max(0, Math.min(bert.bottom, rect.bottom) - Math.max(bert.top, rect.top));
-        return { selector, overlapArea: width * height };
-      });
-    const coveredArea = overlays.reduce((total, overlay) => total + overlay.overlapArea, 0);
-    return {
-      bert,
-      coveredArea,
-      overlays,
-      visibleRatio: 1 - Math.min(1, coveredArea / area),
-    };
-  }, bounds);
-}
-
-async function measureFailureTraceVisibility(page) {
-  return page.evaluate(() => {
-    const viewport = document.querySelector("#trace-output");
-    const cause = viewport.querySelector('.trace-item.is-coach-focus[data-line="2"]');
-    const failed = viewport.querySelector('.trace-item.is-fail[data-line="4"]');
-    const coach = viewport.querySelector('[data-testid="coach-message"]');
-    const visibleRatio = (node) => {
-      if (!node) return 0;
-      const outer = viewport.getBoundingClientRect();
-      const inner = node.getBoundingClientRect();
-      const width = Math.max(0, Math.min(outer.right, inner.right) - Math.max(outer.left, inner.left));
-      const height = Math.max(0, Math.min(outer.bottom, inner.bottom) - Math.max(outer.top, inner.top));
-      return (width * height) / Math.max(1, inner.width * inner.height);
-    };
-    return {
-      causeMarked: Boolean(cause),
-      coachVisibleRatio: visibleRatio(coach),
-      detailFontSize: failed
-        ? parseFloat(getComputedStyle(failed.querySelector("small")).fontSize)
-        : 0,
-      failedVisibleRatio: visibleRatio(failed),
-      scrollHeight: viewport.scrollHeight,
-      scrollTop: viewport.scrollTop,
-      viewportHeight: viewport.clientHeight,
-    };
-  });
-}
-
-async function measureEditorContainment(page) {
-  return page.evaluate(() => {
-    const area = document.querySelector(".editor-area");
-    const editor = document.querySelector("#program-editor");
-    const help = document.querySelector(".editor-help");
-    const areaRect = area.getBoundingClientRect();
-    const editorRect = editor.getBoundingClientRect();
-    const epsilon = 1;
-    return {
-      allSourceVisible: editor.scrollHeight <= editor.clientHeight + epsilon,
-      area: {
-        bottom: areaRect.bottom,
-        height: areaRect.height,
-        top: areaRect.top,
-      },
-      editor: {
-        bottom: editorRect.bottom,
-        clientHeight: editor.clientHeight,
-        height: editorRect.height,
-        scrollHeight: editor.scrollHeight,
-        top: editorRect.top,
-      },
-      editorInsideArea:
-        editorRect.top >= areaRect.top - epsilon &&
-        editorRect.bottom <= areaRect.bottom + epsilon,
-      helpDisplay: getComputedStyle(help).display,
-    };
-  });
-}
-
-async function measureControlContrast(page, selector) {
-  return page.locator(selector).evaluate((node) => {
-    const style = getComputedStyle(node);
-    const parseColor = (value) => {
-      const channels = value.match(/[\d.]+/gu)?.map(Number) ?? [0, 0, 0];
-      return channels.slice(0, 3);
-    };
-    const luminance = (channels) => {
-      const linear = channels.map((channel) => {
-        const normalized = channel / 255;
-        return normalized <= 0.04045 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
-      });
-      return linear[0] * 0.2126 + linear[1] * 0.7152 + linear[2] * 0.0722;
-    };
-    const foreground = luminance(parseColor(style.color));
-    const background = luminance(parseColor(style.backgroundColor));
-    const lighter = Math.max(foreground, background);
-    const darker = Math.min(foreground, background);
-    return {
-      backgroundColor: style.backgroundColor,
-      color: style.color,
-      contrastRatio: (lighter + 0.05) / (darker + 0.05),
-      height: node.getBoundingClientRect().height,
-    };
-  });
-}
-
-async function measureCompositedScene(page) {
-  const buffer = await page.locator(".scene-card").screenshot({ caret: "hide", type: "png" });
-  const source = `data:image/png;base64,${buffer.toString("base64")}`;
-  const raster = await page.evaluate(async (imageSource) => {
-    const image = new Image();
-    image.src = imageSource;
-    await image.decode();
-    const probe = document.createElement("canvas");
-    probe.width = 120;
-    probe.height = 80;
-    const context = probe.getContext("2d", { willReadFrequently: true });
-    context.drawImage(image, 0, 0, probe.width, probe.height);
-    const pixels = context.getImageData(0, 0, probe.width, probe.height).data;
-    const edgeBuckets = new Set();
-    let edgeLuminance = 0;
-    let edgePixels = 0;
-    for (let y = 0; y < probe.height; y += 1) {
-      for (let x = 0; x < probe.width; x += 1) {
-        if (x > probe.width * 0.25 && x < probe.width * 0.75 && y > probe.height * 0.15 && y < probe.height * 0.85) continue;
-        const index = (y * probe.width + x) * 4;
-        const red = pixels[index];
-        const green = pixels[index + 1];
-        const blue = pixels[index + 2];
-        edgeLuminance += red * 0.2126 + green * 0.7152 + blue * 0.0722;
-        edgeBuckets.add(`${Math.floor(red / 32)}:${Math.floor(green / 32)}:${Math.floor(blue / 32)}`);
-        edgePixels += 1;
-      }
-    }
-    return {
-      edgeAverageLuminance: edgeLuminance / Math.max(1, edgePixels),
-      edgeColorBuckets: edgeBuckets.size,
-    };
-  }, source);
-  const overlayAlpha = await page.locator("#start-layer").evaluate((node) => {
-    const channels = getComputedStyle(node).backgroundColor.match(/[\d.]+/gu)?.map(Number) ?? [];
-    return channels.length >= 4 ? channels[3] : 1;
-  });
-  return { ...raster, overlayAlpha };
+async function waitForPaint(page) {
+  await page.evaluate(
+    () => new Promise((resolvePaint) => requestAnimationFrame(() => requestAnimationFrame(resolvePaint))),
+  );
+  await page.waitForTimeout(200);
 }
 
 async function measureCanvasPresentation(page) {
@@ -1502,15 +1792,6 @@ async function measureCanvasPresentation(page) {
   });
 }
 
-async function waitForPaint(page) {
-  await page.evaluate(() => {
-    return new Promise((resolvePaint) => {
-      requestAnimationFrame(() => requestAnimationFrame(resolvePaint));
-    });
-  });
-  await page.waitForTimeout(700);
-}
-
 async function measureBlackPixelRatio(page, buffer) {
   const source = `data:image/png;base64,${buffer.toString("base64")}`;
   return page.evaluate(async (imageSource) => {
@@ -1518,14 +1799,19 @@ async function measureBlackPixelRatio(page, buffer) {
     image.src = imageSource;
     await image.decode();
     const probe = document.createElement("canvas");
-    probe.width = 400;
+    probe.width = 320;
     probe.height = 225;
     const context = probe.getContext("2d", { willReadFrequently: true });
     context.drawImage(image, 0, 0, probe.width, probe.height);
     const pixels = context.getImageData(0, 0, probe.width, probe.height).data;
     let black = 0;
     for (let index = 0; index < pixels.length; index += 4) {
-      if (pixels[index] <= 4 && pixels[index + 1] <= 4 && pixels[index + 2] <= 4 && pixels[index + 3] >= 250) {
+      if (
+        pixels[index] <= 4 &&
+        pixels[index + 1] <= 4 &&
+        pixels[index + 2] <= 4 &&
+        pixels[index + 3] >= 250
+      ) {
         black += 1;
       }
     }
@@ -1533,39 +1819,26 @@ async function measureBlackPixelRatio(page, buffer) {
   }, source);
 }
 
-function summarizeMission(state) {
-  return {
-    mode: state.mode,
-    stage: state.stage,
-    sessionId: state.session?.id ?? null,
-    attemptCount: state.session?.attemptCount ?? null,
-    worldHash: state.world?.worldHash ?? null,
-    worldRevision: state.world?.revision ?? null,
-    blockage: state.world?.blockage ?? null,
-    eastChannel: state.world?.eastChannel ?? null,
-    tomatoBedsWatered: state.world?.tomatoBeds?.watered ?? null,
-    verification: state.verification?.status ?? null,
-    coachLine: state.coach?.focusLine ?? null,
-    receiptVerdict: state.receipt?.verdict ?? null,
-  };
+function horizontallyContained(rect, viewportWidth) {
+  return rect.left >= -1 && rect.right <= viewportWidth + 1;
 }
 
 function isAllowedUrl(value, allowedOrigin) {
   try {
-    const url = new URL(value);
-    if (["about:", "blob:", "data:"].includes(url.protocol)) return true;
-    return url.origin === allowedOrigin;
+    const candidate = new URL(value);
+    if (["about:", "blob:", "data:"].includes(candidate.protocol)) return true;
+    return candidate.origin === allowedOrigin;
   } catch {
     return false;
   }
 }
 
 function normalizeBaseUrl(value) {
-  const url = new URL(value);
-  url.search = "";
-  url.hash = "";
-  if (!url.pathname.endsWith("/")) url.pathname += "/";
-  return url.href;
+  const normalized = new URL(value);
+  normalized.search = "";
+  normalized.hash = "";
+  if (!normalized.pathname.endsWith("/")) normalized.pathname += "/";
+  return normalized.href;
 }
 
 async function startStaticServer(root) {
@@ -1628,13 +1901,15 @@ async function waitForServer(baseUrl, child) {
   const deadline = Date.now() + 10_000;
   while (Date.now() < deadline) {
     if (child.exitCode !== null || child.signalCode !== null) {
-      throw new Error(`Static server exited before becoming ready with code ${child.exitCode}.`);
+      throw new Error(
+        `Static server exited before becoming ready with code ${child.exitCode}.`,
+      );
     }
     try {
       const response = await fetch(baseUrl, { redirect: "manual" });
       if (response.ok) return;
     } catch {
-      // The child may not have reached listen() yet.
+      // The child process may not have reached listen() yet.
     }
     await delay(100);
   }
@@ -1680,16 +1955,23 @@ function jsonSafe(value) {
 }
 
 function isDirectInvocation() {
-  return Boolean(process.argv[1]) && pathToFileURL(resolve(process.argv[1])).href === import.meta.url;
+  return (
+    Boolean(process.argv[1]) &&
+    pathToFileURL(resolve(process.argv[1])).href === import.meta.url
+  );
 }
 
 if (isDirectInvocation()) {
   const result = await runBrowserSmoke(parseSmokeArgs());
   if (result.ok) {
-    console.log(`Browser smoke PASS · ${result.reportPath}`);
+    console.log(
+      `Browser smoke PASS · ${result.assertionCount} assertions · ${result.reportPath}`,
+    );
   } else {
     console.error(`Browser smoke FAIL · ${result.reportPath}`);
-    if (result.runnerError) console.error(result.runnerError.stack ?? result.runnerError.message);
+    if (result.runnerError) {
+      console.error(result.runnerError.stack ?? result.runnerError.message);
+    }
     process.exitCode = 1;
   }
 }

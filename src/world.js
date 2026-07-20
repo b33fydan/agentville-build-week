@@ -37,6 +37,15 @@ const PALETTE = Object.freeze({
   denimRight: "#245368",
   cyan: "#67d9e7",
   paper: "#fff4d6",
+  storm: "#52677a",
+  stormDeep: "#344756",
+  rain: "#a8e5ed",
+  seedling: "#58a34d",
+  seedlingLight: "#91cf68",
+  cover: "#bfe8df",
+  grain: "#f3c84e",
+  henWhite: "#f2ead5",
+  henBrown: "#b9653b",
 });
 
 const MAP_WIDTH = 9;
@@ -47,6 +56,26 @@ export const IRRIGATION_SIGN = Object.freeze({
   label: "IRRIGATION",
   pointsTo: "East Channel",
   position: Object.freeze({ x: 2.75, y: 2.45 }),
+});
+
+export const WEATHER_SIGN = Object.freeze({
+  id: "weather-sign",
+  label: "WEATHER",
+  pointsTo: "Sky and storm vane",
+  position: Object.freeze({ x: 1.72, y: 1.92 }),
+});
+
+export const FEEDER_SIGN = Object.freeze({
+  id: "feeder-sign",
+  label: "FEEDER",
+  pointsTo: "Hen feeder and chute",
+  position: Object.freeze({ x: 4.2, y: 3.85 }),
+});
+
+export const WORLD_LANDMARKS = Object.freeze({
+  "east-channel": Object.freeze([IRRIGATION_SIGN]),
+  "storm-watch": Object.freeze([WEATHER_SIGN]),
+  "hungry-hens": Object.freeze([FEEDER_SIGN]),
 });
 
 export const WORLD_PRESENTATION = Object.freeze({
@@ -115,12 +144,17 @@ export class FarmRenderer {
 
   render(inputState = {}, timeMs = 0) {
     const state = normalizeState(inputState);
+    const activeProps = propsForScene(state.sceneId);
+    const activePropFamilies = [...new Set(activeProps.map((prop) => prop.type))].sort();
     const ctx = this.context;
     this.frameStats = {
       voxelCount: 0,
       terrainElevations: new Set(),
-      propCount: STATIC_PROPS.length,
-      propFamilies: PROP_FAMILIES,
+      propCount: activeProps.length,
+      propFamilies: activePropFamilies,
+      sceneId: state.sceneId,
+      landmarks: landmarksForScene(state.sceneId),
+      entities: sceneEntities(state),
       alignment: {
         channelSegments: [],
         fenceSegments: [],
@@ -129,7 +163,7 @@ export class FarmRenderer {
     };
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
     ctx.clearRect(0, 0, this.width, this.height);
-    this.drawBackdrop(timeMs);
+    this.drawBackdrop(timeMs, state);
     this.drawFarmShadow();
 
     for (let depth = 0; depth <= MAP_WIDTH + MAP_HEIGHT - 2; depth += 1) {
@@ -142,10 +176,11 @@ export class FarmRenderer {
 
     if (state.routeVisible && state.route.length > 1) this.drawRoute(state.route, timeMs);
 
-    const props = [...STATIC_PROPS, { type: "bert", x: state.bert.x, y: state.bert.y, depthOffset: 0.08, bert: state.bert }];
+    const props = [...activeProps, { type: "bert", x: state.bert.x, y: state.bert.y, depthOffset: 0.08, bert: state.bert }];
     props.sort((a, b) => a.x + a.y + (a.depthOffset ?? 0) - (b.x + b.y + (b.depthOffset ?? 0)));
     for (const prop of props) this.drawProp(prop, state, timeMs);
 
+    this.drawSceneAtmosphere(state);
     this.drawForegroundVignette();
     this.lastPresentation = this.buildPresentationSnapshot();
   }
@@ -168,12 +203,20 @@ export class FarmRenderer {
     ];
     return {
       style: WORLD_PRESENTATION.style,
+      sceneId: this.frameStats?.sceneId ?? "east-channel",
+      activePropFamilies: [...(this.frameStats?.propFamilies ?? [])],
+      landmarks: {
+        count: this.frameStats?.landmarks?.length ?? 0,
+        items: structuredClone(this.frameStats?.landmarks ?? []),
+      },
+      entities: structuredClone(this.frameStats?.entities ?? { count: 0, byType: {}, state: {} }),
       farm: {
         grid: { width: MAP_WIDTH, height: MAP_HEIGHT },
         elevationLayers: this.frameStats?.terrainElevations?.size ?? 0,
         voxelCount: this.frameStats?.voxelCount ?? 0,
         propCount: this.frameStats?.propCount ?? 0,
         propFamilies: [...(this.frameStats?.propFamilies ?? [])],
+        activePropFamilies: [...(this.frameStats?.propFamilies ?? [])],
         screenBounds: boundsForPoints(corners),
         gridAlignment: this.buildGridAlignmentSnapshot(),
       },
@@ -197,28 +240,41 @@ export class FarmRenderer {
     };
   }
 
-  drawBackdrop(timeMs) {
+  drawBackdrop(timeMs, state) {
     const ctx = this.context;
+    const stormWatch = state.sceneId === "storm-watch";
+    const stormActive = stormWatch && (state.stormStage === "building" || state.stormStage === "raining");
     const gradient = ctx.createLinearGradient(0, 0, 0, this.height);
-    gradient.addColorStop(0, PALETTE.skyLight);
-    gradient.addColorStop(0.42, PALETTE.sky);
-    gradient.addColorStop(1, PALETTE.skyDeep);
+    gradient.addColorStop(0, stormActive ? "#c7c5aa" : PALETTE.skyLight);
+    gradient.addColorStop(0.42, stormActive ? PALETTE.storm : PALETTE.sky);
+    gradient.addColorStop(1, stormActive ? PALETTE.stormDeep : PALETTE.skyDeep);
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, this.width, this.height);
 
     const sunX = this.width * 0.83;
     const sunY = this.height * 0.14;
     const sunSize = clamp(this.tileWidth * 0.82, 44, 58);
-    ctx.fillStyle = "rgba(245, 189, 63, 0.16)";
-    ctx.fillRect(sunX - sunSize * 0.82, sunY - sunSize * 0.82, sunSize * 1.64, sunSize * 1.64);
-    ctx.fillStyle = PALETTE.sun;
-    ctx.fillRect(sunX - sunSize / 2, sunY - sunSize / 2, sunSize, sunSize);
-    ctx.fillStyle = PALETTE.sunLight;
-    ctx.fillRect(sunX - sunSize * 0.34, sunY - sunSize * 0.34, sunSize * 0.28, sunSize * 0.28);
+    if (!stormActive) {
+      ctx.fillStyle = "rgba(245, 189, 63, 0.16)";
+      ctx.fillRect(sunX - sunSize * 0.82, sunY - sunSize * 0.82, sunSize * 1.64, sunSize * 1.64);
+      ctx.fillStyle = PALETTE.sun;
+      ctx.fillRect(sunX - sunSize / 2, sunY - sunSize / 2, sunSize, sunSize);
+      ctx.fillStyle = PALETTE.sunLight;
+      ctx.fillRect(sunX - sunSize * 0.34, sunY - sunSize * 0.34, sunSize * 0.28, sunSize * 0.28);
+    }
 
     const drift = this.reducedMotion ? 0 : Math.sin(timeMs / 9000) * 9;
-    this.drawCloud(this.width * 0.58 + drift, this.height * 0.11, 0.85);
-    this.drawCloud(this.width * 0.17 - drift * 0.5, this.height * 0.22, 0.58);
+    if (stormActive) {
+      this.drawStormCloud(this.width * 0.76, this.height * 0.1, 1.18);
+      this.drawStormCloud(this.width * 0.42, this.height * 0.16, 0.92);
+      this.drawStormCloud(this.width * 0.12, this.height * 0.24, 0.66);
+    } else {
+      this.drawCloud(this.width * 0.58 + drift, this.height * 0.11, 0.85);
+      this.drawCloud(this.width * 0.17 - drift * 0.5, this.height * 0.22, 0.58);
+      if (stormWatch && state.stormStage === "cleared") {
+        this.drawStormCloud(this.width * 0.08, this.height * 0.18, 0.5);
+      }
+    }
 
     this.drawDistantRidge(this.height * 0.48, "#71946b", 56, 0.018);
     this.drawDistantRidge(this.height * 0.55, "#587f60", 42, 0.024);
@@ -234,6 +290,41 @@ export class FarmRenderer {
     ctx.fillRect(x - unit, y - unit * 2, unit * 3, unit * 3);
     ctx.fillStyle = "rgba(222, 231, 201, 0.55)";
     ctx.fillRect(x - unit * 4, y + unit * 2, unit * 8, unit * 0.65);
+  }
+
+  drawStormCloud(x, y, scale) {
+    const ctx = this.context;
+    const unit = Math.max(5, Math.round(9 * scale));
+    ctx.fillStyle = "rgba(34, 52, 61, 0.24)";
+    ctx.fillRect(x - unit * 5 + 5, y + unit * 1.2 + 5, unit * 10, unit * 2.2);
+    ctx.fillStyle = "#657482";
+    ctx.fillRect(x - unit * 5, y + unit, unit * 10, unit * 2);
+    ctx.fillRect(x - unit * 3.5, y, unit * 6.5, unit * 3);
+    ctx.fillRect(x - unit * 1.2, y - unit * 1.4, unit * 3.3, unit * 3.4);
+    ctx.fillStyle = "#84919a";
+    ctx.fillRect(x - unit * 3.8, y + unit * 0.25, unit * 2.6, unit * 0.75);
+    ctx.fillStyle = "#394d59";
+    ctx.fillRect(x - unit * 4.5, y + unit * 2.45, unit * 9, unit * 0.7);
+  }
+
+  drawSceneAtmosphere(state) {
+    if (state.sceneId !== "storm-watch" || state.stormStage !== "raining") return;
+    const ctx = this.context;
+    ctx.save();
+    ctx.strokeStyle = "rgba(168, 229, 237, 0.76)";
+    ctx.lineWidth = Math.max(1.2, this.tileWidth / 52);
+    ctx.lineCap = "square";
+    for (let row = 0; row < 5; row += 1) {
+      for (let column = 0; column < 9; column += 1) {
+        const x = 22 + column * (this.width - 44) / 8 + (row % 2) * 13;
+        const y = 86 + row * (this.height - 150) / 5 + (column % 3) * 9;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x - 8, y + 18);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
   }
 
   drawDistantRidge(baseY, color, step, frequency) {
@@ -539,7 +630,25 @@ export class FarmRenderer {
         this.drawFence(prop.x, prop.y, prop.axis);
         break;
       case "sign":
-        this.drawSign(prop.x, prop.y, prop.label);
+        this.drawSign(prop.x, prop.y, prop.label, prop.accent);
+        break;
+      case "seedling":
+        this.drawSeedlingBed(prop.x, prop.y, prop.index, state);
+        break;
+      case "cover-stack":
+        this.drawCoverStack(prop.x, prop.y, state.seedlingsCovered);
+        break;
+      case "weather-vane":
+        this.drawWeatherVane(prop.x, prop.y, state.stormStage);
+        break;
+      case "feeder":
+        this.drawFeeder(prop.x, prop.y, state);
+        break;
+      case "grain-tray":
+        this.drawGrainTray(prop.x, prop.y, state.grainVisible || state.hensFed);
+        break;
+      case "hen":
+        this.drawHen(prop.x, prop.y, prop.index, state.hensFed);
         break;
       case "crate":
         this.drawCrate(prop.x, prop.y, prop.scale ?? 1);
@@ -718,6 +827,262 @@ export class FarmRenderer {
       this.context.fillRect(p.x - 1, p.y - 5, 2, 10);
       this.context.fillRect(p.x - 5, p.y - 1, 10, 2);
     }
+  }
+
+  drawSeedlingBed(x, y, index, state) {
+    const covered = state.seedlingsCovered;
+    const battered = state.seedlingsBattered;
+    const edging = { top: "#c18c54", left: "#7d5135", right: "#603b2b" };
+    this.drawSmallCube(x - 0.35, y - 0.33, 0.28, 0.12, 0.1, edging);
+    this.drawSmallCube(x + 0.35, y + 0.33, 0.28, 0.12, 0.1, edging);
+    this.drawSmallCube(x, y, 0.245, 0.66, 0.055, {
+      top: battered ? "#74513d" : "#835235",
+      left: "#593526",
+      right: "#42291f",
+    });
+
+    const offsets = [
+      [-0.22, -0.09],
+      [0, 0.04],
+      [0.22, -0.06],
+      [-0.08, 0.16],
+    ];
+    for (let seedling = 0; seedling < offsets.length; seedling += 1) {
+      const [dx, dy] = offsets[seedling];
+      const lean = battered ? (seedling % 2 === 0 ? 0.1 : -0.09) : 0;
+      const stem = battered ? "#806b3c" : PALETTE.seedling;
+      const leaf = battered ? "#9a7342" : PALETTE.seedlingLight;
+      this.drawSmallCube(x + dx + lean, y + dy, 0.28, 0.075, battered ? 0.16 : 0.27, {
+        top: lighten(stem, 14),
+        left: stem,
+        right: darken(stem, 18),
+      }, lean * 0.9);
+      this.drawSmallCube(x + dx - 0.07 + lean, y + dy + 0.025, battered ? 0.4 : 0.49, 0.09, 0.07, {
+        top: lighten(leaf, 15),
+        left: leaf,
+        right: darken(leaf, 20),
+      }, lean);
+      this.drawSmallCube(x + dx + 0.07 + lean, y + dy - 0.025, battered ? 0.37 : 0.52, 0.085, 0.065, {
+        top: lighten(leaf, 12),
+        left: leaf,
+        right: darken(leaf, 22),
+      }, -lean);
+    }
+
+    if (covered) this.drawSeedlingCover(x, y, index);
+    if (battered) {
+      const ctx = this.context;
+      const marker = this.project(x, y, 0.76);
+      ctx.fillStyle = "#e65e42";
+      ctx.strokeStyle = PALETTE.ink;
+      ctx.lineWidth = 1;
+      ctx.fillRect(marker.x - 7, marker.y - 10, 14, 10);
+      ctx.strokeRect(marker.x - 7, marker.y - 10, 14, 10);
+      ctx.fillStyle = PALETTE.paper;
+      ctx.font = `900 ${clamp(this.tileWidth / 7.6, 8, 11)}px ${this.monoFont}`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("!", marker.x, marker.y - 5);
+    }
+  }
+
+  drawSeedlingCover(x, y, index) {
+    const coverTop = index % 2 === 0 ? "#d5f2e7" : "#c6e9e1";
+    const coverColors = { top: coverTop, left: "#79b7ae", right: "#548d89" };
+    const postColors = { top: "#f1f2d8", left: "#a2b7a8", right: "#748d83" };
+    for (const [dx, dy] of [[-0.31, -0.24], [0.31, 0.24], [-0.22, 0.22], [0.22, -0.22]]) {
+      this.drawSmallCube(x + dx, y + dy, 0.49, 0.055, 0.32, postColors);
+    }
+    this.drawSmallCube(x, y, 0.82, 0.76, 0.09, coverColors);
+    const ctx = this.context;
+    const label = this.project(x, y, 0.85);
+    ctx.fillStyle = "rgba(255, 255, 235, 0.86)";
+    ctx.fillRect(label.x - 8, label.y - 3, 16, 5);
+  }
+
+  drawCoverStack(x, y, coversInUse) {
+    const base = { top: "#9b9470", left: "#68664f", right: "#4d5141" };
+    this.drawSmallCube(x, y, 0.28, 0.5, 0.09, base);
+    const layers = coversInUse ? 1 : 3;
+    for (let layer = 0; layer < layers; layer += 1) {
+      this.drawSmallCube(x - layer * 0.025, y + layer * 0.018, 0.38 + layer * 0.12, 0.42 - layer * 0.025, 0.09, {
+        top: layer % 2 === 0 ? "#d5f2e7" : "#b9ded8",
+        left: "#78aaa2",
+        right: "#527f7b",
+      });
+    }
+    const tag = this.project(x, y, 0.64 + (layers - 1) * 0.12);
+    const ctx = this.context;
+    ctx.fillStyle = PALETTE.paper;
+    ctx.strokeStyle = PALETTE.ink;
+    ctx.lineWidth = 1;
+    ctx.fillRect(tag.x - 13, tag.y - 8, 26, 10);
+    ctx.strokeRect(tag.x - 13, tag.y - 8, 26, 10);
+    ctx.fillStyle = "#316e68";
+    ctx.font = `800 ${clamp(this.tileWidth / 11, 6, 8)}px ${this.monoFont}`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(coversInUse ? "SPARE" : "COVERS", tag.x, tag.y - 3);
+  }
+
+  drawWeatherVane(x, y, stormStage) {
+    this.drawSign(x, y, WEATHER_SIGN.label, "#e9a13b");
+    this.drawSmallCube(x, y, 0.82, 0.07, 0.88, {
+      top: "#e5eee4",
+      left: "#7e958a",
+      right: "#586f68",
+    });
+    const ctx = this.context;
+    const pivot = this.project(x, y, 1.72);
+    const angleByStage = { calm: -0.18, building: 0.54, raining: 0.88, cleared: -0.42 };
+    const angle = angleByStage[stormStage] ?? angleByStage.building;
+    const dx = Math.cos(angle) * 24;
+    const dy = Math.sin(angle) * 13;
+    ctx.save();
+    ctx.strokeStyle = PALETTE.ink;
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.moveTo(pivot.x - dx, pivot.y - dy);
+    ctx.lineTo(pivot.x + dx, pivot.y + dy);
+    ctx.stroke();
+    ctx.strokeStyle = "#f3c84e";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.fillStyle = "#e85e3e";
+    ctx.strokeStyle = PALETTE.ink;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(pivot.x + dx + Math.cos(angle) * 7, pivot.y + dy + Math.sin(angle) * 4);
+    ctx.lineTo(pivot.x + dx - 7, pivot.y + dy - 7);
+    ctx.lineTo(pivot.x + dx - 9, pivot.y + dy + 6);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = PALETTE.paper;
+    ctx.strokeStyle = PALETTE.ink;
+    ctx.font = `900 ${clamp(this.tileWidth / 10, 7, 9)}px ${this.monoFont}`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("N", pivot.x, pivot.y - 14);
+    ctx.restore();
+  }
+
+  drawFeeder(x, y, state) {
+    const metal = { top: "#dbe4d7", left: "#7f968b", right: "#5b716a" };
+    const darkMetal = { top: "#a9bbb0", left: "#62766e", right: "#405650" };
+    this.drawSmallCube(x - 0.22, y + 0.18, 0.48, 0.08, 0.5, darkMetal);
+    this.drawSmallCube(x + 0.22, y - 0.18, 0.48, 0.08, 0.5, darkMetal);
+    this.drawSmallCube(x, y, 1.02, 0.7, 0.62, metal);
+    this.drawSmallCube(x, y, 1.34, 0.76, 0.12, {
+      top: "#edf3df",
+      left: "#98aaa0",
+      right: "#697d75",
+    });
+    if (state.feederFull) {
+      this.drawSmallCube(x - 0.03, y - 0.03, 1.48, 0.56, 0.08, {
+        top: "#ffe375",
+        left: PALETTE.grain,
+        right: "#b8872f",
+      });
+    }
+    this.drawSmallCube(x + 0.34, y + 0.31, 0.68, 0.23, 0.43, darkMetal, -0.08);
+    if (state.chuteJammed) {
+      this.drawSmallCube(x + 0.43, y + 0.39, 0.55, 0.2, 0.2, {
+        top: "#eb8a48",
+        left: "#a54d35",
+        right: "#77352d",
+      }, 0.1);
+      const warning = this.project(x + 0.43, y + 0.39, 0.94);
+      const ctx = this.context;
+      ctx.fillStyle = "#e85e3e";
+      ctx.strokeStyle = PALETTE.ink;
+      ctx.lineWidth = 1;
+      ctx.fillRect(warning.x - 7, warning.y - 8, 14, 10);
+      ctx.strokeRect(warning.x - 7, warning.y - 8, 14, 10);
+      ctx.fillStyle = PALETTE.paper;
+      ctx.font = `900 ${clamp(this.tileWidth / 8, 8, 10)}px ${this.monoFont}`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("!", warning.x, warning.y - 3);
+    }
+  }
+
+  drawGrainTray(x, y, grainVisible) {
+    this.drawSmallCube(x, y, 0.3, 0.58, 0.1, {
+      top: "#9caaa0",
+      left: "#596d65",
+      right: "#3f514c",
+    });
+    this.drawSmallCube(x, y, 0.37, 0.46, 0.045, {
+      top: grainVisible ? "#f5d35f" : "#3f514c",
+      left: grainVisible ? "#ba8731" : "#2e403b",
+      right: grainVisible ? "#8f642b" : "#24352f",
+    });
+    if (!grainVisible) return;
+    for (const [dx, dy] of [[-0.14, -0.08], [0.04, 0.03], [0.16, -0.02], [-0.02, 0.13]]) {
+      this.drawSmallCube(x + dx, y + dy, 0.43, 0.035, 0.025, {
+        top: "#ffe783",
+        left: PALETTE.grain,
+        right: "#a8732c",
+      });
+    }
+  }
+
+  drawHen(x, y, index, fed) {
+    const bodyColor = index % 2 === 0 ? PALETTE.henWhite : PALETTE.henBrown;
+    const body = {
+      top: lighten(bodyColor, 18),
+      left: bodyColor,
+      right: darken(bodyColor, 25),
+    };
+    const wing = index % 2 === 0 ? "#cdbf9f" : "#8f432f";
+    const bodyScale = fed ? 0.45 : 0.39;
+    const headLift = fed ? 0.08 : -0.02;
+    this.drawSmallCube(x, y, 0.56, bodyScale, fed ? 0.4 : 0.34, body);
+    this.drawSmallCube(x - 0.12, y + 0.06, 0.62, 0.23, 0.18, {
+      top: lighten(wing, 16),
+      left: wing,
+      right: darken(wing, 22),
+    }, -0.04);
+    this.drawSmallCube(x + 0.22, y - 0.12, 0.84 + headLift, 0.25, 0.25, body);
+    this.drawSmallCube(x + 0.39, y - 0.2, 0.81 + headLift, 0.12, 0.1, {
+      top: "#ffd36a",
+      left: "#e28c32",
+      right: "#a95628",
+    }, 0.08);
+    this.drawSmallCube(x + 0.18, y - 0.13, 1.07 + headLift, 0.11, 0.09, {
+      top: "#ff8a57",
+      left: "#d64b39",
+      right: "#a33231",
+    });
+    this.drawSmallCube(x - 0.32, y + 0.17, 0.75, 0.18, 0.23, {
+      top: lighten(bodyColor, 10),
+      left: darken(bodyColor, 10),
+      right: darken(bodyColor, 32),
+    }, -0.13);
+    for (const offset of [-0.1, 0.1]) {
+      this.drawSmallCube(x + offset, y + 0.03, 0.32, 0.045, 0.22, {
+        top: "#ffd36a",
+        left: "#d68a32",
+        right: "#a45928",
+      });
+    }
+
+    const ctx = this.context;
+    const eye = this.project(x + 0.31, y - 0.06, 0.94 + headLift);
+    ctx.fillStyle = PALETTE.ink;
+    ctx.fillRect(Math.round(eye.x) - 1, Math.round(eye.y) - 1, 3, 3);
+    const status = this.project(x, y, 1.32);
+    ctx.fillStyle = fed ? "#59bd5b" : "#e85e3e";
+    ctx.strokeStyle = PALETTE.ink;
+    ctx.lineWidth = 1;
+    ctx.fillRect(status.x - 6, status.y - 7, 12, 10);
+    ctx.strokeRect(status.x - 6, status.y - 7, 12, 10);
+    ctx.fillStyle = PALETTE.paper;
+    ctx.font = `900 ${clamp(this.tileWidth / 9, 7, 9)}px ${this.monoFont}`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(fed ? "✓" : "!", status.x, status.y - 2);
   }
 
   drawDebris(x, y, timeMs, highlighted = true) {
@@ -910,7 +1275,7 @@ export class FarmRenderer {
     });
   }
 
-  drawSign(x, y, label) {
+  drawSign(x, y, label, accent = PALETTE.water) {
     const ctx = this.context;
     const p = this.project(x, y, 0.28);
     const boardWidth = clamp(this.tileWidth * 1.08, 58, 74);
@@ -932,7 +1297,7 @@ export class FarmRenderer {
     ctx.fillRect(boardLeft, boardTop, boardWidth, boardHeight);
     ctx.strokeRect(boardLeft, boardTop, boardWidth, boardHeight);
 
-    ctx.fillStyle = PALETTE.water;
+    ctx.fillStyle = accent;
     ctx.fillRect(boardLeft + 3, boardTop + 3, 4, boardHeight - 6);
 
     ctx.fillStyle = PALETTE.ink;
@@ -941,7 +1306,7 @@ export class FarmRenderer {
     ctx.textBaseline = "middle";
     ctx.fillText(label, p.x + 3, boardTop + boardHeight / 2 + 0.5);
 
-    ctx.fillStyle = PALETTE.water;
+    ctx.fillStyle = accent;
     ctx.beginPath();
     ctx.moveTo(p.x, p.y - 5);
     ctx.lineTo(p.x + 4, p.y - 10);
@@ -957,8 +1322,8 @@ export class FarmRenderer {
     const idleBob = !bert.moving && !this.reducedMotion ? Math.sin(timeMs / 760) * 0.018 : 0;
     const gait = bert.moving && !this.reducedMotion ? Math.sin(timeMs / 105) * 0.075 : 0;
     const isThinking = bert.action === "think";
-    const isWorking = bert.action === "inspect" || bert.action === "clear" || bert.action === "water";
-    const isVerified = worldState.cropsWatered === 3 && !bert.moving;
+    const isWorking = ["inspect", "clear", "water", "cover", "unjam", "feed"].includes(bert.action);
+    const isVerified = worldState.verified && !bert.moving;
     const z = 0.29 + movingBob + idleBob;
     const x = bert.x;
     const y = bert.y;
@@ -1023,9 +1388,17 @@ export class FarmRenderer {
     ctx.fillStyle = PALETTE.sun;
     ctx.fillRect(Math.round(bib.x) - 1, Math.round(bib.y) + 2, 3, 3);
 
-    if (bert.action === "clear" || bert.action === "inspect") {
+    if (["clear", "inspect", "unjam"].includes(bert.action)) {
       renderedBounds.push(this.drawWrench(x, y, z, timeMs, bert.action));
       renderedParts.add("tool");
+    }
+    if (bert.action === "cover") {
+      renderedBounds.push(this.drawCarriedCover(x, y, z));
+      renderedParts.add("cover");
+    }
+    if (bert.action === "feed") {
+      renderedBounds.push(this.drawFeedScoop(x, y, z));
+      renderedParts.add("feed-scoop");
     }
 
     const screenBounds = mergeBounds(renderedBounds);
@@ -1095,6 +1468,35 @@ export class FarmRenderer {
     return expandBounds(bounds, 4);
   }
 
+  drawCarriedCover(x, y, z) {
+    return this.drawSmallCube(x + 0.38, y - 0.06, z + 0.78, 0.38, 0.11, {
+      top: "#d5f2e7",
+      left: "#78aaa2",
+      right: "#527f7b",
+    }, 0.08);
+  }
+
+  drawFeedScoop(x, y, z) {
+    const ctx = this.context;
+    const handleStart = this.project(x + 0.28, y - 0.04, z + 0.86);
+    const scoop = this.project(x + 0.5, y - 0.1, z + 0.72);
+    ctx.strokeStyle = PALETTE.ink;
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(handleStart.x, handleStart.y);
+    ctx.lineTo(scoop.x, scoop.y);
+    ctx.stroke();
+    ctx.strokeStyle = "#dbe4d7";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.fillStyle = PALETTE.grain;
+    ctx.strokeStyle = PALETTE.ink;
+    ctx.lineWidth = 1;
+    ctx.fillRect(scoop.x - 7, scoop.y - 4, 14, 8);
+    ctx.strokeRect(scoop.x - 7, scoop.y - 4, 14, 8);
+    return expandBounds(boundsForPoints([handleStart, { x: scoop.x - 7, y: scoop.y - 4 }, { x: scoop.x + 7, y: scoop.y + 4 }]), 3);
+  }
+
   drawSmallCube(gridX, gridY, elevation, scale, height, colors, skew = 0) {
     const ctx = this.context;
     const center = this.project(gridX, gridY, elevation);
@@ -1151,10 +1553,23 @@ export class FarmRenderer {
 }
 
 function normalizeState(state) {
+  const sceneId = WORLD_LANDMARKS[state.sceneId] ? state.sceneId : "east-channel";
+  const stormStage = ["calm", "building", "raining", "cleared"].includes(state.stormStage)
+    ? state.stormStage
+    : "building";
   return {
-    blocked: state.blocked !== false,
+    sceneId,
+    blocked: sceneId === "east-channel" ? state.blocked !== false : false,
     blockageRevealed: Boolean(state.blockageRevealed),
     cropsWatered: clamp(Number(state.cropsWatered ?? 0), 0, 3),
+    seedlingsCovered: Boolean(state.seedlingsCovered),
+    seedlingsBattered: Boolean(state.seedlingsBattered),
+    stormStage,
+    feederFull: state.feederFull !== false,
+    chuteJammed: state.chuteJammed !== false,
+    hensFed: Boolean(state.hensFed),
+    grainVisible: Boolean(state.grainVisible),
+    verified: Boolean(state.verified),
     routeVisible: Boolean(state.routeVisible),
     route: Array.isArray(state.route) ? state.route : [],
     bert: {
@@ -1166,7 +1581,7 @@ function normalizeState(state) {
   };
 }
 
-function createProps() {
+function createBaseProps() {
   return [
     { type: "shed", x: 1.15, y: 0.95 },
     { type: "tree", x: 0.15, y: 0.25, scale: 0.92 },
@@ -1182,16 +1597,21 @@ function createProps() {
     { type: "rock", x: 8.18, y: 5.72, scale: 0.64 },
     { type: "flowers", x: 0.85, y: 5.5, color: "#f5bd3f" },
     { type: "flowers", x: 7.82, y: 1.05, color: "#ef6a50" },
-    { type: "debris", x: 4.1, y: 3.02, depthOffset: 0.1 },
-    { type: "crop", x: 6.15, y: 4.28, index: 0 },
-    { type: "crop", x: 7.12, y: 4.22, index: 1 },
-    { type: "crop", x: 7.05, y: 5.18, index: 2 },
     { type: "fence", x: 2.2, y: 6.15, axis: "x" },
     { type: "fence", x: 3.2, y: 6.15, axis: "x" },
     { type: "fence", x: 5.2, y: 6.15, axis: "x" },
     { type: "fence", x: 6.2, y: 6.15, axis: "x" },
     { type: "fence", x: 8.15, y: 2.1, axis: "y" },
     { type: "fence", x: 8.15, y: 3.1, axis: "y" },
+  ];
+}
+
+function createEastChannelProps() {
+  return [
+    { type: "debris", x: 4.1, y: 3.02, depthOffset: 0.1 },
+    { type: "crop", x: 6.15, y: 4.28, index: 0 },
+    { type: "crop", x: 7.12, y: 4.22, index: 1 },
+    { type: "crop", x: 7.05, y: 5.18, index: 2 },
     {
       type: "sign",
       x: IRRIGATION_SIGN.position.x,
@@ -1201,8 +1621,87 @@ function createProps() {
   ];
 }
 
-const STATIC_PROPS = Object.freeze(createProps().map((prop) => Object.freeze(prop)));
-const PROP_FAMILIES = Object.freeze([...new Set(STATIC_PROPS.map((prop) => prop.type))].sort());
+function createStormWatchProps() {
+  return [
+    { type: "cover-stack", x: 2.3, y: 0.85, depthOffset: 0.05 },
+    { type: "weather-vane", x: WEATHER_SIGN.position.x, y: WEATHER_SIGN.position.y, depthOffset: 0.08 },
+    { type: "seedling", x: 6.15, y: 4.28, index: 0 },
+    { type: "seedling", x: 7.12, y: 4.22, index: 1 },
+    { type: "seedling", x: 7.05, y: 5.18, index: 2 },
+  ];
+}
+
+function createHungryHensProps() {
+  return [
+    {
+      type: "sign",
+      x: FEEDER_SIGN.position.x,
+      y: FEEDER_SIGN.position.y,
+      label: FEEDER_SIGN.label,
+      accent: "#e9a13b",
+    },
+    { type: "feeder", x: 5.86, y: 4.18, depthOffset: 0.08 },
+    { type: "grain-tray", x: 6.35, y: 4.55, depthOffset: 0.1 },
+    { type: "hen", x: 6.82, y: 4.18, index: 0, depthOffset: 0.12 },
+    { type: "hen", x: 7.36, y: 4.65, index: 1, depthOffset: 0.12 },
+    { type: "hen", x: 6.92, y: 5.24, index: 2, depthOffset: 0.12 },
+  ];
+}
+
+function freezeProps(props) {
+  return Object.freeze(props.map((prop) => Object.freeze(prop)));
+}
+
+const BASE_PROPS = freezeProps(createBaseProps());
+const SCENE_PROPS = Object.freeze({
+  "east-channel": freezeProps(createEastChannelProps()),
+  "storm-watch": freezeProps(createStormWatchProps()),
+  "hungry-hens": freezeProps(createHungryHensProps()),
+});
+
+function propsForScene(sceneId) {
+  return [...BASE_PROPS, ...(SCENE_PROPS[sceneId] ?? SCENE_PROPS["east-channel"])];
+}
+
+function landmarksForScene(sceneId) {
+  return (WORLD_LANDMARKS[sceneId] ?? WORLD_LANDMARKS["east-channel"]).map((landmark) => ({
+    id: landmark.id,
+    label: landmark.label,
+    pointsTo: landmark.pointsTo,
+    position: { ...landmark.position },
+  }));
+}
+
+function sceneEntities(state) {
+  if (state.sceneId === "storm-watch") {
+    return {
+      count: 4,
+      byType: { bert: 1, seedlingBeds: 3 },
+      state: {
+        storm: { stage: state.stormStage },
+        seedlingBeds: { count: 3, covered: state.seedlingsCovered, battered: state.seedlingsBattered },
+      },
+    };
+  }
+  if (state.sceneId === "hungry-hens") {
+    return {
+      count: 4,
+      byType: { bert: 1, hens: 3 },
+      state: {
+        feeder: { full: state.feederFull, chuteJammed: state.chuteJammed, grainVisible: state.grainVisible },
+        hens: { count: 3, fed: state.hensFed },
+      },
+    };
+  }
+  return {
+    count: 4,
+    byType: { bert: 1, tomatoBeds: 3 },
+    state: {
+      irrigation: { blocked: state.blocked, blockageRevealed: state.blockageRevealed },
+      tomatoBeds: { count: 3, watered: state.cropsWatered },
+    },
+  };
+}
 
 const PATH_TILES = new Set(["1,2", "2,2", "2,3", "2,4", "2,5", "3,5", "4,5", "5,5", "5,4"]);
 

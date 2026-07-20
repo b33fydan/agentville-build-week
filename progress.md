@@ -11,6 +11,7 @@ Original prompt: Build a clean-room hackathon project called AgentVille: Build W
 
 ## Next
 
+- Commit and publish the validated three-mission artifact, verify GitHub Pages serves the exact release SHA, then run `npm run test:public` against it.
 - Run the three genuine first-time sessions in `docs/PLAYTEST_PROTOCOL.md`.
 - Record the demo video and any separate event `/feedback` ID in the evidence ledger.
 
@@ -29,7 +30,7 @@ Original prompt: Build a clean-room hackathon project called AgentVille: Build W
 - Committed the visual release as `c8ab4db` (`Refine the Voxel Field Rig`) and deployed it in [Actions run 29670780954](https://github.com/b33fydan/agentville-build-week/actions/runs/29670780954).
 - Confirmed the live root and `/feedback/` return HTTP 200, serve the humanoid renderer and Voxel Field Rig styles, and pass 266/266 public browser assertions with empty diagnostics and exact receipt-session continuity.
 
-## 2026-07-18 — Progressive teaching pass (in progress)
+## 2026-07-18 — Progressive teaching pass
 
 - Began the learner-directed refinement that checks one instruction at a time and rewards Observe, Decide, and Act with deterministic Bert rehearsals before the complete program can run.
 - Added a frozen prefix validator that reuses the strict allowlist but cannot emit an executable safe plan; `compileProgram()` and `runMission()` remain the only authority path for world mutation and receipts.
@@ -123,3 +124,18 @@ Original prompt: Build a clean-room hackathon project called AgentVille: Build W
 - Preserved the key teaching distinction: the guided response safely acts on a symptom and fails verification; repairing only Decide targets the cause and passes.
 - `COPYFILE_DISABLE=1 npm run smoke` passes 34/34 Node tests and 304/304 production-dist browser assertions with empty diagnostics after updating the exact-text accessibility checks.
 - Ran the provided generic web-game client against the live source server, inspected `render_game_to_text()`, and visually confirmed the aligned farm canvas still renders correctly.
+
+## 2026-07-20 — Three-mission Build Week course
+
+- Replaced the locked Lesson 02 teaser in the current worktree with a real ordered course: **Repair the East Channel** (`repair-east-channel`), **Storm Watch** (`storm-watch`), and **The Hungry Hens** (`hungry-hens`).
+- Added an immutable mission registry that owns identity, order, prerequisites, initial state, exact allowlisted commands, Decide bindings, observation collectors, condition evaluators, action transitions, verification predicates, fixed-tick events, Coach/debrief copy, UI metadata, and world metadata.
+- Made the compiler, simulator, debrief, app, and course-progress reducer consume the active registry definition. Plans are mission-bound and fail closed when reused across lessons.
+- Kept `act on the decision` identical across the course. Mission 01 repairs `decide water the tomatoes when the beds are dry` to `decide clear the blockage when the water is blocked`; Mission 02 repairs `decide cover the beds when rain falls` to `decide cover the beds when clouds gather`; Mission 03 repairs `observe the feeder` to `observe the hens`.
+- Implemented Storm Watch with uncovered seedlings, shed-side covers, a WEATHER clue, and a simulator-owned `storm-arrives` event at tick 150 on a fixed 60 Hz timeline. The guided rain trigger produces no response before the event and FAIL; the repaired cloud trigger covers the beds before the same event and passes.
+- Restricted Decide to line 1's privately minted observation evidence. A feeder observation does not expose hen hunger, so Mission 03 records `conditionSupported: false` and `conditionMet: null` rather than consulting hidden state; observing the hens supplies the fact and enables chute repair.
+- Added PASS-only unlock progression from Mission 01 to Mission 02 to Mission 03, plus a course-complete state after the third receipt.
+- Migrated proof to `agentville.receipt.v2` and feedback to `agentville.feedback.v2`. Receipt storage, feedback links, and exports preserve both `missionId` and `sessionId` so evidence cannot collide across lessons.
+- Preserved the static, credential-free, network-free critical path and the clean-room boundary from `/Volumes/beefybackup/AgentVille`.
+- Current verified worktree evidence: **58/58 Node tests** and **735/735 production-dist browser assertions** pass with empty diagnostics; a local manual sequential Playwright run completed Mission 01 → Mission 02 → Mission 03; direct renderer proof passes **16/16**; and the provided generic web-game client passed with its state and canvas output inspected.
+- All **15/15** canonical three-mission captures were generated and visually inspected, including every authoring, causal failure, repaired PASS, responsive, reset, and feedback state.
+- Evidence still pending at this checkpoint: commit and GitHub Pages deployment of this worktree, a public smoke against that exact deployment, genuine learner sessions, the demo video, and any separate event-issued `/feedback` ID. The preceding 304/304 grid-alignment evidence remains historical and is not proof of this course.

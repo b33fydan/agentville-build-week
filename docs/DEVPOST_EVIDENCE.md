@@ -2,75 +2,132 @@
 
 **Created:** 2026-07-16
 
-**Status:** Automated local and public production evidence captured; video, human playtests, and any separate event-issued `/feedback` ID remain genuine external gates.
+**Three-mission audit:** 2026-07-20
 
-**Codex development task ID:** `019f6e24-76bc-71f2-b326-0b13c9eafd04` — preserved for `/feedback` traceability.
+**Current release status:** The three-mission course passes its Node and production-dist browser gates, and all current-release captures were inspected. Commit/deployment evidence and a fresh public smoke are still pending. Historical one-mission evidence below must not be presented as proof of this release.
 
-## Required submission artifacts
+**Codex development task ID:** `019f6e24-76bc-71f2-b326-0b13c9eafd04` — preserved for Build Week `/feedback` traceability.
 
-- [x] Public playable URL and declared supported browser
-- [x] Source repository URL and first deployed commit hash
-- [ ] Two-to-three-minute uncut critical-flow demo
-- [x] Hero screenshot showing the farm and Agent Workbench
-- [x] Welcome screenshot showing the farm before Start
-- [x] Dedicated 2× humanoid Bert detail capture
-- [x] Composited teaching capture showing Bert unobscured beside his bubble and world evidence
-- [x] Compiler-error screenshot with line number and fix suggestion
-- [x] Observe success and Decide/lightbulb teaching screenshots at 1280×720
-- [x] Failed-verification screenshot with blocked water visible
-- [x] Passing receipt screenshot with session ID visible
-- [x] `/feedback/` screenshot showing the same session ID
-- [x] 390px mobile Workbench screenshot and containment assertions
-- [x] 390px mobile feedback screenshot with readable 44px rating and consent targets
-- [x] Automated production smoke log
-- [ ] Three genuine first-time playtest records and completion times
-- [x] Clean-room source/assets disclosure
-- [x] Codex/GPT-5.6 collaboration disclosure
+## Root release placeholders
 
-## Acceptance evidence index
+Replace every `PENDING` value below only from an actual successful command, committed artifact, or deployed provider record.
 
-| Criterion | Artifact or command | Status |
+| Release fact | Authoritative value |
+| --- | --- |
+| `FINAL_THREE_MISSION_COMMIT` | `PENDING` |
+| `FINAL_LOCAL_NODE_SUITE` | `58/58 PASS` |
+| `FINAL_LOCAL_BROWSER_SMOKE` | `735/735 PASS` |
+| `FINAL_LOCAL_SMOKE_REPORT` | `artifacts/evidence/latest-smoke.json` — `agentville.browser-smoke.v3`, production `dist/`, empty diagnostics |
+| `FINAL_CANONICAL_CAPTURE_REVIEW` | `15/15 PASS` — visually inspected 2026-07-20 |
+| `FINAL_PAGES_ACTION_RUN` | `PENDING` |
+| `FINAL_DEPLOYED_COMMIT` | `PENDING` |
+| `FINAL_PUBLIC_BROWSER_SMOKE` | `PENDING` |
+| `FINAL_PUBLIC_SMOKE_REPORT` | `artifacts/evidence/latest-public-smoke.json` — predecessor proof until refreshed |
+| `FINAL_EVENT_FEEDBACK_ID` | `PENDING` — use only an ID actually issued by the Build Week event |
+| `FINAL_DEMO_VIDEO_URL` | `PENDING` |
+| `FINAL_HUMAN_PLAYTEST_PACKET` | `PENDING` |
+
+`COPYFILE_DISABLE=1 npm run smoke` completed successfully on 2026-07-20 at `2026-07-20T22:26:32.763Z`: 58/58 Node tests and 735/735 production-browser assertions passed, all diagnostic collections were empty, and the 15 report-owned screenshots were visually inspected.
+
+## Three-mission evidence obligations
+
+| Gate | Required proof | Current status |
 | --- | --- | --- |
-| A1 | Production Chromium smoke plus `npm run test:public` against [GitHub Pages](https://b33fydan.github.io/agentville-build-week/) | PASS — grid-alignment release 304/304 locally; current public predecessor 302/302 during publication |
-| A2–A24 | `npm run smoke` grid-alignment release | PASS — 34/34 Node tests + 304/304 production-dist browser assertions |
-| Welcome frame | `artifacts/screenshots/agentville-build-week-welcome.png` | Captured and inspected; composited edge luminance/color proof confirms the layered farm remains visible before Start |
-| Hero frame | `artifacts/screenshots/agentville-build-week-hero.png` | Captured and inspected; larger layered farm, block-built HUD, humanoid Bert, continuous projected channel and fence runs |
-| Irrigation clue at judging viewport | `artifacts/screenshots/agentville-build-week-irrigation-cue-1280.png` | Captured and inspected at 1280×720; sign readable, blocked channel and fence axes aligned, canvas visible, no page overflow |
-| Observe error at judging viewport | `artifacts/screenshots/agentville-build-week-observe-error-1280.png` | Captured and inspected at 1280×720; Bert question visible, no repair disclosed |
-| Observe reward at judging viewport | `artifacts/screenshots/agentville-build-week-observe-success-1280.png` | Captured and inspected at 1280×720; stopped water, visible debris, and Aha response visible |
-| Humanoid Bert detail | `artifacts/screenshots/agentville-build-week-bert-detail.png` | Captured and inspected as a 2× nearest-neighbor crop; face, torso, paired limbs, hands, boots, overalls, hat, and wrench readable |
-| Humanoid Bert in lesson | `artifacts/screenshots/agentville-build-week-bert-teaching.png` | Captured from the composited page; Bert, speech, and stopped-flow evidence are adjacent with zero measured overlay coverage of his geometry-derived bounds |
-| Decide reward at judging viewport | `artifacts/screenshots/agentville-build-week-decide-aha-1280.png` | Captured and inspected at 1280×720; bounded response, lightbulb, agent-boundary note, and controls contained |
-| Grand repaired payoff | `artifacts/screenshots/agentville-build-week-grand-payoff-1280.png` | Captured and inspected at 1280×720 before the receipt; continuous projected water channel clear, 3/3 beds watered, Verify visible |
-| Compiler error | `artifacts/screenshots/agentville-build-week-compiler-error.png` | Captured and inspected |
-| Failure frame | `artifacts/screenshots/agentville-build-week-failure.png` | Captured and inspected at 1280×720; Act is labeled `NO CHANGE`, failed Verify and Codex Coach are fully visible together, line 2 is marked as the cause, and all four editor lines fit without overlap or scroll |
-| Receipt frame | `artifacts/screenshots/agentville-build-week-receipt.png` | Captured and inspected |
-| Debrief at judging viewport | `artifacts/screenshots/agentville-build-week-debrief-1280.png` | Captured and inspected at 1280×720; line-2 decision repair, unchanged generic Act, and all four explanations are readable without clipping or scroll |
-| Feedback continuity | `artifacts/screenshots/agentville-build-week-feedback.png` | Captured and inspected |
-| Mobile Workbench | `artifacts/screenshots/agentville-build-week-mobile-390.png` | Captured and inspected at 390×844; two-column language slots, 44px actions, no horizontal overflow |
-| Mobile feedback | `artifacts/screenshots/agentville-build-week-feedback-mobile-390.png` | Captured and inspected at 390×844; rating captions remain visible and rating/consent targets meet 44px |
-| Local machine evidence | `artifacts/evidence/latest-smoke.json` | PASS against production `dist/`, 304/304; diagnostics empty |
-| Public mission smoke | `artifacts/evidence/latest-public-smoke.json` via `npm run test:public` | PASS — 302/302; console, page, request, response, dialog, and runner diagnostics empty |
-| Human evidence | `artifacts/evidence/playtest-YYYY-MM-DD-<tester>.json` | Pending genuine sessions |
-| Source evidence | [github.com/b33fydan/agentville-build-week](https://github.com/b33fydan/agentville-build-week) | PUBLIC repository; first deployed commit `cb57621` |
-| Deployment evidence | [b33fydan.github.io/agentville-build-week](https://b33fydan.github.io/agentville-build-week/) | PASS — root and `/feedback/` HTTP 200; decision-model [Actions run 29690596219](https://github.com/b33fydan/agentville-build-week/actions/runs/29690596219) succeeded at `7f04f10` on 2026-07-19 |
+| Safe language and authority | `npm test`: registry, compiler branding/allowlists, scoped observation provenance, simulator-owned verdicts, receipts, unlocks, debrief, and feedback identity | **PASS — 58/58** on 2026-07-20 |
+| Mission 01 causal loop | Guided symptom response FAIL, Coach line 2, one-line cause repair PASS, already-satisfied no-action, invalid-line rejection | **PASS — 735-assertion production browser report** |
+| Mission 02 causal loop | Supported-false rain trigger, fixed 60 Hz storm at tick 150, battered-seedling FAIL, Coach line 2, cloud-trigger repair PASS | **PASS — 735-assertion production browser report** |
+| Mission 03 causal loop | Feeder scope lacks hunger fact, unsupported condition, Coach line 1, hens-observation repair PASS | **PASS — 735-assertion production browser report** |
+| Ordered course | Mission 01 PASS unlocks Mission 02; Mission 02 PASS unlocks Mission 03; final receipt reports course complete | **PASS — 735-assertion production browser report** |
+| Static/network boundary | Production `dist/`, same-origin request guard, empty console/page/request/response/dialog diagnostics | **PASS — all diagnostic collections empty** |
+| Visual proof | Inspected course selector; M1/M2/M3 authoring, failure, and PASS; feedback; judging and mobile containment frames | **PASS — 15/15 current-release captures inspected** |
+| Public proof | Pages workflow for `FINAL_THREE_MISSION_COMMIT`, live root and feedback HTTP 200, fresh `npm run test:public` PASS | Pending deployment |
 
-## Deployment snapshot
+## Mission-bound receipt and feedback identity
 
-- **Supported judging browser:** Chromium desktop, 1280×720 or larger
-- **Source:** [https://github.com/b33fydan/agentville-build-week](https://github.com/b33fydan/agentville-build-week)
-- **Playable build:** [https://b33fydan.github.io/agentville-build-week/](https://b33fydan.github.io/agentville-build-week/)
-- **First successful deployment:** Actions run `29554682024` at commit `cb57621`
-- **Learner-debrief deployment:** Actions run `29618190795` at commit `8d2f0b5`
-- **Irrigation-clue deployment:** Actions run `29621501693` at commit `8c01c21`
-- **Latest predecessor proof deployment:** Actions run `29621632492` at commit `5290b08`
-- **Progressive lesson deployment:** Actions run `29650610214` at commit `1c6c9eb`
-- **Voxel Field Rig deployment:** Actions run `29670780954` at commit `c8ab4db`
-- **Decision-model deployment:** Actions run `29690596219` at commit `7f04f10`
-- **Grid-alignment local verification:** 34/34 Node tests plus 304/304 production-dist browser assertions, including actual rendered-edge and rail/post alignment, with empty diagnostics
-- **Public verification:** root and `/feedback/` HTTP 200 plus `npm run test:public` with 302/302 browser assertions and empty diagnostics
-- **Still pending:** three genuine playtests, demo video URL, and any separate Build Week `/feedback` ID
+The deterministic browser smoke reserves these test-mode identities for its one-page course run:
 
-## `/feedback` continuity contract
+| Mission | Expected smoke receipt/session | Expected feedback query |
+| --- | --- | --- |
+| `repair-east-channel` | `AVBW-TEST-0001` | `mission_id=repair-east-channel&session_id=AVBW-TEST-0001` |
+| `storm-watch` | `AVBW-TEST-0002` | `mission_id=storm-watch&session_id=AVBW-TEST-0002` |
+| `hungry-hens` | `AVBW-TEST-0003` | `mission_id=hungry-hens&session_id=AVBW-TEST-0003` |
 
-The successful mission creates a receipt ID in the form `AVBW-<date>-<token>`. The feedback link must carry it as the `session_id` query parameter. The feedback page must display the ID, preserve it on reload, and include it unchanged in the exported feedback JSON. A missing or rewritten ID is a submission-blocking failure.
+These are automation IDs, not human responses and not the separate event-issued `/feedback` ID. A normal successful run creates an ID in the form `AVBW-<date>-<token>`. Every `agentville.receipt.v2` record and `/feedback/` link must preserve its exact `missionId` plus `sessionId`; `agentville.feedback.v2` storage and downloads must preserve the same pair.
+
+Expected composite browser keys are:
+
+```text
+agentville:receipt:<mission-id>:<session-id>
+agentville:feedback:<mission-id>:<session-id>
+```
+
+The final smoke report must record the exact tested identities. Any genuine playtest evidence must retain its own real receipt/session identity without substituting one of the automation IDs.
+
+## Canonical three-mission capture set
+
+The expanded smoke owns these release filenames. A checked state requires both a successful capture and human visual inspection of that exact current-release image.
+
+- [x] `artifacts/screenshots/agentville-build-week-course-selector-1280.png`
+- [x] `artifacts/screenshots/agentville-build-week-responsive-1600x900.png`
+- [x] `artifacts/screenshots/agentville-build-week-responsive-1280x720.png`
+- [x] `artifacts/screenshots/agentville-build-week-responsive-390x844.png`
+- [x] `artifacts/screenshots/agentville-build-week-m01-authoring-1280.png`
+- [x] `artifacts/screenshots/agentville-build-week-m01-failure-1280.png`
+- [x] `artifacts/screenshots/agentville-build-week-m01-pass-1280.png`
+- [x] `artifacts/screenshots/agentville-build-week-m02-authoring-1280.png`
+- [x] `artifacts/screenshots/agentville-build-week-m02-failure-1280.png`
+- [x] `artifacts/screenshots/agentville-build-week-m02-pass-1280.png`
+- [x] `artifacts/screenshots/agentville-build-week-m03-authoring-1280.png`
+- [x] `artifacts/screenshots/agentville-build-week-m03-failure-1280.png`
+- [x] `artifacts/screenshots/agentville-build-week-m03-pass-1280.png`
+- [x] `artifacts/screenshots/agentville-build-week-m03-reset-1280.png`
+- [x] `artifacts/screenshots/agentville-build-week-feedback-m03-1280.png`
+
+Existing images with older generic names such as `agentville-build-week-hero.png`, `agentville-build-week-failure.png`, and `agentville-build-week-receipt.png` are historical predecessor evidence unless they are deliberately recaptured from `FINAL_THREE_MISSION_COMMIT` and recorded as such.
+
+## Submission artifacts
+
+- [x] Public repository URL: [github.com/b33fydan/agentville-build-week](https://github.com/b33fydan/agentville-build-week)
+- [x] Public playable route exists: [b33fydan.github.io/agentville-build-week](https://b33fydan.github.io/agentville-build-week/)
+- [ ] Public route proven to serve `FINAL_THREE_MISSION_COMMIT`
+- [x] Final local production browser smoke and machine-readable report
+- [ ] Final public browser smoke and machine-readable report
+- [x] Current three-mission canonical screenshots inspected
+- [ ] Two-to-three-minute uncut three-mission demo
+- [ ] Three genuine first-time playtest records and completion times
+- [x] Clean-room source/assets disclosure in `docs/SOURCE_MANIFEST.md`
+- [x] Dated Codex/GPT-5.6 collaboration disclosure in `docs/COLLABORATION.md`
+- [ ] Separate event-issued `/feedback` ID, if the event supplies one
+
+## Historical predecessor evidence — do not use as current proof
+
+The following records remain valuable provenance for the earlier East Channel release, but they do not verify Storm Watch, The Hungry Hens, the mission registry, ordered unlocks, receipt schema v2, or feedback schema v2.
+
+| Historical release | Evidence |
+| --- | --- |
+| First Pages deployment | Actions run `29554682024`, commit `cb57621` |
+| Learner debrief | Actions run `29618190795`, commit `8d2f0b5`, 117/117 public browser assertions |
+| Irrigation clue | Actions run `29621501693`, commit `8c01c21`, 122/122 public browser assertions |
+| Progressive lesson | Actions run `29650610214`, commit `1c6c9eb`, 214/214 public browser assertions |
+| Voxel Field Rig | Actions run `29670780954`, commit `c8ab4db`, 266/266 public browser assertions |
+| Decision semantics | Actions run `29690596219`, commit `7f04f10`, 302/302 public browser assertions |
+| Grid alignment | Commit `053911f`, 34/34 Node and 304/304 local browser assertions; predecessor public smoke artifact preserved |
+
+Historical screenshots and `artifacts/evidence/latest-public-smoke.json` remain attributable to their recorded commits. The final release ledger must add, not infer, the new commit, Actions run, assertion count, diagnostics, and public session continuity.
+
+## Manual evidence still requiring people
+
+- Run the consent-first protocol in `docs/PLAYTEST_PROTOCOL.md`; automated and developer sessions are not human evidence.
+- Preserve genuine playtest JSON under `artifacts/evidence/` only when a participant actually completes it.
+- Record the uncut demo URL only after it visibly covers all three guided failures, repairs, world changes, receipts, unlocks, and feedback continuity.
+- Record an event-issued `/feedback` ID exactly as issued; do not substitute the Codex task ID or an `AVBW-TEST-*` automation session.
+
+## Final public verification checklist
+
+1. Confirm branch, remote, clean diff scope, and `FINAL_THREE_MISSION_COMMIT`.
+2. Run `COPYFILE_DISABLE=1 npm run smoke`; require a PASS report and empty diagnostics.
+3. Inspect every canonical capture listed above and record `FINAL_CANONICAL_CAPTURE_REVIEW`.
+4. Push the validated commit and record the successful Pages Actions run.
+5. Confirm the deployed Pages SHA matches `FINAL_DEPLOYED_COMMIT`.
+6. Run `COPYFILE_DISABLE=1 npm run test:public`; require the complete three-mission PASS and empty diagnostics.
+7. Preserve the refreshed public report before claiming the course is live.

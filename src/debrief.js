@@ -1,42 +1,42 @@
-import { DECISION_BINDINGS } from "./compiler.js";
-
-const COMMANDS = Object.freeze({
-  observe: "observe the east channel",
-  symptomDecision: "decide water the tomatoes when the beds are dry",
-  causeDecision: "decide clear the blockage when the water is blocked",
-  act: "act on the decision",
-  verify: "verify every tomato bed is watered",
-});
+import { getMissionDefinition } from "./mission-registry.js";
 
 export function createLearningRecap(receipt, { failedReceipt = null } = {}) {
-  if (!receipt || receipt.verdict !== "PASS") return null;
+  if (!receipt || receipt.verdict !== "PASS" || !receipt.missionId) return null;
 
-  const dryBeds = receipt.before.tomatoBedsDry;
-  const wateredBeds = receipt.after.tomatoBedsWatered;
-  const totalBeds = receipt.after.tomatoBedsTotal;
-  const decisionCondition = DECISION_BINDINGS[receipt.decision]?.condition;
+  let mission;
+  try {
+    mission = getMissionDefinition(receipt.missionId);
+  } catch {
+    return null;
+  }
+
+  const repairedProgram = mission.language.guidedProgram.map((command, index) =>
+    index === mission.language.repair.line - 1
+      ? mission.language.repair.to
+      : command,
+  );
+  const repairedAfterFailure = Boolean(
+    failedReceipt?.verdict === "FAIL" &&
+      failedReceipt.missionId === receipt.missionId &&
+      failedReceipt.sessionId === receipt.sessionId &&
+      failedReceipt.beforeKey === receipt.beforeKey &&
+      arraysMatch(failedReceipt.program, mission.language.guidedProgram) &&
+      arraysMatch(receipt.program, repairedProgram) &&
+      receiptMatchesProgram(failedReceipt, mission.language.guidedProgram) &&
+      receiptMatchesProgram(receipt, repairedProgram) &&
+      failedReceipt.selectedAction ===
+        (mission.id === "repair-east-channel"
+          ? mission.language.bindings[mission.language.guidedProgram[1]].selectedAction
+          : null) &&
+      failedReceipt.executedAction === failedReceipt.selectedAction &&
+      receipt.selectedAction ===
+        mission.language.bindings[repairedProgram[1]].selectedAction &&
+      receipt.executedAction === receipt.selectedAction,
+  );
   const alreadySatisfied = Boolean(
     receipt.selectedAction === null &&
       receipt.executedAction === null &&
-      receipt.before.irrigationBlocked === false &&
-      receipt.before.waterReleased === true &&
-      receipt.before.tomatoBedsWatered === totalBeds &&
-      snapshotsMatch(receipt.before, receipt.after),
-  );
-  const repairedAfterFailure = Boolean(
-    !alreadySatisfied &&
-    failedReceipt?.verdict === "FAIL" &&
-      failedReceipt.mission === receipt.mission &&
-      failedReceipt.sessionId === receipt.sessionId &&
-      failedReceipt.decision === COMMANDS.symptomDecision &&
-      failedReceipt.selectedAction === "water tomatoes" &&
-      failedReceipt.action === COMMANDS.act &&
-      failedReceipt.executedAction === "water tomatoes" &&
-      receipt.decision === COMMANDS.causeDecision &&
-      receipt.selectedAction === "clear blockage" &&
-      receipt.action === COMMANDS.act &&
-      receipt.executedAction === "clear blockage" &&
-      snapshotsMatch(failedReceipt.after, receipt.before),
+      receipt.beforeKey === receipt.afterKey,
   );
   const path = repairedAfterFailure
     ? "repair"
@@ -44,88 +44,108 @@ export function createLearningRecap(receipt, { failedReceipt = null } = {}) {
       ? "already-satisfied"
       : "direct";
 
+  const repairKind =
+    mission.language.repair.phase === "observe" ? "observation" : "decision";
+  const takeawayTitle =
+    mission.id === "storm-watch"
+      ? "You debugged an agent’s timing."
+      : `You debugged an agent’s ${repairKind}.`;
+
+  const phases = mission.language.phases.map((phase, index) => ({
+    phase,
+    command: receipt.program[index],
+    explanation:
+      alreadySatisfied
+        ? alreadySatisfiedExplanation(phase, receipt)
+        : mission.teaching.debrief.phaseExplanations[phase],
+  }));
+
   return deepFreeze({
+    missionId: mission.id,
     path,
-    title: repairedAfterFailure
-      ? "You changed the decision—and fixed the cause."
-      : alreadySatisfied
-        ? "The goal was already satisfied."
-        : "You chose the cause—and proved it.",
-    summary: repairedAfterFailure
-      ? "Your first decision treated the dry beds. You repaired line 2 to clear the blockage, Bert carried out the new choice, and verification proved the farm changed."
-      : alreadySatisfied
-        ? `The channel was already clear and all ${totalBeds} beds were watered. The condition was false, so Bert correctly took no action before Verify confirmed the result.`
-        : `You chose to clear the blockage when it was blocked. Bert carried out that decision, and verification proved all ${totalBeds} beds were watered.`,
-    intro: "The lines form a loop: read evidence, choose a response, carry it out, then check the world.",
-    phases: [
-      {
-        phase: "observe",
-        command: COMMANDS.observe,
-        explanation: alreadySatisfied
-          ? `Reported clear irrigation and all ${totalBeds} beds already watered.`
-          : `Reported stopped water, visible debris, and ${dryBeds} dry beds.`,
-      },
-      {
-        phase: "decide",
-        command: receipt.decision,
-        explanation: alreadySatisfied
-          ? `Checked “${decisionCondition ?? "the decision condition"}”; it was false, so no response was selected.`
-          : "Chose the cause—the blockage—over the dry-bed symptom.",
-      },
-      {
-        phase: "act",
-        command: COMMANDS.act,
-        explanation: alreadySatisfied
-          ? "No response was selected, so Bert correctly left the farm unchanged."
-          : `Carried out that choice by ${receipt.executedAction === "clear blockage" ? "clearing debris; water flowed" : receipt.executedAction}.`,
-      },
-      {
-        phase: "verify",
-        command: COMMANDS.verify,
-        explanation: `Checked the farm: ${wateredBeds} of ${totalBeds} beds watered.`,
-      },
-    ],
-    takeaway: repairedAfterFailure
+    title: alreadySatisfied
+      ? "The goal was already satisfied."
+      : mission.teaching.debrief.title,
+    summary: alreadySatisfied
+      ? `Bert observed ${mission.name}, found the decision condition was false, made no unnecessary change, and Verify still proved the goal.`
+      : repairedAfterFailure
+        ? mission.teaching.debrief.summary
+        : `Your four-line program completed ${mission.name} and proved the result from the evidence it actually produced.`,
+    intro:
+      "The lines form a loop: read scoped evidence, choose a response, carry it out, then check the world.",
+    phases,
+    takeaway: alreadySatisfied
       ? {
-          title: "You debugged an agent’s decision.",
-          explanation: "You kept the evidence, action step, and success check. You changed Bert’s response, reran the loop, and verified the result.",
+          title: "You verified before changing anything.",
+          explanation:
+            "A safe agent can discover that its condition is false, skip the action, and still prove the goal is already met.",
         }
-      : alreadySatisfied
-        ? {
-            title: "You verified before changing anything.",
-            explanation: "A safe agent can discover that its condition is false, skip the action, and still prove the goal is already met.",
-          }
-        : {
-            title: "You built a working agent loop.",
-            explanation: "You turned Bert’s observation into a bounded choice, carried it out, and checked the result: look, choose, do, check.",
-          },
+      : {
+          title: repairedAfterFailure
+            ? takeawayTitle
+            : "You built a working agent loop.",
+          explanation: repairedAfterFailure
+            ? mission.teaching.coach.repairSuccess.explanation
+            : "You connected observation evidence to a bounded response, carried it out, and checked the real result.",
+        },
     learner: {
       diagnosedFailure: repairedAfterFailure,
-      changedLine: repairedAfterFailure ? 2 : null,
-      from: repairedAfterFailure ? failedReceipt.decision : null,
-      to: receipt.decision,
-      preservedPhases: ["observe", "act", "verify"],
+      changedLine: repairedAfterFailure ? mission.language.repair.line : null,
+      changedPhase: repairedAfterFailure ? mission.language.repair.phase : null,
+      from: repairedAfterFailure ? mission.language.repair.from : null,
+      to: receipt.program[mission.language.repair.line - 1],
+      preservedPhases: mission.language.phases.filter(
+        (phase) => phase !== mission.language.repair.phase,
+      ),
     },
     result: {
-      blockageBefore: receipt.before.irrigationBlocked,
-      blockageAfter: receipt.after.irrigationBlocked,
-      waterReleased: receipt.after.waterReleased === true,
-      tomatoBedsWateredBefore: receipt.before.tomatoBedsWatered,
-      tomatoBedsWateredAfter: wateredBeds,
-      tomatoBedsTotal: totalBeds,
+      before: receipt.before,
+      after: receipt.after,
+      worldChanged: receipt.beforeKey !== receipt.afterKey,
+      ...legacyResult(mission.id, receipt),
     },
   });
 }
 
-function snapshotsMatch(left, right) {
+function alreadySatisfiedExplanation(phase, receipt) {
+  if (phase === "observe") return receipt.observation;
+  if (phase === "decide") {
+    return `Checked “${receipt.condition}”; it was false, so no response was selected.`;
+  }
+  if (phase === "act") {
+    return "No response was selected, so Bert correctly left the farm unchanged.";
+  }
+  return `Checked the world and received ${receipt.verdict}.`;
+}
+
+function legacyResult(missionId, receipt) {
+  if (missionId !== "repair-east-channel") return {};
+  return {
+    blockageBefore: receipt.before.irrigationBlocked,
+    blockageAfter: receipt.after.irrigationBlocked,
+    waterReleased: receipt.after.waterReleased === true,
+    tomatoBedsWateredBefore: receipt.before.tomatoBedsWatered,
+    tomatoBedsWateredAfter: receipt.after.tomatoBedsWatered,
+    tomatoBedsTotal: receipt.after.tomatoBedsTotal,
+  };
+}
+
+function arraysMatch(left, right) {
   return Boolean(
-    left &&
-      right &&
-      left.irrigationBlocked === right.irrigationBlocked &&
-      left.waterReleased === right.waterReleased &&
-      left.tomatoBedsWatered === right.tomatoBedsWatered &&
-      left.tomatoBedsDry === right.tomatoBedsDry &&
-      left.tomatoBedsTotal === right.tomatoBedsTotal,
+    Array.isArray(left) &&
+      Array.isArray(right) &&
+      left.length === right.length &&
+      left.every((value, index) => value === right[index]),
+  );
+}
+
+function receiptMatchesProgram(receipt, program) {
+  return Boolean(
+    receipt?.observationCommand === program[0] &&
+      receipt?.decision === program[1] &&
+      receipt?.action === program[2] &&
+      receipt?.verify === program[3] &&
+      receipt?.source === program.join("\n"),
   );
 }
 

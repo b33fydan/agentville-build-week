@@ -6,60 +6,101 @@
 
 **Specified:** 2026-07-16
 
-**Progressive revision:** 2026-07-18
+**Three-mission revision:** 2026-07-20
 
-**Visual revision:** 2026-07-18 — Voxel Field Rig
-
-**Decision-model revision:** 2026-07-19 — Decide selects; Act executes
-
-**Mission:** Repair the East Channel
+**Course:** Repair the East Channel → Storm Watch → The Hungry Hens
 
 ## Definition of done
 
-A first-time player can open the game in a desktop browser and complete one deterministic learning mission in five minutes: teach Bert a sandboxed `observe → decide → act → verify` program one instruction at a time, compile the complete loop, watch Bert execute it, diagnose a blocked-irrigation failure, repair the program, and receive a verification receipt derived from the resulting world state.
+A first-time player can open the static game in a desktop browser and complete each deterministic mission in about five minutes. In every mission the learner teaches Bert one sandboxed `observe → decide → act → verify` program, runs a valid but behaviorally flawed guided draft, reads the resulting evidence, repairs exactly one line, reruns the complete program, and receives a mission-bound verification receipt derived from the resulting world state.
+
+The three missions must form one ordered course:
+
+1. Mission 01 teaches cause versus symptom.
+2. Mission 02 teaches leading versus lagging signals.
+3. Mission 03 teaches observation scope and evidence availability.
+
+The critical path must remain static, deterministic, credential-free, and network-free. Compiler and simulator evidence is authoritative; Coach and canvas presentation are explanatory only.
+
+## Exact safe-language contract
+
+The only grammatical shape is:
+
+```text
+observe the <subject>
+decide <response> when <full condition clause>
+act on the decision
+verify <goal clause>
+```
+
+Commands use lowercase letters and spaces only. `act on the decision` is identical in all three missions. The active mission's immutable registry entry supplies the exact allowlist; a command accepted for one mission must not gain authority in another.
+
+| Mission | Guided program | Single-line repair |
+| --- | --- | --- |
+| `repair-east-channel` | `observe the east channel`<br>`decide water the tomatoes when the beds are dry`<br>`act on the decision`<br>`verify every tomato bed is watered` | Line 2 → `decide clear the blockage when the water is blocked` |
+| `storm-watch` | `observe the sky`<br>`decide cover the beds when rain falls`<br>`act on the decision`<br>`verify the seedlings are safe` | Line 2 → `decide cover the beds when clouds gather` |
+| `hungry-hens` | `observe the feeder`<br>`decide unjam the chute when the hens are hungry`<br>`act on the decision`<br>`verify every hen has eaten` | Line 1 → `observe the hens` |
 
 ## Automated acceptance
 
-| ID | Pass condition | Evidence target |
+### Course, authority, and presentation
+
+| ID | Pass condition | Evidence obligation |
 | --- | --- | --- |
-| A1 | The production build opens in Chromium with no install, account, or API key. | **PASS** — 304/304 assertions against local production `dist/`; current live predecessor remains proven at 302/302 during publication |
-| A2 | **Start mission** loads the same layered farm and blocked East Channel on every reset. | Mission-state unit test + browser state hook |
-| A3 | The Workbench guides one player-authored instruction at a time in `observe`, `decide`, `act`, `verify` order, while still accepting a complete allowlisted four-line program. | Prefix/compiler tests + browser smoke |
-| A4 | Invalid syntax cannot mutate the farm and reports the offending line with a concrete repair suggestion. | Compiler sandbox tests + UI smoke |
-| A5 | A valid draft compiles into a visible, human-readable four-step plan with an immutable binding from line 2’s condition and selected response to line 3. | Compiler tests + browser state + screenshot |
-| A6 | Bert visibly walks to the irrigation during the Observe rehearsal, reacts to each accepted line, then replays the complete program while the authoritative trace advances. | Deterministic browser smoke + screenshots |
-| A7 | The guided first complete draft honestly fails because `decide water the tomatoes when the beds are dry` selects the symptom; the generic `act on the decision` line faithfully executes that selection. A learner who independently selects the blockage may succeed directly. | Mission transition test + browser smoke |
-| A8 | Verify owns the `FAIL` verdict; the coach marks line 2 as the cause and suggests the allowlisted repair `decide clear the blockage when the water is blocked`. | Browser smoke + failure screenshot |
-| A9 | The repaired line 2 selects blockage removal, the unchanged line 3 executes it, the obstruction clears, water is released, all three beds change, and Verify passes. | Mission transition test + browser smoke |
-| A10 | Success produces a receipt with session ID, mission, observation, decision command, selected response, Act command, executed response, before/after state, and `PASS`. | Receipt unit test + browser smoke |
-| A11 | **Give feedback** opens `/feedback/?session_id=<id>` and the feedback export preserves that exact receipt ID. | Browser smoke |
-| A12 | Reset restores the obstruction, clears execution state, and creates a new session without reloading the page. | Browser smoke |
-| A13 | Replaying the same accepted program against the same seed produces the same world transitions, excluding session metadata. | Determinism unit test |
-| A14 | Arbitrary JavaScript, network/file primitives, loops, extra phases, unsupported choices, legacy diagnosis/concrete Act commands, cloned plans, and source/binding mismatches are rejected before execution. | Compiler sandbox and plan-brand tests |
-| A15 | The production build contains no external game assets or copied reference-repo material. | Source manifest + clean-room disclosure |
-| A16 | PASS opens a readable mission debrief that explains what happened, why all four phases worked, and what the learner changed; reset removes it and restores focus. | Debrief unit tests + 1280×720 browser smoke + screenshot |
-| A17 | The authoring view visibly labels the channel **IRRIGATION** so a novice can infer `observe the east channel` without exposing the repair action; the same landmark is available to assistive technology and automation. | 1280×720 browser smoke + screenshot + canvas description |
-| A18 | Observe, Decide, and Act prefix checks produce visible Bert rehearsals but cannot emit an executable plan, mutate the world hash, increment world revision, enable Run, or issue a receipt; editing an accepted Decide rewinds later rehearsals. | Prefix immutability tests + browser state assertions |
-| A19 | The initial UI withholds the cause; Observe reports stopped water, debris, and dry beds as evidence; Decide selects what Bert should do; the concept note says people define goals, tools, limits, and success checks. | Accessible DOM assertions + 1280×720 screenshots |
-| A20 | PASS preserves the authoritative receipt and adds a coherent locked Lesson 02 weather-window teaser without claiming that Mission 01 broke. | Receipt/debrief browser assertions + 1280×720 screenshot |
-| A21 | The welcome state visibly composites a non-empty, color-rich farm behind Start; the farm derives at least two terrain elevations from drawn tiles, includes 24 authored props and the approved agricultural prop families, stays inside the canvas, and occupies most of it. | Composited screenshot probe + renderer-derived bounds/state + welcome/hero screenshots |
-| A22 | Bert is recognizably humanoid at normal zoom: the renderer actually draws a head, face, torso, paired arms, hands, legs, boots, and repair tool; geometry-derived bounds meet the readable-size floor, teaching overlays leave at least 90% unobscured, and walking, inspecting, thinking, repair, and verification poses are sampled. | Renderer-derived browser assertions + raw 2× detail and composited teaching captures |
-| A23 | The Voxel Field Rig presents the farm, mission rail, Workbench, trace, debrief, and feedback as one square block-built UI; code is at least 13px, learner guidance is 10–12px, controls are at least 44px, evidence values wrap without truncation, failed Verify and Coach auto-follow together while line 2 is marked, and both game and feedback stay contained at 1280×720 and 390×844. | Computed-style/layout/viewport browser assertions + desktop, judging, and mobile screenshots |
-| A24 | Water surfaces, flow marks, channel banks, fence rails, and fence posts derive from the same projected map axes as the terrain; all eight channel joins and three adjacent fence joins meet with zero measured gap, and blocked/flowing states read as continuous structures at desktop and judging viewports. | Renderer-derived edge/join assertions + hero, irrigation-cue, and grand-payoff screenshots |
+| A1 | Production opens in Chromium with no install beyond static assets, account, API key, backend, or runtime network dependency. | Production-dist browser smoke; same-origin request audit; empty console/page/request-failure diagnostics |
+| A2 | One immutable registry owns each mission's ID, order, prerequisite, initial state, commands, Decide bindings, observations, condition evaluators, action transitions, verification predicate, Coach/debrief copy, timeline, UI metadata, and world metadata. Compiler, simulator, debrief, app, and progress consume the active definition. | Registry-schema Node tests; cross-module browser state assertions |
+| A3 | The Workbench guides `observe`, `decide`, `act`, `verify` one line at a time while still accepting a complete allowlisted four-line program. Prefix checks may rehearse but cannot mint a plan, mutate state, advance revision, enable execution, or issue a receipt. | Prefix/compiler Node tests; browser world-hash and plan-authority assertions |
+| A4 | Only a compiler-minted, deeply frozen, mission-bound plan can reach the simulator. Clones, forged bindings/evidence, cross-mission plans, source mismatch, unknown mission IDs, legacy shorthand, JavaScript, network/file primitives, loops, comments, punctuation, extra phases, and nonallowlisted commands fail closed. | Compiler sandbox, brand, provenance, and cross-mission Node tests; browser invalid-input flow |
+| A5 | Observe privately mints scoped evidence for the exact plan. Decide evaluates only those facts, never an unobserved global snapshot. Evidence distinguishes `conditionSupported: false, conditionMet: null` from a supported but false condition. | Observation-provenance and Mission 03 Node tests; trace/state browser assertions |
+| A6 | Decide binds one response; shared line 3 carries out that response without choosing again. If no response is selected, Act reports `NO_ACTION_SELECTED` and leaves the world unchanged. | Binding/provenance Node tests; receipt/trace browser assertions |
+| A7 | Verify alone decides `PASS` or `FAIL` from the post-action, post-event world. Coach, debrief, UI, and canvas cannot award proof. | Simulator and verifier Node tests; false-PASS browser guard |
+| A8 | Passing Mission 01 unlocks Mission 02; passing Mission 02 unlocks Mission 03; FAIL unlocks nothing; locked missions cannot be selected; completing Mission 03 reports course completion. | Course-progress Node tests; sequential M1→M2→M3 browser flow |
+| A9 | Reset restores the active mission's exact registered initial state, clears its run evidence, creates a new session, and preserves only valid course unlocks without reloading the document. | Determinism/reset Node tests; browser reset assertions |
+| A10 | Replaying the same program from the same registered state produces the same transitions, snapshots, events, and verdict apart from session metadata. Runtime behavior must not depend on `Date.now()` or `Math.random()`. | Determinism Node tests; fixed-time browser rerun |
+| A11 | Every receipt uses `agentville.receipt.v2` and carries `missionId`, mission name, `sessionId`, source/program, before/after snapshots and keys, observation command/scope, condition support/truth/reason, selected and executed action, scripted events, and verdict. | Receipt-shape Node tests; DOM/text-state browser parity |
+| A12 | **Give feedback** opens `/feedback/?mission_id=<mission-id>&session_id=<session-id>`. Storage and `agentville.feedback.v2` exports key and preserve both IDs, refuse partial identity mixing, and report whether the matching local receipt exists. | Feedback-identity Node tests; sequential browser feedback assertions |
+| A13 | PASS opens a mission-specific debrief explaining Look, Choose, Change, and Check; it identifies the repaired line/phase from matching FAIL and PASS receipts and remains truthful for direct success and already-satisfied paths. | Debrief Node tests; browser debrief assertions |
+| A14 | The initial farm and every reset are visually deterministic. Mission 01 exposes **IRRIGATION**, Mission 02 exposes a **WEATHER** vane, covers, shed, clouds, and seedlings, and Mission 03 exposes **FEEDER**, full feeder, jammed chute, empty tray, and hens without placing repair answers in the Workbench. | Renderer direct proof; browser screenshots and accessible canvas/state description |
+| A15 | Bert remains recognizably humanoid and visibly rehearses and executes all four phases. The farm, mission rail, editor, trace, Coach, receipt, unlock card, and feedback view remain contained at 1600×900, 1280×720, and 390×844 with readable learner text and 44px controls. | Computed-style/layout browser assertions; canonical desktop/judging/mobile captures |
+| A16 | Water, channel banks, fence rails, and posts follow the shared projected map axes; prior zero-gap channel and fence joins remain intact across Mission 01 states. | Renderer-derived geometry assertions; blocked/flowing screenshots |
+| A17 | The production artifact contains no copied reference-repository material or downloaded game assets. All visuals are procedural Canvas 2D and CSS. | Source manifest, repository scan, clean-room declaration |
+
+### Required causal evidence for every mission
+
+These are release obligations, not optional examples. Each row requires both Node assertions at the compiler/simulator boundary and browser-smoke assertions through the real editor, trace, world, Coach, debrief, receipt, and reset.
+
+| Mission | Guided FAIL and evidence | Causal Coach | One-line repair PASS | Already-satisfied no-action | Nonallowlisted rejection |
+| --- | --- | --- | --- | --- | --- |
+| Mission 01 — `repair-east-channel` | Guided line 2 is supported and true; selected/executed action is `water tomatoes`; the blocked channel prevents the goal; Verify reports 0/3 watered and FAIL. | Coach focuses line 2 and explains that direct watering treats dry beds while the blockage stops the channel. | Change only line 2 to `decide clear the blockage when the water is blocked`; Act executes `clear blockage`; channel clears, water releases, 3/3 beds are watered, Verify PASS. | Rerun the repaired program on its satisfied state; `waterBlocked` is supported and false, no action is selected/executed, state key is unchanged, Verify remains PASS. | Reject legacy shorthand, unsupported observations/decisions, concrete Act lines, cross-mission commands, and any extra line without minting a plan. |
+| Mission 02 — `storm-watch` | `observe the sky` includes rain evidence; `rain falls` is supported and false, so no response runs. At fixed 60 Hz tick 150, simulator event `storm-arrives` batters all three uncovered beds before Verify, which reports FAIL. | Coach focuses line 2 and explicitly explains that the rain trigger fired after the harm. | Change only line 2 to `decide cover the beds when clouds gather`; the supported true leading signal selects `cover beds`, all three beds are covered before the same tick-150 event, no seedlings are battered, Verify PASS. | Rerun the repaired program on its satisfied state; `cloudsGathering` is supported and false, no action is selected/executed, the storm event causes no harm or state-key change, Verify remains PASS. | Reject shorthand, alternate weather conditions, concrete Act lines, cross-mission commands, and extra lines without minting a plan. |
+| Mission 03 — `hungry-hens` | `observe the feeder` reports a full feeder/jammed chute but no `hensHungry` fact. Decide records `conditionSupported: false` and `conditionMet: null`, selects no response, Act makes no change, 0/3 hens eat, Verify FAIL. | Coach focuses line 1 and explains that the learner looked in the wrong place for hunger evidence. | Change only line 1 to `observe the hens`; the observation supplies `hensHungry: true`, Decide selects `unjam chute`, grain drops, 3/3 hens eat, Verify PASS. | Rerun the repaired program on its satisfied state; hunger evidence is supported and false, no action is selected/executed, state key is unchanged, Verify remains PASS. | Reject `observe chickens`, unsupported nouns/decisions, concrete `act unjam chute`, cross-mission commands, and extra lines without minting a plan. |
+
+## Current evidence checkpoint — 2026-07-20
+
+| Gate | Status |
+| --- | --- |
+| Node compiler/registry/simulator/debrief/progress/feedback suite | **PASS — 58/58** |
+| Local manual sequential Playwright flow, Mission 01 → Mission 02 → Mission 03 | **PASS** |
+| Direct renderer proof | **PASS — 16/16** |
+| Provided generic web-game client and inspected state/canvas output | **PASS** |
+| Expanded production-dist browser smoke for all acceptance rows | **PASS — 735/735; empty diagnostics** |
+| Canonical three-mission screenshot set | **PASS — 15/15 generated and visually inspected** |
+| Public deployment and `npm run test:public` for this three-mission release | **Pending** |
+
+Previous one-mission public/browser evidence remains valid only for its historical release. It must not be presented as proof that this three-mission revision is deployed.
 
 ## Manual acceptance before submission
 
 | ID | Pass condition | Evidence target | Status |
 | --- | --- | --- | --- |
-| M1 | At least two of three first-time testers reach the receipt within five minutes without verbal coaching. | Dated playtest records in `artifacts/evidence/` | Pending genuine sessions |
-| M2 | The public deployment completes the same full mission in the declared judging browser. | [Live Pages URL](https://b33fydan.github.io/agentville-build-week/) + `npm run test:public` | **PASS** — decision-model release 302/302 on 2026-07-19 |
-| M3 | The demo video shows the symptom decision, generic Act execution, Verify failure, line-2 repair, world change, receipt, and feedback session continuity. | Timestamped Devpost evidence index | Pending video |
-
-The grid-alignment release passes 34/34 Node tests plus 304/304 browser assertions against production `dist/`, with empty diagnostics; the current public build remains independently proven at 302/302 until publication completes. M1 and M3 remain visibly incomplete until genuine human and video evidence exists.
+| H1 | At least two of three first-time testers complete one assigned mission within five minutes without verbal coaching. | Dated consented records under `artifacts/evidence/` | Pending genuine sessions |
+| H2 | At least one tester completes the unlock chain through all three missions and can distinguish wrong response, late signal, and missing evidence. | Sequential playtest record and learner's own explanation | Pending genuine session |
+| H3 | The final public deployment completes the exact three-mission course in the declared judging browser with matching mission/session feedback identity. | Live Pages URL + `npm run test:public` artifact | Pending deployment |
+| H4 | The demo video shows all three guided failures, their single-line repairs, visible world changes, mission-bound receipts, unlock transitions, and feedback continuity. | Timestamped Devpost evidence index | Pending video |
 
 ## Non-goals for this build
 
-- A playable second mission, free-play farming, procedural generation, progression, or an economy; Lesson 02 is a locked teaser only
+- A fourth mission, free-play farming, procedural generation, an economy, or open-ended progression
 - Loops, recursion, user-defined functions, or multi-agent orchestration
 - Natural-language compilation, arbitrary code execution, accounts, multiplayer, or cloud saves
 - A live model dependency in the mission-critical path

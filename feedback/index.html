@@ -6,6 +6,7 @@
     <meta name="theme-color" content="#17352c" />
     <title>Mission Feedback · AgentVille</title>
     <link rel="stylesheet" href="../src/styles.css" />
+    <link rel="stylesheet" href="./styles.css" />
   </head>
   <body class="feedback-body">
     <main class="feedback-page">
@@ -14,13 +15,21 @@
         <header>
           <p class="eyebrow">Build Week field notes</p>
           <h1>How did Bert's lesson land?</h1>
-          <p>Your mission ID stays attached so this playtest can be matched to its verification receipt.</p>
+          <p>Your mission and session IDs stay attached so this playtest can be matched to the right verification receipt.</p>
         </header>
 
-        <div class="feedback-session">
-          <span>Verified session</span>
-          <strong id="feedback-session-id" data-testid="feedback-session-id">Missing session ID</strong>
-          <small id="feedback-session-status">Open feedback from a completed receipt.</small>
+        <div class="feedback-identity" aria-label="Feedback receipt identity">
+          <div class="feedback-session feedback-identity-row">
+            <span>Mission</span>
+            <strong id="feedback-mission-id" data-testid="feedback-mission-id">Missing mission ID</strong>
+            <small id="feedback-mission-name">Mission name unavailable</small>
+          </div>
+          <div class="feedback-session feedback-identity-row">
+            <span>Session</span>
+            <strong id="feedback-session-id" data-testid="feedback-session-id">Missing session ID</strong>
+            <small id="feedback-session-status">Open feedback from a completed receipt.</small>
+          </div>
+          <p id="feedback-receipt-verdict" class="feedback-verdict" data-matched="false">Receipt unavailable</p>
         </div>
 
         <form id="feedback-form">

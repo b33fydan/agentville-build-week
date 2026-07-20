@@ -3,8 +3,6 @@ import assert from "node:assert/strict";
 
 import { compileProgram } from "../src/compiler.js";
 import {
-  MISSION_NAME,
-  TOMATO_BED_COUNT,
   applyMissionStep,
   createInitialMissionState,
   executeMission,
@@ -12,355 +10,335 @@ import {
   runMission,
   snapshotMissionState,
 } from "../src/mission.js";
+import {
+  MISSION_IDS,
+  getMissionDefinition,
+} from "../src/mission-registry.js";
 
-const SYMPTOM_DECISION = "decide water the tomatoes when the beds are dry";
-const CAUSE_DECISION = "decide clear the blockage when the water is blocked";
-const ACT_COMMAND = "act on the decision";
+const EXPECTED_FAILURES = Object.freeze({
+  "repair-east-channel": {
+    decisionOutcome: "SYMPTOM_SELECTED",
+    conditionSupported: true,
+    conditionMet: true,
+    executedAction: "water tomatoes",
+    coachLine: 2,
+  },
+  "storm-watch": {
+    decisionOutcome: "CONDITION_NOT_MET",
+    conditionSupported: true,
+    conditionMet: false,
+    executedAction: null,
+    coachLine: 2,
+  },
+  "hungry-hens": {
+    decisionOutcome: "EVIDENCE_UNAVAILABLE",
+    conditionSupported: false,
+    conditionMet: null,
+    executedAction: null,
+    coachLine: 1,
+  },
+});
 
-const program = (decision) =>
-  [
-    "observe the east channel",
-    decision,
-    ACT_COMMAND,
-    "verify every tomato bed is watered",
-  ].join("\n");
+function programLines(mission, repaired = false) {
+  return mission.language.guidedProgram.map((command, index) =>
+    repaired && index === mission.language.repair.line - 1
+      ? mission.language.repair.to
+      : command,
+  );
+}
 
-function planFor(decision) {
-  const result = compileProgram(program(decision));
+function planFor(missionId, repaired = false) {
+  const mission = getMissionDefinition(missionId);
+  const result = compileProgram(programLines(mission, repaired).join("\n"), {
+    missionId,
+  });
   assert.equal(result.ok, true);
   return result.plan;
 }
 
-test("initial mission is a frozen blocked and dry three-bed farm", () => {
-  const state = createInitialMissionState();
+test("every initial mission is fresh, frozen, and bound to its registry schema", () => {
+  for (const missionId of MISSION_IDS) {
+    const first = createInitialMissionState(missionId);
+    const second = createInitialMissionState(missionId);
+    const snapshot = snapshotMissionState(first);
 
-  assert.equal(state.mission, MISSION_NAME);
-  assert.equal(state.irrigation.channel, "East Channel");
-  assert.equal(state.irrigation.blocked, true);
-  assert.equal(state.irrigation.waterReleased, false);
-  assert.equal(state.tomatoBeds.length, TOMATO_BED_COUNT);
-  assert.equal(state.tomatoBeds.every((bed) => !bed.watered), true);
-  assert.deepEqual(snapshotMissionState(state), {
-    irrigationBlocked: true,
-    waterReleased: false,
-    tomatoBedsWatered: 0,
-    tomatoBedsDry: 3,
-    tomatoBedsTotal: 3,
-  });
-  assert.equal(Object.isFrozen(state), true);
-  assert.equal(Object.isFrozen(state.irrigation), true);
-  assert.equal(Object.isFrozen(state.tomatoBeds), true);
-  assert.equal(Object.isFrozen(state.tomatoBeds[0]), true);
+    assert.equal(first.missionId, missionId);
+    assert.equal(snapshot.missionId, missionId);
+    assert.deepEqual(first, second);
+    assert.notEqual(first, second);
+    assert.equal(Object.isFrozen(first), true);
+    assert.equal(Object.isFrozen(snapshot), true);
+  }
+
+  const east = snapshotMissionState(createInitialMissionState("repair-east-channel"));
+  assert.equal(east.irrigationBlocked, true);
+  assert.equal(east.tomatoBedsDry, 3);
+
+  const storm = snapshotMissionState(createInitialMissionState("storm-watch"));
+  assert.equal(storm.cloudsGathering, true);
+  assert.equal(storm.rainFalling, false);
+  assert.equal(storm.seedlingBedsCovered, 0);
+
+  const hens = snapshotMissionState(createInitialMissionState("hungry-hens"));
+  assert.equal(hens.feederFull, true);
+  assert.equal(hens.chuteJammed, true);
+  assert.equal(hens.hensHungry, 3);
 });
 
-test("the symptom decision is carried out and truthfully fails verification", () => {
-  const result = runMission(planFor(SYMPTOM_DECISION), {
-    sessionId: "AVBW-2026-07-19-FIRST",
-  });
+test("each guided program fails honestly for its distinct causal reason", () => {
+  for (const missionId of MISSION_IDS) {
+    const mission = getMissionDefinition(missionId);
+    const expected = EXPECTED_FAILURES[missionId];
+    const result = runMission(planFor(missionId), {
+      sessionId: `FAIL-${missionId}`,
+    });
 
-  assert.deepEqual(
-    result.trace.map(
-      ({ line, phase, command, outcome, selectedAction, executedAction }) => ({
-        line,
-        phase,
-        command,
-        outcome,
-        selectedAction,
-        executedAction,
-      }),
-    ),
-    [
-      {
-        line: 1,
-        phase: "observe",
-        command: "observe the east channel",
-        outcome: "BLOCKED",
-        selectedAction: undefined,
-        executedAction: undefined,
-      },
-      {
-        line: 2,
-        phase: "decide",
-        command: SYMPTOM_DECISION,
-        outcome: "SYMPTOM_SELECTED",
-        selectedAction: "water tomatoes",
-        executedAction: undefined,
-      },
-      {
-        line: 3,
-        phase: "act",
-        command: ACT_COMMAND,
-        outcome: "NO_CHANGE",
-        selectedAction: undefined,
-        executedAction: "water tomatoes",
-      },
-      {
-        line: 4,
-        phase: "verify",
-        command: "verify every tomato bed is watered",
-        outcome: "FAIL",
-        selectedAction: undefined,
-        executedAction: undefined,
-      },
-    ],
-  );
-  assert.equal(result.trace[1].condition, "tomatoes dry");
-  assert.equal(result.trace[1].conditionMet, true);
-  assert.equal(result.state.irrigation.blocked, true);
-  assert.equal(result.state.irrigation.waterReleased, false);
-  assert.equal(result.state.tomatoBeds.every((bed) => !bed.watered), true);
-  assert.match(result.trace[2].message, /blocked irrigation released no water/u);
-  assert.match(result.trace[3].message, /0 of 3/u);
-  assert.equal(result.receipt.verdict, "FAIL");
-  assert.equal(result.receipt.decision, SYMPTOM_DECISION);
-  assert.equal(result.receipt.selectedAction, "water tomatoes");
-  assert.equal(result.receipt.action, ACT_COMMAND);
-  assert.equal(result.receipt.executedAction, "water tomatoes");
-  assert.equal(result.receipt.sessionId, "AVBW-2026-07-19-FIRST");
-  assert.deepEqual(result.receipt.before, result.receipt.after);
+    assert.equal(result.receipt.missionId, missionId);
+    assert.equal(result.receipt.mission, mission.name);
+    assert.equal(result.receipt.verdict, "FAIL");
+    assert.deepEqual(result.trace.map((entry) => entry.phase), [
+      "observe",
+      "decide",
+      "act",
+      "verify",
+    ]);
+    assert.equal(result.trace[1].outcome, expected.decisionOutcome);
+    assert.equal(result.trace[1].conditionSupported, expected.conditionSupported);
+    assert.equal(result.trace[1].conditionMet, expected.conditionMet);
+    assert.equal(result.trace[2].executedAction, expected.executedAction);
+    assert.equal(result.receipt.executedAction, expected.executedAction);
+    assert.equal(
+      mission.teaching.coach.guidedFailure.line,
+      expected.coachLine,
+    );
+    assert.match(mission.teaching.coach.guidedFailure.explanation, /blockage|harm|wrong place/u);
+  }
 });
 
-test("repairing only Decide clears the block, waters three beds, and passes", () => {
-  const failure = runMission(planFor(SYMPTOM_DECISION), {
-    sessionId: "AVBW-FAIL",
-  });
-  const repaired = runMission(planFor(CAUSE_DECISION), {
-    sessionId: "AVBW-2026-07-19-REPAIRED",
-    state: failure.state,
-  });
+test("repairing exactly one declared line passes all three missions", () => {
+  for (const missionId of MISSION_IDS) {
+    const mission = getMissionDefinition(missionId);
+    const guidedLines = programLines(mission);
+    const repairedLines = programLines(mission, true);
+    const changed = repairedLines
+      .map((line, index) => (line === guidedLines[index] ? null : index + 1))
+      .filter(Boolean);
+    const result = runMission(planFor(missionId, true), {
+      sessionId: `PASS-${missionId}`,
+    });
 
-  assert.deepEqual(
-    repaired.trace.map((entry) => entry.phase),
-    ["observe", "decide", "act", "verify"],
-  );
-  assert.equal(repaired.trace[1].outcome, "CAUSE_SELECTED");
-  assert.equal(repaired.trace[1].selectedAction, "clear blockage");
-  assert.equal(repaired.trace[2].command, ACT_COMMAND);
-  assert.equal(repaired.trace[2].executedAction, "clear blockage");
-  assert.equal(repaired.trace[2].outcome, "WORLD_CHANGED");
-  assert.deepEqual(repaired.trace[2].before, {
-    irrigationBlocked: true,
-    waterReleased: false,
-    tomatoBedsWatered: 0,
-    tomatoBedsDry: 3,
-    tomatoBedsTotal: 3,
-  });
-  assert.deepEqual(repaired.trace[2].after, {
-    irrigationBlocked: false,
-    waterReleased: true,
-    tomatoBedsWatered: 3,
-    tomatoBedsDry: 0,
-    tomatoBedsTotal: 3,
-  });
-  assert.equal(repaired.state.irrigation.blocked, false);
-  assert.equal(repaired.state.irrigation.waterReleased, true);
-  assert.equal(repaired.state.tomatoBeds.every((bed) => bed.watered), true);
-  assert.equal(repaired.trace[3].outcome, "PASS");
-  assert.equal(repaired.receipt.verdict, "PASS");
-  assert.equal(repaired.receipt.decision, CAUSE_DECISION);
-  assert.equal(repaired.receipt.selectedAction, "clear blockage");
-  assert.equal(repaired.receipt.action, ACT_COMMAND);
-  assert.equal(repaired.receipt.executedAction, "clear blockage");
+    assert.deepEqual(changed, [mission.language.repair.line]);
+    assert.equal(result.receipt.verdict, "PASS");
+    assert.equal(result.receipt.missionId, missionId);
+    assert.equal(result.trace[1].conditionSupported, true);
+    assert.equal(result.trace[1].conditionMet, true);
+    assert.equal(result.trace[2].outcome, "WORLD_CHANGED");
+    assert.equal(result.receipt.executedAction, result.receipt.selectedAction);
+    assert.equal(result.receipt.program[2], "act on the decision");
+    assert.equal(result.receipt.beforeKey === result.receipt.afterKey, false);
+  }
 });
 
-test("receipt contains the complete immutable causal record", () => {
-  const result = runMission(planFor(CAUSE_DECISION), {
-    sessionId: "  AVBW-preserve-exactly  ",
-  });
-  const { receipt } = result;
+test("already-satisfied worlds select no action and still verify PASS", () => {
+  for (const missionId of MISSION_IDS) {
+    const plan = planFor(missionId, true);
+    const first = runMission(plan, { sessionId: `FIRST-${missionId}` });
+    const rerun = runMission(plan, {
+      sessionId: `AGAIN-${missionId}`,
+      state: first.state,
+    });
 
-  assert.deepEqual(Object.keys(receipt), [
-    "sessionId",
-    "mission",
-    "before",
-    "after",
-    "observation",
-    "decision",
-    "selectedAction",
-    "action",
-    "executedAction",
-    "verdict",
-  ]);
-  assert.equal(receipt.sessionId, "  AVBW-preserve-exactly  ");
-  assert.equal(receipt.mission, "Repair the East Channel");
-  assert.match(receipt.observation, /visible debris/u);
-  assert.equal(receipt.decision, CAUSE_DECISION);
-  assert.equal(receipt.selectedAction, "clear blockage");
-  assert.equal(receipt.action, ACT_COMMAND);
-  assert.equal(receipt.executedAction, "clear blockage");
-  assert.equal(receipt.verdict, "PASS");
-  assert.equal(receipt.before.irrigationBlocked, true);
-  assert.equal(receipt.after.irrigationBlocked, false);
-  assert.equal(receipt.after.waterReleased, true);
-  assert.equal(receipt.after.tomatoBedsWatered, 3);
-  assert.equal(Object.isFrozen(receipt), true);
-  assert.equal(Object.isFrozen(receipt.before), true);
-  assert.equal(Object.isFrozen(receipt.after), true);
-  assert.throws(() => { receipt.verdict = "FAIL"; }, TypeError);
+    assert.equal(first.receipt.verdict, "PASS");
+    assert.equal(rerun.trace[1].conditionSupported, true);
+    assert.equal(rerun.trace[1].conditionMet, false);
+    assert.equal(rerun.trace[1].selectedAction, null);
+    assert.equal(rerun.trace[2].outcome, "NO_ACTION_SELECTED");
+    assert.equal(rerun.trace[2].executedAction, null);
+    assert.equal(rerun.receipt.verdict, "PASS");
+    assert.equal(rerun.receipt.beforeKey, rerun.receipt.afterKey);
+  }
 });
 
-test("step transitions carry the frozen Decide result into generic Act", () => {
-  const initial = createInitialMissionState();
-  const beforeJson = JSON.stringify(initial);
-  const plan = planFor(CAUSE_DECISION);
-  const decided = applyMissionStep(initial, plan.steps[1], {
-    plan,
-  });
-  const transition = applyMissionStep(initial, plan.steps[2], {
-    plan,
-    decision: decided.decision,
-  });
+test("Storm Watch applies one fixed-60Hz event after Act and before Verify", () => {
+  const originalDateNow = Date.now;
+  const originalRandom = Math.random;
+  Date.now = () => {
+    throw new Error("Date.now must not drive Storm Watch");
+  };
+  Math.random = () => {
+    throw new Error("Math.random must not drive Storm Watch");
+  };
 
-  assert.equal(JSON.stringify(initial), beforeJson);
-  assert.equal(decided.decision.selectedAction, "clear blockage");
-  assert.equal(Object.isFrozen(decided.decision), true);
-  assert.notEqual(transition.state, initial);
-  assert.equal(initial.irrigation.blocked, true);
-  assert.equal(transition.state.irrigation.blocked, false);
-  assert.equal(transition.evidence.line, 3);
-  assert.equal(transition.evidence.phase, "act");
-  assert.equal(transition.evidence.command, ACT_COMMAND);
-  assert.equal(transition.evidence.executedAction, "clear blockage");
-  assert.equal(transition.evidence.before.irrigationBlocked, true);
-  assert.equal(transition.evidence.after.irrigationBlocked, false);
-  assert.equal(Object.isFrozen(transition), true);
-  assert.equal(Object.isFrozen(transition.evidence), true);
+  try {
+    const failure = runMission(planFor("storm-watch"), {
+      sessionId: "STORM-LATE",
+    });
+    const success = runMission(planFor("storm-watch", true), {
+      sessionId: "STORM-EARLY",
+    });
+
+    assert.equal(failure.timeline.length, 1);
+    assert.equal(failure.timeline[0].tickRateHz, 60);
+    assert.equal(failure.timeline[0].tick, 150);
+    assert.equal(failure.timeline[0].outcome, "HARM_OCCURRED");
+    assert.equal(failure.timeline[0].before.rainFalling, false);
+    assert.equal(failure.timeline[0].before.seedlingBedsBattered, 0);
+    assert.equal(failure.timeline[0].after.rainFalling, true);
+    assert.equal(failure.timeline[0].after.seedlingBedsBattered, 3);
+    assert.match(failure.timeline[0].message, /rain arrived after/u);
+    assert.equal(failure.trace[1].conditionMet, false);
+    assert.equal(failure.trace[3].outcome, "FAIL");
+
+    assert.equal(success.timeline[0].outcome, "PROTECTED");
+    assert.equal(success.timeline[0].before.seedlingBedsCovered, 3);
+    assert.equal(success.timeline[0].after.seedlingBedsBattered, 0);
+    assert.equal(success.trace[3].outcome, "PASS");
+  } finally {
+    Date.now = originalDateNow;
+    Math.random = originalRandom;
+  }
 });
 
-test("Decide evaluates its condition against the current world", () => {
-  const plan = planFor(CAUSE_DECISION);
-  const completed = runMission(plan, { sessionId: "AVBW-CLEAR" });
-  const rerun = runMission(plan, {
-    sessionId: "AVBW-CLEAR-AGAIN",
-    state: completed.state,
+test("Hungry Hens uses only line-one observation evidence", () => {
+  const initial = createInitialMissionState("hungry-hens");
+  const feederPlan = planFor("hungry-hens");
+  const hensPlan = planFor("hungry-hens", true);
+
+  const feederObservation = applyMissionStep(initial, feederPlan.steps[0], {
+    plan: feederPlan,
   });
-
-  assert.equal(rerun.trace[1].condition, "irrigation blocked");
-  assert.equal(rerun.trace[1].conditionMet, false);
-  assert.equal(rerun.trace[1].selectedAction, null);
-  assert.equal(rerun.trace[2].outcome, "NO_ACTION_SELECTED");
-  assert.equal(rerun.trace[2].executedAction, null);
-  assert.deepEqual(rerun.receipt.before, rerun.receipt.after);
-  assert.equal(rerun.receipt.verdict, "PASS");
-});
-
-test("replay is deterministic and session metadata cannot affect the farm", () => {
-  const plan = planFor(CAUSE_DECISION);
-  const first = runMission(plan, { sessionId: "AVBW-A" });
-  const replay = runMission(plan, { sessionId: "AVBW-A" });
-  const newSession = runMission(plan, { sessionId: "AVBW-B" });
-
-  assert.deepEqual(first, replay);
-  assert.deepEqual(first.state, newSession.state);
-  assert.deepEqual(first.trace, newSession.trace);
-  assert.deepEqual(first.receipt.before, newSession.receipt.before);
-  assert.deepEqual(first.receipt.after, newSession.receipt.after);
-  assert.equal(first.receipt.verdict, newSession.receipt.verdict);
-  assert.notEqual(first.receipt.sessionId, newSession.receipt.sessionId);
-});
-
-test("reset returns a fresh deterministic blocked farm after success", () => {
-  const completed = runMission(planFor(CAUSE_DECISION), {
-    sessionId: "AVBW-COMPLETE",
+  const unsupportedDecision = applyMissionStep(initial, feederPlan.steps[1], {
+    plan: feederPlan,
+    observation: feederObservation.observation,
   });
-  assert.equal(completed.receipt.verdict, "PASS");
+  assert.equal(feederObservation.observation.scope, "feeder");
+  assert.equal("hensHungry" in feederObservation.observation.facts, false);
+  assert.equal(unsupportedDecision.decision.conditionSupported, false);
+  assert.equal(unsupportedDecision.decision.conditionMet, null);
+  assert.equal(unsupportedDecision.decision.selectedAction, null);
+  assert.match(unsupportedDecision.decision.reason, /no evidence.*hens.*hungry/u);
 
-  const firstReset = resetMission();
-  const secondReset = resetMission();
-  assert.deepEqual(firstReset, createInitialMissionState());
-  assert.deepEqual(firstReset, secondReset);
-  assert.notEqual(firstReset, secondReset);
-  assert.notEqual(firstReset.tomatoBeds, secondReset.tomatoBeds);
-  assert.equal(firstReset.irrigation.blocked, true);
-  assert.equal(firstReset.tomatoBeds.every((bed) => !bed.watered), true);
-});
-
-test("runtime accepts compiler results directly and exposes an execution alias", () => {
-  const compiled = compileProgram(program(CAUSE_DECISION));
-  assert.equal(compiled.ok, true);
-
-  const direct = runMission(compiled, { sessionId: "AVBW-DIRECT" });
-  const aliased = executeMission(compiled.plan, {
-    sessionId: "AVBW-DIRECT",
+  const hensObservation = applyMissionStep(initial, hensPlan.steps[0], {
+    plan: hensPlan,
   });
-  assert.deepEqual(direct, aliased);
-  assert.equal(executeMission, runMission);
+  const supportedDecision = applyMissionStep(initial, hensPlan.steps[1], {
+    plan: hensPlan,
+    observation: hensObservation.observation,
+  });
+  assert.equal(hensObservation.observation.scope, "hens");
+  assert.equal(hensObservation.observation.facts.hensHungry, true);
+  assert.equal(supportedDecision.decision.conditionSupported, true);
+  assert.equal(supportedDecision.decision.conditionMet, true);
+  assert.equal(supportedDecision.decision.selectedAction, "unjam chute");
 });
 
-test("forged plans, unbound Act steps, bad state, and missing sessions fail closed", () => {
-  const plan = planFor(CAUSE_DECISION);
-  const forged = structuredClone(plan);
-  const initial = createInitialMissionState();
-  const before = JSON.stringify(initial);
+test("observation and decision provenance is exact-plan and cannot be forged", () => {
+  for (const missionId of MISSION_IDS) {
+    const state = createInitialMissionState(missionId);
+    const firstPlan = planFor(missionId, true);
+    const secondPlan = planFor(missionId, true);
+    const observed = applyMissionStep(state, firstPlan.steps[0], {
+      plan: firstPlan,
+    });
+    const decided = applyMissionStep(state, firstPlan.steps[1], {
+      plan: firstPlan,
+      observation: observed.observation,
+    });
+    const acted = applyMissionStep(state, firstPlan.steps[2], {
+      plan: firstPlan,
+      decision: decided.decision,
+    });
 
+    assert.equal(Object.isFrozen(observed.observation), true);
+    assert.equal(Object.isFrozen(decided.decision), true);
+    assert.equal(acted.evidence.executedAction, decided.decision.selectedAction);
+
+    assert.throws(
+      () =>
+        applyMissionStep(state, secondPlan.steps[1], {
+          plan: secondPlan,
+          observation: observed.observation,
+        }),
+      /exact plan/u,
+    );
+    assert.throws(
+      () =>
+        applyMissionStep(state, secondPlan.steps[2], {
+          plan: secondPlan,
+          decision: decided.decision,
+        }),
+      /exact plan/u,
+    );
+    assert.throws(
+      () =>
+        applyMissionStep(state, firstPlan.steps[1], {
+          plan: firstPlan,
+          observation: structuredClone(observed.observation),
+        }),
+      /scoped observation evidence/u,
+    );
+  }
+});
+
+test("cross-mission plans, states, forged plans, and missing sessions fail closed", () => {
+  const eastPlan = planFor("repair-east-channel", true);
+  const stormState = createInitialMissionState("storm-watch");
   assert.throws(
-    () => runMission(forged, { sessionId: "AVBW-FORGED" }),
+    () => runMission(eastPlan, { sessionId: "X", state: stormState }),
+    /belong to repair-east-channel/u,
+  );
+  assert.throws(
+    () => runMission(structuredClone(eastPlan), { sessionId: "X" }),
     /allowlisted compiler plan/u,
   );
+  assert.throws(() => runMission(eastPlan), /sessionId/u);
   assert.throws(
-    () => applyMissionStep(initial, plan.steps[2]),
-    /compiler-minted plan/u,
-  );
-  assert.throws(
-    () =>
-      applyMissionStep(initial, {
-        line: 3,
-        phase: "act",
-        command: "act eval",
-        label: "Unsafe",
-      }),
-    /not allowlisted/u,
-  );
-  assert.throws(() => runMission(plan), /sessionId/u);
-  assert.throws(
-    () => runMission(plan, { sessionId: "   " }),
+    () => runMission(eastPlan, { sessionId: " ", missionId: "repair-east-channel" }),
     /sessionId/u,
   );
   assert.throws(
-    () => runMission(plan, { sessionId: "AVBW-X", state: {} }),
-    /schema/u,
+    () => runMission(eastPlan, { sessionId: "X", missionId: "storm-watch" }),
+    /allowlisted compiler plan/u,
   );
-  assert.equal(JSON.stringify(initial), before);
 });
 
-test("generic Act rejects forged or differently bound Decide results", () => {
-  const initial = createInitialMissionState();
-  const symptomPlan = planFor(SYMPTOM_DECISION);
-  const causePlan = planFor(CAUSE_DECISION);
-  const causeDecision = applyMissionStep(initial, causePlan.steps[1], {
-    plan: causePlan,
-  }).decision;
-  const forgedCauseDecision = Object.freeze({
-    command: CAUSE_DECISION,
-    condition: "irrigation blocked",
-    conditionMet: true,
-    selectedAction: "clear blockage",
-  });
-  const before = JSON.stringify(initial);
+test("receipts are immutable complete causal records with mission identity", () => {
+  for (const missionId of MISSION_IDS) {
+    const result = runMission(planFor(missionId, true), {
+      sessionId: `RECEIPT-${missionId}`,
+    });
+    const { receipt } = result;
 
-  assert.throws(
-    () =>
-      applyMissionStep(initial, symptomPlan.steps[2], {
-        plan: symptomPlan,
-        decision: forgedCauseDecision,
-      }),
-    /allowlisted result selected by Decide/u,
-  );
-  assert.throws(
-    () =>
-      applyMissionStep(initial, symptomPlan.steps[2], {
-        plan: symptomPlan,
-        decision: causeDecision,
-      }),
-    /allowlisted result selected by Decide/u,
-  );
-  assert.throws(
-    () =>
-      applyMissionStep(initial, causePlan.steps[2], {
-        plan: structuredClone(causePlan),
-        decision: causeDecision,
-      }),
-    /compiler-minted plan/u,
-  );
-  assert.equal(JSON.stringify(initial), before);
+    assert.equal(receipt.schema, "agentville.receipt.v2");
+    assert.equal(receipt.missionId, missionId);
+    assert.equal(receipt.sessionId, `RECEIPT-${missionId}`);
+    assert.equal(receipt.program.length, 4);
+    assert.equal(receipt.observationCommand, receipt.program[0]);
+    assert.equal(receipt.decision, receipt.program[1]);
+    assert.equal(receipt.action, receipt.program[2]);
+    assert.equal(receipt.verify, receipt.program[3]);
+    assert.equal(receipt.conditionSupported, true);
+    assert.equal(receipt.conditionMet, true);
+    assert.equal(receipt.verdict, "PASS");
+    assert.equal(Object.isFrozen(receipt), true);
+    assert.equal(Object.isFrozen(receipt.before), true);
+    assert.equal(Object.isFrozen(receipt.program), true);
+    assert.throws(() => { receipt.verdict = "FAIL"; }, TypeError);
+  }
+});
+
+test("replay is deterministic and aliases/reset preserve mission boundaries", () => {
+  for (const missionId of MISSION_IDS) {
+    const plan = planFor(missionId, true);
+    const first = runMission(plan, { sessionId: "SAME" });
+    const replay = executeMission(plan, { sessionId: "SAME" });
+    assert.deepEqual(first, replay);
+    assert.equal(executeMission, runMission);
+
+    const firstReset = resetMission(missionId);
+    const secondReset = resetMission(missionId);
+    assert.deepEqual(firstReset, secondReset);
+    assert.notEqual(firstReset, secondReset);
+    assert.equal(firstReset.missionId, missionId);
+  }
 });

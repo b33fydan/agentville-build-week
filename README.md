@@ -1,24 +1,22 @@
 # AgentVille: Build Week Edition
 
-**A five-minute voxel lesson about building agents that prove their work.**
+**Three five-minute voxel lessons about building agents that prove their work.**
 
-AgentVille: Build Week Edition is a clean-room browser game for OpenAI Build Week's Education track. A player teaches one humanoid voxel farmhand named Bert a tiny, safe program one instruction at a time; sees Bert react to each idea; compiles the complete loop; discovers that valid syntax can still produce the wrong result; repairs one line; and receives a verification receipt derived from the changed farm. A final mission debrief translates the four commands into plain language and tells the player exactly what they accomplished.
+AgentVille: Build Week Edition is a clean-room browser learning game for OpenAI Build Week's Education track. The player teaches one humanoid voxel farmhand named Bert a tiny, safe program; watches each instruction become visible behavior on the farm; uses an honest failure as evidence; repairs exactly one line; and receives a verification receipt derived from the resulting world state.
 
-**Play:** [b33fydan.github.io/agentville-build-week](https://b33fydan.github.io/agentville-build-week/) · **Source:** [github.com/b33fydan/agentville-build-week](https://github.com/b33fydan/agentville-build-week)
+The current worktree contains a complete three-mission course:
 
-![AgentVille Build Week Edition showing the layered voxel farm, humanoid Bert, and typed Agent Workbench](artifacts/screenshots/agentville-build-week-hero.png)
+1. **Repair the East Channel** — distinguish a symptom from its cause.
+2. **Storm Watch** — choose a signal that arrives before harm.
+3. **The Hungry Hens** — observe the evidence a decision actually needs.
 
-The whole lesson is one causal chain:
+Each mission is designed as a compact five-minute loop. Together they teach that an agent is more than four keywords: it needs relevant evidence, a bounded choice, an authorized action, and a check against the real world.
 
-```text
-observe the irrigation
-        ↓
-decide which response to choose from the evidence
-        ↓
-act by carrying out the chosen response
-        ↓
-verify the resulting world state
-```
+**Public release:** [b33fydan.github.io/agentville-build-week](https://b33fydan.github.io/agentville-build-week/) · **Source:** [github.com/b33fydan/agentville-build-week](https://github.com/b33fydan/agentville-build-week)
+
+> The three-mission worktree passes **58/58 Node tests** and **735/735 production-browser assertions** with empty diagnostics. All 15 current-release captures were visually inspected. Deployment and a fresh public smoke are still pending; the Pages URL currently proves the preceding release, not this three-mission course.
+
+![AgentVille Build Week Edition showing Mission 01 on the layered voxel farm with humanoid Bert and the typed Agent Workbench](artifacts/screenshots/agentville-build-week-m01-authoring-1280.png)
 
 ## Play locally
 
@@ -29,11 +27,30 @@ npm install
 npm run dev
 ```
 
-Open [http://127.0.0.1:4173](http://127.0.0.1:4173). No account, API key, build tool, or runtime network request is required.
+Open [http://127.0.0.1:4173](http://127.0.0.1:4173). The game is static and local-first: no account, API key, backend, runtime model call, or runtime network request is required.
 
-## The mission
+## The safe language
 
-The opening shows a layered voxel farm, humanoid Bert, three dry tomato beds, and a block-built **IRRIGATION** sign—but does not label the cause. The sign gives a first-time learner the missing noun for `observe ___` without revealing the repair. Observe then reports stopped water and visible debris before Decide asks what Bert should do. The Workbench checks exactly one new instruction at a time:
+Every mission uses the same four-phase shape:
+
+```text
+observe the <subject>
+decide <response> when <full condition clause>
+act on the decision
+verify <goal clause>
+```
+
+Commands are lowercase words and spaces only. The Workbench accepts only the exact commands registered for the active mission. Line 3 is intentionally identical in every lesson: Decide selects a response from scoped evidence, and `act on the decision` carries out that selection without choosing again.
+
+The first three accepted lines create non-authoritative rehearsals so Bert can react while the learner builds the program. A rehearsal cannot mint an executable plan, mutate the world, advance its revision, or issue a receipt. Only the strict four-line compiler privately mints an immutable plan, and only the deterministic mission simulator may change state or award PASS.
+
+## The three missions
+
+### Mission 01 — Repair the East Channel
+
+The farm begins with a blocked East Channel, three dry tomato beds, and an **IRRIGATION** sign that gives a novice the observation vocabulary without revealing the repair.
+
+The guided program is valid and safe:
 
 ```agent
 observe the east channel
@@ -42,60 +59,95 @@ act on the decision
 verify every tomato bed is watered
 ```
 
-Each accepted prefix creates a small, non-authoritative rehearsal: Bert walks to the channel after Observe, line 2 records one bounded response after Decide, and line 3 prepares to carry that response out. Those rewards never change the farm or create a plan. Only all four lines can pass the strict compiler and unlock **Run full program**.
+Observe reports stopped water, visible debris, and dry beds. Decide chooses direct watering because the beds are dry. Act faithfully carries out that response, but the blockage prevents water from reaching the beds. Verify reports FAIL and the Codex Coach identifies line 2 as the causal choice.
 
-The guided first complete draft is valid and safe, but it fails honestly: the decision treats the dry-bed symptom, so carrying it out cannot restore irrigation. Verify owns the FAIL verdict, and the Codex Coach connects that evidence to line 2. The player repairs only the decision:
+The learner repairs only Decide:
 
 ```agent
 decide clear the blockage when the water is blocked
 ```
 
-Bert replays all four instructions. Decide selects blockage removal, the unchanged `act on the decision` line executes it, water travels downstream, all three beds recover, and Verify issues a receipt that distinguishes the decision, selected response, Act instruction, executed response, and before/after state. The closing debrief explains **Look → Choose → Change → Check**, names the learner's work as debugging an agent’s decision, and reveals a locked Lesson 02 weather signal.
+Bert clears the blockage, water travels downstream, all three tomato beds recover, and Verify issues the first PASS receipt.
 
-## Voxel Field Rig
+### Mission 02 — Storm Watch
 
-The complete interface uses one clean-room material language: a sunlit hand-built farm diorama mounted inside a square, beveled spruce-and-metal field console. The procedural scene has two visible terrain layers, stepped distant fields, stone-lined irrigation, a bridge, reservoir and pump, shed, fences, crates, hay, rocks, flowers, trees, and crop beds that visibly recover during the repaired run.
+Passing Mission 01 unlocks a real second mission. The farm shows uncovered seedling beds, covers waiting beside the shed, storm clouds, and a **WEATHER** vane clue.
 
-Bert is constructed from rendered voxel anatomy rather than a single mascot block: two booted legs, torso and overalls, two arms and hands, head, face, hair, straw hat, and a blocky wrench. His silhouette changes for walking, inspection, thinking, repair, and verification. The renderer accumulates bounds from the voxel geometry and tool it actually drew, then exposes that evidence through `render_game_to_text()`. The browser smoke checks the visual contract and proves teaching overlays do not cover Bert without giving presentation code authority over the farm.
+The guided program waits for a lagging signal:
 
-The surrounding Voxel Field Rig keeps the farm dominant while turning the mission rail, status plates, safe-language slots, editor, trace, buttons, receipt, and feedback page into one game-like system. Learner code remains at least 13px, learner guidance is 10–12px, core controls remain at least 44px tall, and the responsive smoke covers 1600×900, 1280×720, and a 390px mobile Workbench. During failure, the trace keeps the failed Verify verdict and Codex Coach together while visibly marking line 2 as the causal repair.
+```agent
+observe the sky
+decide cover the beds when rain falls
+act on the decision
+verify the seedlings are safe
+```
+
+Observe reports that clouds are gathering but rain has not started. The `rain falls` condition is supported by that observation and currently false, so Decide selects no response and Act makes no change. The simulator—not the presentation layer—then advances the fixed 60 Hz mission timeline. At tick 150 the scripted storm reaches the uncovered beds, and Verify honestly reports battered seedlings. The Coach explains that waiting for rain made the trigger arrive after the harm.
+
+The learner repairs only Decide:
+
+```agent
+decide cover the beds when clouds gather
+```
+
+The leading signal is already true in the observed evidence, so Bert covers the beds before the same deterministic storm event and Verify proves the seedlings stayed safe.
+
+### Mission 03 — The Hungry Hens
+
+Passing Storm Watch unlocks the final lesson. The farm contains an empty tray, a full feeder with a jammed chute, three hungry hens, and a **FEEDER** clue sign.
+
+The guided program looks in the wrong place:
+
+```agent
+observe the feeder
+decide unjam the chute when the hens are hungry
+act on the decision
+verify every hen has eaten
+```
+
+Observe reports the full feeder and jammed chute, but it provides no evidence about whether the hens are hungry. Decide evaluates conditions only against the evidence minted by line 1—not against a hidden global snapshot. The condition is therefore **unsupported**, not false; no response is selected, no action runs, and Verify reports FAIL. The Coach points to line 1.
+
+The learner repairs only Observe:
+
+```agent
+observe the hens
+```
+
+That observation reports hungry hens at the jammed chute. Decide can now use the required fact, Bert unjams the chute, grain drops, every hen eats, and Verify completes the course.
 
 ## Why this teaches agents
 
-Most coding lessons stop at “the program ran.” AgentVille separates six ideas a beginning builder can see:
+Most coding lessons stop when a program runs. AgentVille makes seven distinct ideas visible:
 
 1. **Syntax:** Is the program inside the safe language?
-2. **Plan:** What will each instruction ask the agent to do?
-3. **Execution:** What did Bert actually attempt?
-4. **Diagnosis:** Why did the world remain unchanged?
-5. **Verification:** Does the resulting farm satisfy the goal?
-6. **Reflection:** What did each line contribute, and what did the learner just do?
+2. **Observation scope:** Did the agent gather the evidence this decision needs?
+3. **Decision:** Which bounded response does the evidence support?
+4. **Action:** What response did Bert actually carry out?
+5. **Events:** What deterministic world change happened around the agent?
+6. **Verification:** Does the resulting farm satisfy the declared goal?
+7. **Reflection:** What failed, what did the learner repair, and what does the proof show?
 
-The failure is not a game-over screen. It is the lesson: an agent can follow a valid plan that addresses a symptom instead of a cause.
+The three failures are deliberately different:
 
-## Safe language boundary
+- Mission 01 observes enough evidence but chooses a symptom instead of the cause.
+- Mission 02 observes the right subject but chooses a condition that is false until it is too late.
+- Mission 03 chooses a sensible response whose condition is unsupported by the chosen observation.
 
-The Workbench is an allowlisted parser, not an embedded scripting engine. A separate frozen prefix validator checks lesson lines without ever producing an executable plan. The full compiler accepts four ordered lines, two bounded Decide rules, and one generic Act instruction. It mints and deeply freezes a binding from line 2’s condition and selected response to line 3; cloned or inconsistent plans fail closed. Neither path calls `eval`, `Function`, a shell, the filesystem, or the network. Loops, comments, extra phases, JavaScript punctuation, browser globals, network primitives, and unsupported legacy commands are rejected before execution.
+That distinction is the curriculum. A false condition means the observation contains the relevant fact and it is currently false. An unsupported condition means the observation never established that fact at all.
 
-The compiler creates an immutable plan. The deterministic mission simulator is the only code allowed to mutate farm state. Canvas animation reflects that state; it cannot award a PASS.
+## Mission registry and authority boundary
 
-## GPT-5.6 and Codex collaboration
+Mission content lives in `src/mission-registry.js`. Each immutable definition owns its:
 
-This repository was created with Codex/GPT-5.6 as an engineering and curriculum collaborator on 2026-07-16. The collaboration produced:
+- ID, name, order, objective, prerequisite, and unlock;
+- initial state, normalization, snapshots, and snapshot key;
+- exact allowlisted commands and Decide bindings;
+- observation collectors and scoped fact records;
+- condition evaluators, action transitions, and verification predicate;
+- fixed-tick scripted events;
+- Coach, debrief, UI, and voxel-world metadata.
 
-- the bounded five-minute acceptance contract;
-- the `observe → decide → act → verify` teaching language;
-- line-specific compiler explanations and repair suggestions;
-- the causal failure/repair script for Bert;
-- the clean-room Voxel Field Rig art direction and humanoid Bert silhouette;
-- sandbox, determinism, browser, and evidence tests;
-- the Devpost evidence and `/feedback` continuity contract.
-
-The in-game **Codex Coach** uses a small set of deterministic, locally shipped explanations authored during that collaboration. There is intentionally no live model call in the mission-critical path. A judge or learner can always finish without credentials or connectivity, and a model can never invent a passing receipt. A future live-coaching seam may expand explanations, but the local compiler and world verifier must remain authoritative.
-
-No code, assets, screenshots, or generated artifacts were copied from `/Volumes/beefybackup/AgentVille`. That older project was treated as reference-only and was not inspected for implementation material during this build. Every visible game asset in this repository is drawn procedurally with Canvas 2D and CSS.
-
-## Architecture
+The compiler, simulator, app, debrief, and course-progress reducer consume the active definition instead of branching across duplicated lesson data.
 
 ```text
 real textarea
@@ -104,45 +156,80 @@ real textarea
 prefix validator ── safe rehearsal only; no world authority
     │
     ▼ all four lines
-src/compiler.js ── compiler-minted plan + Decide→Act binding
+src/compiler.js ───────── compiler-minted, mission-bound plan
     │
     ▼
-src/mission.js  ── deterministic before/after evidence + receipt
+src/mission.js ────────── scoped Observe evidence → Decide → Act → events → Verify
     │
-    ├── src/debrief.js ── truthful plain-language learning recap
-    ├── src/app.js      ── lesson state, trace, feedback continuity
-    └── src/world.js    ── procedural isometric farm presentation
+    ├── src/mission-registry.js ── immutable mission definitions
+    ├── src/course-progress.js ─── ordered unlock state
+    ├── src/debrief.js ─────────── receipt-derived learning recap
+    ├── src/app.js ─────────────── fixed-tick teaching and execution UI
+    └── src/world.js ───────────── procedural isometric presentation
 ```
 
-- `src/compiler.js` — non-executable prefix checks plus the strict four-line compiler and safety diagnostics
-- `src/mission.js` — pure mission transitions and world-state receipt
-- `src/debrief.js` — immutable end-of-mission explanation derived from the receipt
-- `src/world.js` — layered procedural isometric farm, rendered presentation evidence, irrigation, crops, props, and humanoid Bert
-- `src/app.js` — deterministic timeline, accessible Workbench, state hooks
-- `feedback/` — session-preserving local feedback and JSON evidence export
-- `tests/` — Node tests for the language and simulator
-- `scripts/smoke-browser.mjs` — full production-browser mission validation
-- `docs/ACCEPTANCE.md` — bounded automated and manual definition of done
-- `docs/DEVPOST_EVIDENCE.md` — honest submission evidence ledger
+The Workbench is an allowlisted parser, not an embedded scripting engine. It never calls `eval`, `Function`, a shell, the filesystem, or the network. Loops, comments, extra phases, JavaScript punctuation, browser globals, network primitives, unsupported commands, cloned plans, cross-mission plans, and inconsistent bindings fail closed.
+
+The simulator privately mints observation and decision evidence for the exact compiled plan. Canvas animation consumes that evidence but cannot decide a verdict. The Codex Coach explains evidence but cannot mutate the farm or issue proof.
+
+## Receipts, unlocks, and feedback
+
+A PASS receipt unlocks only the next mission in registry order:
+
+```text
+repair-east-channel → storm-watch → hungry-hens
+```
+
+Every execution receipt uses schema `agentville.receipt.v2` and carries the `missionId` and `sessionId` together with the source program, before/after snapshots, observation scope, condition support/truth evidence, selected and executed action, scripted events, and verdict.
+
+The feedback route carries the same composite identity:
+
+```text
+/feedback/?mission_id=<mission-id>&session_id=<receipt-session-id>
+```
+
+Feedback exports use `agentville.feedback.v2`. Browser storage is keyed by both mission and session, preventing one lesson's receipt or response from being mistaken for another.
+
+## Voxel Field Rig
+
+The interface uses one clean-room material language: a sunlit hand-built farm diorama mounted inside a square, beveled spruce-and-metal field console. Canvas 2D draws the terrain, water, buildings, fences, crops, props, clue signs, weather state, seedlings, feeder, hens, and Bert procedurally. No external game assets are downloaded.
+
+Bert is built from rendered voxel anatomy rather than a mascot block: boots, legs, torso, overalls, arms, hands, head, face, hair, straw hat, and wrench. His silhouette changes for walking, inspection, thinking, repair, action, and verification. The renderer exposes descriptive geometry through `render_game_to_text()`, but that presentation evidence has no compiler or verifier authority.
+
+The app preserves two deterministic automation seams:
+
+- `window.render_game_to_text()` returns the canonical visible and interactive state.
+- `window.advanceTime(ms)` advances the app in fixed 60 Hz steps.
+
+## GPT-5.6 and Codex collaboration
+
+Codex/GPT-5.6 has served as an engineering, curriculum, visual-design, and verification collaborator since 2026-07-16. Human direction defined the learning vision: let novices teach Bert progressively, make failure playful and causal, explain what the learner did, and turn the weather tease into a real sequence.
+
+The collaboration produced the bounded acceptance contract, safe-language grammar, three distinct repair lessons, registry architecture, observation-scoped evidence model, deterministic storm timeline, line-specific Coach copy, Voxel Field Rig, browser evidence harness, Devpost narrative, and receipt-to-feedback continuity.
+
+The shipped Coach is deterministic prose authored during that collaboration. There is intentionally no live GPT or OpenAI API call in the mission-critical path. A learner can always finish without credentials or connectivity, and a model can never invent a passing receipt.
 
 ## Validation
 
 ```bash
-npm test              # compiler, sandbox, state transitions, receipts
-npm run test:browser  # progressive teaching → full run → FAIL → repair → PASS
-npm run test:public   # same full flow against the live Pages URL
-npm run smoke         # unit tests + production build + browser flow
-npm run capture       # refresh the canonical submission screenshots
+npm test              # compiler, registry, simulator, receipts, unlocks, feedback identity
+npm run test:browser  # complete production browser course
+npm run test:public   # same course against the live Pages URL
+npm run smoke         # Node tests + production build + browser flow
+npm run capture       # canonical submission screenshots
 ```
 
-The app also exposes two deterministic automation seams:
+Current three-mission worktree evidence on 2026-07-20:
 
-- `window.render_game_to_text()` returns the canonical visible/interactive mission state.
-- `window.advanceTime(ms)` advances the animation at fixed 60 Hz steps.
+- **58/58 Node tests passed.**
+- The production `dist/` browser smoke passed **735/735 assertions** with zero console, page, external-request, request-failure, response, dialog, or runner diagnostics.
+- All **15/15** canonical three-mission captures were generated and visually inspected at desktop, judging, and mobile viewports.
+- A local manual sequential Playwright run completed Mission 01 → Mission 02 → Mission 03.
+- Direct renderer proof passed **16/16** checks.
+- The provided generic web-game client completed successfully and its state/canvas output was inspected.
+- Commit, public deployment, and a fresh public browser smoke are still pending. The release is not claimed public until those gates pass.
 
-The browser smoke rejects console/page errors, external requests, state/DOM disagreement, missing session continuity, and a false PASS. Machine-readable results are written to `artifacts/evidence/latest-smoke.json` for local production and `artifacts/evidence/latest-public-smoke.json` for the deployed build.
-
-The grid-alignment release passes 34/34 Node tests and 304/304 local production-dist browser assertions; the currently public decision-model build remains proven at 302/302 while this visual correction is published. The smoke covers the compiler-minted Decide→Act binding, rejection of forged decision results, real `when` evaluation, the already-satisfied no-action path for both decisions, the guided symptom choice, truthful Verify failure, line-2 repair, unchanged generic Act, final receipt, debrief, feedback continuity, reset, and responsive layouts. It also measures the actual rendered water edges, fence rails, and rail/post joins against the isometric grid axes. At 1280×720 it proves that all four editor lines fit and that the failed Verify plus Coach are simultaneously visible. Its console, page, network, response, and dialog diagnostics are empty.
+Generated smoke evidence belongs under `artifacts/evidence/`. Genuine human playtests, a demo video, and any separate event-issued `/feedback` session ID remain pending until those artifacts actually exist.
 
 ## Production build and deployment
 
@@ -151,23 +238,15 @@ npm run build
 node scripts/serve.mjs --root=dist --port=4173
 ```
 
-`dist/` is a static site. The canonical deployment is [GitHub Pages](https://b33fydan.github.io/agentville-build-week/), published from `main` by `.github/workflows/pages.yml`. Each push installs Chromium, runs `npm run smoke`, uploads `dist/`, and deploys only after validation passes. The first successful deployment was [Actions run 29554682024](https://github.com/b33fydan/agentville-build-week/actions/runs/29554682024) at commit `cb57621` on 2026-07-17.
+`dist/` is a static site. GitHub Pages publishes from `main` through `.github/workflows/pages.yml` only after the configured validation gate passes. No deployment path requires a server function, application secret, or runtime network dependency.
 
-The live root and `/feedback/` route return HTTP 200. The Decide-selects/Act-executes release deployed successfully in [Actions run 29690596219](https://github.com/b33fydan/agentville-build-week/actions/runs/29690596219) at commit `7f04f10` on 2026-07-19; `npm run test:public` then completed all 302 browser assertions with empty diagnostics. `vercel.json` and `netlify.toml` remain valid alternate-host declarations. No deployment path requires a server function or application secret.
+## Clean-room declaration
 
-## Submission evidence
-
-The successful receipt ID is carried unchanged to:
-
-```text
-/feedback/?session_id=<receipt-session-id>
-```
-
-The feedback page displays that ID, matches it against the locally preserved receipt, and includes it unchanged in the downloadable JSON response. See [docs/DEVPOST_EVIDENCE.md](docs/DEVPOST_EVIDENCE.md) for the artifact ledger. Public deployment is proven; human playtests, the demo video, and any separate event-issued `/feedback` ID remain incomplete until genuine evidence exists.
+No code, assets, screenshots, or generated artifacts were copied or adapted from `/Volumes/beefybackup/AgentVille`. That repository remains reference-only. All implementation and visible game art in this repository were authored inside `/Volumes/beefybackup/agentville-build-week`; the visuals are procedural Canvas 2D and CSS.
 
 ## Scope
 
-This edition is intentionally one playable mission, one farm, one agent, one failure, and one proof. Lesson 02 is a polished teaser, not another playable feature. The build does not include free play, multiple agents, procedural worlds, accounts, arbitrary scripting, or a live AI dependency. Coherence is the feature.
+This edition is intentionally three playable missions on one compact farm, one agent named Bert, three distinct causal failures, one single-line repair per mission, and one mission-bound proof per success. It does not include free-play farming, multiple programmable agents, procedural worlds, accounts, arbitrary scripting, multiplayer, cloud saves, or a live AI dependency. Coherence remains the feature.
 
 ## License
 

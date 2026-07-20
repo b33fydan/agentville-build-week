@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Write a tiny safe agent program, help Bert repair a blocked irrigation channel, and prove the world changed."
+      content="Write tiny safe agent programs, help Bert solve three farm problems, and prove the world changed."
     />
     <meta name="theme-color" content="#17352c" />
     <title>AgentVille: Build Week Edition</title>
@@ -37,7 +37,7 @@
           <li data-stage="inspect"><span>1</span><b>Inspect</b><small>See the world</small></li>
           <li data-stage="program"><span>2</span><b>Program</b><small>Write the loop</small></li>
           <li data-stage="failure"><span>3</span><b>Diagnose</b><small>Read the failure</small></li>
-          <li data-stage="repair"><span>4</span><b>Repair</b><small>Change the decision</small></li>
+          <li data-stage="repair"><span>4</span><b>Repair</b><small>Change one line</small></li>
           <li data-stage="proof"><span>5</span><b>Prove</b><small>Verify the farm</small></li>
         </ol>
       </nav>
@@ -53,7 +53,7 @@
           <div class="scene-grain" aria-hidden="true"></div>
 
           <article class="mission-card">
-            <p class="card-kicker">Mission 01 · East Channel</p>
+            <p class="card-kicker" id="mission-kicker">Mission 01 · East Channel</p>
             <h2 id="world-title">The tomatoes are thirsty.</h2>
             <p id="world-objective">Inspect the channel, program Bert, and prove the water arrives.</p>
             <div class="world-facts" aria-label="World status">
@@ -64,7 +64,7 @@
 
           <div class="world-callout blockage-callout" id="blockage-callout">
             <span>!</span>
-            <div><b>Debris jam</b><small>Water stops here</small></div>
+            <div><b id="callout-title">Debris jam</b><small id="callout-copy">Water stops here</small></div>
           </div>
 
           <div class="bert-tag" id="bert-tag"><span aria-hidden="true"></span><b>Bert</b><small>voxel farmhand</small></div>
@@ -87,12 +87,23 @@
 
           <div class="start-layer" id="start-layer">
             <div class="start-card">
-              <p class="start-number">01 <span>/ 01</span></p>
+              <p class="start-number"><span id="start-mission-number">01</span> <span>/ 03</span></p>
               <p class="eyebrow">Five-minute field lesson</p>
-              <h2>Teach Bert to fix what he can see.</h2>
-              <p>
+              <h2 id="start-title">Teach Bert to fix what he can see.</h2>
+              <p id="start-copy">
                 Teach Bert one safe instruction at a time. Then run the full loop, learn from one honest failure, and earn proof that the farm changed.
               </p>
+              <ol class="mission-roster" id="mission-roster" aria-label="Build Week missions">
+                <li data-mission-id="repair-east-channel" data-state="available">
+                  <button type="button" data-testid="select-mission-repair-east-channel"><span>01</span><b>East Channel</b><small>Available</small></button>
+                </li>
+                <li data-mission-id="storm-watch" data-state="locked">
+                  <button type="button" data-testid="select-mission-storm-watch" disabled><span>02</span><b>Storm Watch</b><small>Locked</small></button>
+                </li>
+                <li data-mission-id="hungry-hens" data-state="locked">
+                  <button type="button" data-testid="select-mission-hungry-hens" disabled><span>03</span><b>Hungry Hens</b><small>Locked</small></button>
+                </li>
+              </ol>
               <button id="start-button" class="primary-button start-button" data-testid="start-mission" type="button">
                 <span>Start mission</span><kbd>Enter</kbd>
               </button>
@@ -133,7 +144,7 @@
 
           <section class="editor-shell" aria-label="Program editor">
             <div class="editor-toolbar">
-              <span><i></i> repair_irrigation.agent</span>
+              <span><i></i> <span id="editor-filename">repair_irrigation.agent</span></span>
               <span id="editor-status">0 / 4 phases</span>
             </div>
             <div class="editor-area">
@@ -243,18 +254,19 @@
           </ol>
         </section>
 
-        <aside class="lesson-alert" data-testid="lesson-alert" aria-label="Lesson 2 preview">
+        <aside class="lesson-alert" data-testid="lesson-alert" aria-label="Next mission">
           <span class="lesson-alert-mark" aria-hidden="true">!</span>
           <div>
-            <p class="eyebrow">New signal · Weather window</p>
-            <strong>Rain reaches AgentVille soon.</strong>
-            <p>Plant the east field before the soil turns muddy.</p>
+            <p class="eyebrow" id="next-mission-kicker">Mission 02 unlocked</p>
+            <strong id="next-mission-title">Storm Watch</strong>
+            <p id="next-mission-copy">Clouds are gathering over uncovered seedlings.</p>
           </div>
-          <b>Lesson 02 · Respond to change</b>
+          <button id="next-mission-button" class="secondary-button" data-testid="start-next-mission" type="button">Start next mission</button>
         </aside>
 
         <footer class="receipt-footer">
           <dl class="receipt-grid">
+            <div><dt>Mission</dt><dd id="receipt-mission">—</dd></div>
             <div><dt>Session</dt><dd id="receipt-session" data-testid="receipt-session-id">—</dd></div>
             <div><dt>Observed</dt><dd id="receipt-observed">—</dd></div>
             <div><dt>Decision → action</dt><dd id="receipt-action">—</dd></div>

@@ -31,9 +31,9 @@ function errorWithCode(result, code) {
 }
 
 test("compiler binds either allowlisted decision to the shared Act instruction", () => {
-  for (const [source, expectedDecision, condition, selectedAction] of [
-    [SYMPTOM_PROGRAM, "decide water the tomatoes when the beds are dry", "tomatoes dry", "water tomatoes"],
-    [REPAIR_PROGRAM, "decide clear the blockage when the water is blocked", "irrigation blocked", "clear blockage"],
+  for (const [source, expectedDecision, condition, conditionId, selectedAction] of [
+    [SYMPTOM_PROGRAM, "decide water the tomatoes when the beds are dry", "the beds are dry", "beds-dry", "water tomatoes"],
+    [REPAIR_PROGRAM, "decide clear the blockage when the water is blocked", "the water is blocked", "water-blocked", "clear blockage"],
   ]) {
     const result = compileProgram(source);
 
@@ -64,6 +64,7 @@ test("compiler binds either allowlisted decision to the shared Act instruction",
       decisionLine: 2,
       decisionCommand: expectedDecision,
       condition,
+      conditionId,
       selectedAction,
       actLine: 3,
       actCommand: "act on the decision",
@@ -86,11 +87,13 @@ test("compiler binds either allowlisted decision to the shared Act instruction",
   assert.deepEqual(ALLOWED_COMMANDS.act, ["act on the decision"]);
   assert.deepEqual(DECISION_BINDINGS, {
     "decide water the tomatoes when the beds are dry": {
-      condition: "tomatoes dry",
+      condition: "the beds are dry",
+      conditionId: "beds-dry",
       selectedAction: "water tomatoes",
     },
     "decide clear the blockage when the water is blocked": {
-      condition: "irrigation blocked",
+      condition: "the water is blocked",
+      conditionId: "water-blocked",
       selectedAction: "clear blockage",
     },
   });

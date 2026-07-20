@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "A five-minute voxel mission for learning the observe-decide-act-verify agent loop.",
+  "description": "Three five-minute voxel missions for learning the observe-decide-act-verify agent loop.",
   "scripts": {
     "dev": "node scripts/serve.mjs",
     "build": "node scripts/build.mjs",

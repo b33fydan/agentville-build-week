@@ -1,5 +1,6 @@
 import { cp, mkdir, rm, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { listMissionDefinitions } from "../src/mission-registry.js";
 
 const root = resolve(import.meta.dirname, "..");
 const dist = resolve(root, "dist");
@@ -16,7 +17,8 @@ await writeFile(
   `${JSON.stringify(
     {
       product: "AgentVille: Build Week Edition",
-      mission: "Repair the East Channel",
+      missions: listMissionDefinitions().map(({ id, name }) => ({ id, name })),
+      missionCount: listMissionDefinitions().length,
       builtAt: new Date().toISOString(),
       runtime: "static",
     },

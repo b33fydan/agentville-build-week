@@ -1,43 +1,13 @@
+import {
+  DEFAULT_MISSION_ID,
+  getMissionDefinition,
+} from "./mission-registry.js";
+
 const PLAN_KIND = "agentville-safe-plan";
 const MINTED_PLANS = new WeakSet();
 
-export const PLAN_VERSION = 2;
-
-export const PHASES = Object.freeze([
-  "observe",
-  "decide",
-  "act",
-  "verify",
-]);
-
-export const DECISION_BINDINGS = deepFreeze({
-  "decide water the tomatoes when the beds are dry": {
-    condition: "tomatoes dry",
-    selectedAction: "water tomatoes",
-  },
-  "decide clear the blockage when the water is blocked": {
-    condition: "irrigation blocked",
-    selectedAction: "clear blockage",
-  },
-});
-
-export const ALLOWED_COMMANDS = deepFreeze({
-  observe: ["observe the east channel"],
-  decide: Object.keys(DECISION_BINDINGS),
-  act: ["act on the decision"],
-  verify: ["verify every tomato bed is watered"],
-});
-
-const LABELS = Object.freeze({
-  "observe the east channel": "Observe the East Channel irrigation",
-  "decide water the tomatoes when the beds are dry":
-    "Choose direct watering for dry tomatoes",
-  "decide clear the blockage when the water is blocked":
-    "Choose blockage removal when flow is blocked",
-  "act on the decision": "Carry out the response chosen on line 2",
-  "verify every tomato bed is watered":
-    "Verify that all tomato beds are watered",
-});
+export const PLAN_VERSION = 3;
+export const PHASES = Object.freeze(["observe", "decide", "act", "verify"]);
 
 const COMMENT_MARKERS = Object.freeze([
   { pattern: /\/\//u, token: "//" },
@@ -53,33 +23,73 @@ const FORBIDDEN_PUNCTUATION = /(?:=>|[;{}()[\]`'"\\]|\$\{)/u;
 
 function deepFreeze(value) {
   if (value && typeof value === "object" && !Object.isFrozen(value)) {
-    for (const child of Object.values(value)) {
-      deepFreeze(child);
-    }
+    for (const child of Object.values(value)) deepFreeze(child);
     Object.freeze(value);
   }
-
   return value;
+}
+
+function resolveMission(options = {}) {
+  const missionId =
+    typeof options === "string"
+      ? options
+      : options?.missionId ?? DEFAULT_MISSION_ID;
+  return getMissionDefinition(missionId);
+}
+
+function projectAllowedCommands(mission) {
+  return deepFreeze(
+    Object.fromEntries(
+      PHASES.map((phase) => [phase, [...mission.language.commands[phase]]]),
+    ),
+  );
+}
+
+function projectDecisionBindings(mission) {
+  return deepFreeze(
+    Object.fromEntries(
+      Object.entries(mission.language.bindings).map(([command, binding]) => [
+        command,
+        {
+          condition: binding.conditionText,
+          conditionId: binding.conditionId,
+          selectedAction: binding.selectedAction,
+        },
+      ]),
+    ),
+  );
+}
+
+const DEFAULT_MISSION = resolveMission();
+
+// Compatibility projections for the original Mission 01 API. New code should
+// resolve the active mission through getLanguageContract().
+export const ALLOWED_COMMANDS = projectAllowedCommands(DEFAULT_MISSION);
+export const DECISION_BINDINGS = projectDecisionBindings(DEFAULT_MISSION);
+
+export function getLanguageContract(missionId = DEFAULT_MISSION_ID) {
+  const mission = getMissionDefinition(missionId);
+  return deepFreeze({
+    missionId: mission.id,
+    phases: PHASES,
+    allowedCommands: projectAllowedCommands(mission),
+    decisionBindings: projectDecisionBindings(mission),
+    labels: mission.language.labels,
+  });
 }
 
 function issue(line, code, message, suggestion) {
   return deepFreeze({ line, code, message, suggestion });
 }
 
-function expectedSuggestion(phase) {
-  const commands = ALLOWED_COMMANDS[phase];
-  if (commands.length === 1) {
-    return `Use exactly: ${commands[0]}`;
-  }
-
+function expectedSuggestion(mission, phase) {
+  const commands = mission.language.commands[phase];
+  if (commands.length === 1) return `Use exactly: ${commands[0]}`;
   return `Use exactly one of: ${commands.join(" | ")}`;
 }
 
 function normalizeSource(source) {
   const normalizedLineEndings = source.replace(/\r\n?/gu, "\n");
-
-  // A conventional final newline is not a fifth instruction. Additional
-  // trailing newlines remain visible and are rejected as extra blank lines.
   return normalizedLineEndings.endsWith("\n")
     ? normalizedLineEndings.slice(0, -1)
     : normalizedLineEndings;
@@ -129,7 +139,7 @@ function findUnsafeIssue(lineText, lineNumber) {
   return null;
 }
 
-function validateLine(lineText, index) {
+function validateLine(mission, lineText, index) {
   const lineNumber = index + 1;
   const expectedPhase = PHASES[index];
 
@@ -138,14 +148,12 @@ function validateLine(lineText, index) {
       lineNumber,
       "BLANK_LINE",
       `Line ${lineNumber} cannot be blank; it must be the ${expectedPhase} phase.`,
-      expectedSuggestion(expectedPhase),
+      expectedSuggestion(mission, expectedPhase),
     );
   }
 
   const unsafeIssue = findUnsafeIssue(lineText, lineNumber);
-  if (unsafeIssue) {
-    return unsafeIssue;
-  }
+  if (unsafeIssue) return unsafeIssue;
 
   const enteredPhase = lineText.split(" ", 1)[0];
   if (PHASES.includes(enteredPhase) && enteredPhase !== expectedPhase) {
@@ -153,7 +161,7 @@ function validateLine(lineText, index) {
       lineNumber,
       "PHASE_ORDER",
       `Line ${lineNumber} starts with ${enteredPhase}, but ${expectedPhase} must come next.`,
-      expectedSuggestion(expectedPhase),
+      expectedSuggestion(mission, expectedPhase),
     );
   }
 
@@ -162,11 +170,11 @@ function validateLine(lineText, index) {
       lineNumber,
       "UNKNOWN_PHASE",
       `“${enteredPhase || lineText}” is not an allowed phase.`,
-      `Start line ${lineNumber} with ${expectedPhase}. ${expectedSuggestion(expectedPhase)}`,
+      `Start line ${lineNumber} with ${expectedPhase}. ${expectedSuggestion(mission, expectedPhase)}`,
     );
   }
 
-  if (!ALLOWED_COMMANDS[expectedPhase].includes(lineText)) {
+  if (!mission.language.commands[expectedPhase].includes(lineText)) {
     const code =
       expectedPhase === "decide"
         ? "DECISION_NOT_ALLOWED"
@@ -175,69 +183,94 @@ function validateLine(lineText, index) {
           : "SYNTAX";
     const message =
       expectedPhase === "decide"
-        ? `“${lineText}” is not an allowlisted decision.`
+        ? `“${lineText}” is not an allowlisted decision for ${mission.name}.`
         : expectedPhase === "act"
-          ? `“${lineText}” is not the allowlisted execution instruction.`
-          : `Line ${lineNumber} does not match the ${expectedPhase} instruction.`;
-
+          ? `“${lineText}” is not the shared execution instruction.`
+          : `Line ${lineNumber} does not match the ${expectedPhase} instruction for ${mission.name}.`;
     return issue(
       lineNumber,
       code,
       message,
-      expectedSuggestion(expectedPhase),
+      expectedSuggestion(mission, expectedPhase),
     );
   }
 
   return null;
 }
 
-function buildPlan(source, lines) {
-  const steps = buildSteps(lines);
+function buildSteps(mission, lines) {
+  return lines.map((command, index) => ({
+    line: index + 1,
+    phase: PHASES[index],
+    command,
+    label: mission.language.labels[command],
+  }));
+}
 
+function buildBindings(mission, lines) {
+  const decision = mission.language.bindings[lines[1]];
+  return {
+    observe: {
+      line: 1,
+      command: lines[0],
+      observationId: lines[0],
+    },
+    decide: {
+      line: 2,
+      command: lines[1],
+      conditionId: decision.conditionId,
+      conditionText: decision.conditionText,
+      selectedAction: decision.selectedAction,
+    },
+    act: {
+      line: 3,
+      command: lines[2],
+    },
+    verify: {
+      line: 4,
+      command: lines[3],
+      verifyId: lines[3],
+    },
+  };
+}
+
+function legacyDecisionBinding(bindings) {
+  return {
+    decisionLine: bindings.decide.line,
+    decisionCommand: bindings.decide.command,
+    condition: bindings.decide.conditionText,
+    conditionId: bindings.decide.conditionId,
+    selectedAction: bindings.decide.selectedAction,
+    actLine: bindings.act.line,
+    actCommand: bindings.act.command,
+  };
+}
+
+function buildPlan(mission, source, lines) {
+  const bindings = buildBindings(mission, lines);
   const plan = deepFreeze({
     kind: PLAN_KIND,
     version: PLAN_VERSION,
+    missionId: mission.id,
+    missionVersion: 1,
     source,
-    steps,
-    binding: buildDecisionBinding(lines),
+    steps: buildSteps(mission, lines),
+    bindings,
+    binding: legacyDecisionBinding(bindings),
   });
   MINTED_PLANS.add(plan);
   return plan;
 }
 
-function buildDecisionBinding(lines) {
-  const decision = DECISION_BINDINGS[lines[1]];
-  return {
-    decisionLine: 2,
-    decisionCommand: lines[1],
-    condition: decision?.condition,
-    selectedAction: decision?.selectedAction,
-    actLine: 3,
-    actCommand: lines[2],
-  };
-}
-
-function buildSteps(lines) {
-  return lines.map((command, index) => ({
-    line: index + 1,
-    phase: PHASES[index],
-    command,
-    label: LABELS[command],
-  }));
-}
-
 /**
- * Validate an incomplete lesson program without creating an executable plan.
- * Prefix results are teaching records only; runMission accepts only the
- * four-line safe plan produced by compileProgram().
- *
- * @param {string} source Player-authored prefix containing one to four lines.
- * @returns {{ok: true, complete: boolean, acceptedCount: number, nextPhase: string|null, steps: object[]}|{ok: false, errors: object[]}}
+ * Validate an incomplete lesson program without minting an executable plan.
  */
-export function validateProgramPrefix(source) {
+export function validateProgramPrefix(source, options = {}) {
+  const mission = resolveMission(options);
   if (typeof source !== "string") {
     return deepFreeze({
       ok: false,
+      missionId: mission.id,
       errors: [
         issue(
           1,
@@ -265,7 +298,7 @@ export function validateProgramPrefix(source) {
   }
 
   for (let index = 0; index < Math.min(lines.length, PHASES.length); index += 1) {
-    const lineIssue = validateLine(lines[index], index);
+    const lineIssue = validateLine(mission, lines[index], index);
     if (lineIssue) errors.push(lineIssue);
   }
 
@@ -275,27 +308,29 @@ export function validateProgramPrefix(source) {
     if (unsafeIssue) errors.push(unsafeIssue);
   }
 
-  if (errors.length > 0) return deepFreeze({ ok: false, errors });
+  if (errors.length > 0) {
+    return deepFreeze({ ok: false, missionId: mission.id, errors });
+  }
 
   return deepFreeze({
     ok: true,
+    missionId: mission.id,
     complete: lines.length === PHASES.length,
     acceptedCount: lines.length,
     nextPhase: PHASES[lines.length] ?? null,
-    steps: buildSteps(lines),
+    steps: buildSteps(mission, lines),
   });
 }
 
 /**
  * Compile the four-line teaching language without evaluating player text.
- *
- * @param {string} source Player-authored program text.
- * @returns {{ok: true, plan: object}|{ok: false, errors: object[]}}
  */
-export function compileProgram(source) {
+export function compileProgram(source, options = {}) {
+  const mission = resolveMission(options);
   if (typeof source !== "string") {
     return deepFreeze({
       ok: false,
+      missionId: mission.id,
       errors: [
         issue(
           1,
@@ -314,76 +349,80 @@ export function compileProgram(source) {
   if (lines.length !== PHASES.length) {
     const offendingLine =
       lines.length > PHASES.length ? PHASES.length + 1 : lines.length + 1;
-    const missingOrExtra =
-      lines.length > PHASES.length
-        ? `The program has ${lines.length} lines; extra lines are not allowed.`
-        : `The program has ${lines.length} lines; all four phases are required.`;
     const expectedPhase = PHASES[Math.min(offendingLine - 1, PHASES.length - 1)];
-
     errors.push(
       issue(
         offendingLine,
         "LINE_COUNT",
-        missingOrExtra,
+        lines.length > PHASES.length
+          ? `The program has ${lines.length} lines; extra lines are not allowed.`
+          : `The program has ${lines.length} lines; all four phases are required.`,
         lines.length > PHASES.length
           ? "Remove every line after line 4."
-          : expectedSuggestion(expectedPhase),
+          : expectedSuggestion(mission, expectedPhase),
       ),
     );
   }
 
   for (let index = 0; index < Math.min(lines.length, PHASES.length); index += 1) {
-    const lineIssue = validateLine(lines[index], index);
-    if (lineIssue) {
-      errors.push(lineIssue);
-    }
+    const lineIssue = validateLine(mission, lines[index], index);
+    if (lineIssue) errors.push(lineIssue);
   }
 
-  // Inspect extra lines too, so a hidden comment or JavaScript payload gets a
-  // precise diagnostic rather than only a structural line-count error.
   for (let index = PHASES.length; index < lines.length; index += 1) {
-    if (lines[index].length === 0) {
-      continue;
-    }
-
+    if (lines[index].length === 0) continue;
     const unsafeIssue = findUnsafeIssue(lines[index], index + 1);
-    if (unsafeIssue) {
-      errors.push(unsafeIssue);
-    }
+    if (unsafeIssue) errors.push(unsafeIssue);
   }
 
   if (errors.length > 0) {
-    return deepFreeze({ ok: false, errors });
+    return deepFreeze({ ok: false, missionId: mission.id, errors });
   }
 
   return deepFreeze({
     ok: true,
-    plan: buildPlan(normalizedSource, lines),
+    missionId: mission.id,
+    plan: buildPlan(mission, normalizedSource, lines),
   });
 }
 
 export const compile = compileProgram;
 
-export function isSafePlan(plan) {
+export function isSafePlan(plan, options = {}) {
   if (
     !plan ||
     typeof plan !== "object" ||
     !MINTED_PLANS.has(plan) ||
     plan.kind !== PLAN_KIND ||
     plan.version !== PLAN_VERSION ||
+    plan.missionVersion !== 1 ||
+    typeof plan.missionId !== "string" ||
     typeof plan.source !== "string" ||
     !Array.isArray(plan.steps) ||
     plan.steps.length !== PHASES.length ||
-    !plan.binding ||
-    typeof plan.binding !== "object"
+    !plan.bindings ||
+    !plan.binding
   ) {
+    return false;
+  }
+
+  let mission;
+  try {
+    mission = getMissionDefinition(plan.missionId);
+  } catch {
+    return false;
+  }
+
+  const requestedMissionId =
+    typeof options === "string" ? options : options?.missionId;
+  if (requestedMissionId !== undefined && requestedMissionId !== mission.id) {
     return false;
   }
 
   const normalizedSource = normalizeSource(plan.source);
   if (normalizedSource !== plan.source) return false;
-  const sourceLines = normalizedSource.split("\n");
-  if (sourceLines.length !== PHASES.length) return false;
+  const lines = normalizedSource.split("\n");
+  if (lines.length !== PHASES.length) return false;
 
   const stepsAreSafe = plan.steps.every((step, index) => {
     const phase = PHASES[index];
@@ -391,21 +430,17 @@ export function isSafePlan(plan) {
       step &&
       step.line === index + 1 &&
       step.phase === phase &&
-      step.command === sourceLines[index] &&
-      ALLOWED_COMMANDS[phase].includes(step.command) &&
-      step.label === LABELS[step.command]
+      step.command === lines[index] &&
+      mission.language.commands[phase].includes(step.command) &&
+      step.label === mission.language.labels[step.command]
     );
   });
-
   if (!stepsAreSafe) return false;
 
-  const expectedBinding = buildDecisionBinding(sourceLines);
+  const expectedBindings = buildBindings(mission, lines);
+  const expectedLegacy = legacyDecisionBinding(expectedBindings);
   return (
-    plan.binding.decisionLine === expectedBinding.decisionLine &&
-    plan.binding.decisionCommand === expectedBinding.decisionCommand &&
-    plan.binding.condition === expectedBinding.condition &&
-    plan.binding.selectedAction === expectedBinding.selectedAction &&
-    plan.binding.actLine === expectedBinding.actLine &&
-    plan.binding.actCommand === expectedBinding.actCommand
+    JSON.stringify(plan.bindings) === JSON.stringify(expectedBindings) &&
+    JSON.stringify(plan.binding) === JSON.stringify(expectedLegacy)
   );
 }
